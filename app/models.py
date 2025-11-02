@@ -1,8 +1,6 @@
 # app/models.py
 from datetime import datetime
-from flask_sqlalchemy import SQLAlchemy
-
-db = SQLAlchemy()
+from . import db  # Import from __init__.py
 
 class Goal(db.Model):
     id = db.Column(db.Integer, primary_key=True)

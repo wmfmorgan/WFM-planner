@@ -1,6 +1,6 @@
 # app/routes.py
 from flask import Blueprint, render_template, request, jsonify
-from . import db
+from . import db  # Import from __init__.py
 from .models import Goal, Step
 from .forms import GoalForm
 
