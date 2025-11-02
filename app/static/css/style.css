@@ -1,8 +1,88 @@
+/* app/static/css/style.css — BLACK & WHITE HULK DOWN! */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+* {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
+}
+
 body {
-    font-family: 'Impact', sans-serif;
-    background: linear-gradient(135deg, #000, #330000);
+    background: #ffffff !important; /* Pure white */
+    color: #000000 !important; /* Pure black */
     min-height: 100vh;
 }
-h1, h3 {
-    text-shadow: 3px 3px 0px #ff0, -1px -1px 0 #f00;
+
+.navbar {
+    background: #000000 !important; /* Black nav */
+    border-bottom: 3px solid #000 !important;
 }
+
+.navbar-brand {
+    color: #ffffff !important; /* White text */
+    font-weight: 700;
+    font-size: 1.5rem;
+}
+
+.btn-warning {
+    background: #000 !important; /* Black buttons */
+    border: 2px solid #000 !important;
+    color: #fff !important;
+}
+
+.btn-warning:hover {
+    background: #fff !important;
+    color: #000 !important;
+}
+
+.card {
+    background: #ffffff !important; /* White cards */
+    border: 2px solid #000 !important;
+    color: #000000 !important;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1) !important;
+}
+
+.card-header {
+    background: #000000 !important; /* Black headers */
+    color: #ffffff !important;
+    border-bottom: 2px solid #000 !important;
+}
+
+.progress-bar {
+    background: #000000 !important; /* Black progress */
+}
+
+.form-control, .form-select {
+    background: #f8f9fa !important;
+    border: 1px solid #000 !important;
+    color: #000 !important;
+}
+
+.form-control:focus, .form-select:focus {
+    border-color: #000 !important;
+    box-shadow: 0 0 0 0.2rem rgba(0,0,0,0.1) !important;
+}
+
+.text-muted {
+    color: #666 !important;
+}
+
+h1, h2, h3, h5, h6 {
+    font-weight: 600;
+    color: #000 !important;
+}
+
+.display-3 {
+    font-weight: 700;
+    color: #000 !important;
+}
+
+/* Goal badges */
+.badge {
+    background: #000 !important;
+    color: #fff !important;
+}
+
+/* Borders for nesting */
+.border-info { border-color: #000 !important; }
+.border-success { border-color: #000 !important; }
+.border-warning { border-color: #000 !important; }
+.border-danger { border-color: #000 !important; }
