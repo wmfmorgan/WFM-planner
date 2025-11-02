@@ -1,11 +1,27 @@
+<!-- app/templates/index.html -->
 {% extends "base.html" %}
 
 {% block content %}
-<div class="text-center">
-    <h1 class="display-1 fw-bold text-warning">SMASH YOUR GOALS!</h1>
-    <p class="lead">A yearly planner for warriors. Train. Plan. DOMINATE.</p>
-    <hr class="bg-warning">
-    <h3>2025 IS YOUR YEAR, BROTHER!</h3>
-    <button class="btn btn-lg btn-warning text-dark mt-3">START PLANNING (Coming Soon)</button>
+<div class="text-center mt-5 pt-5">
+    <h1 class="display-1 fw-bold text-warning" 
+        style="text-shadow: 4px 4px 0 #f00, -2px -2px 0 #ff0;">
+        WFM PLANNER
+    </h1>
+    <p class="lead text-light mb-4">2025 IS YOUR YEAR TO DOMINATE!</p>
+    <hr class="bg-warning w-50 mx-auto">
+
+    <!-- HULKAMANIA CALL TO ACTION -->
+    <div class="mt-5">
+        <a href="{{ url_for('main.goals') }}" 
+           class="btn btn-lg btn-warning text-dark fw-bold px-5 py-3 shadow-lg"
+           style="font-size: 1.5rem; border: 3px solid #000;">
+            ENTER THE RING: GO TO GOALS
+        </a>
+    </div>
+
+    <div class="mt-5">
+        <p class="text-muted">Train. Plan. <strong class="text-warning">DOMINATE.</strong></p>
+        <p class="text-danger fw-bold">"WHATCHA GONNA DO WHEN WFM PLANNER RUNS WILD ON YOU?!"</p>
+    </div>
 </div>
 {% endblock %}
