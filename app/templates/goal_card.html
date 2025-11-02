@@ -28,7 +28,7 @@
                             <div class="form-check">
                                 <input class="form-check-input step-checkbox" type="checkbox" 
                                        {% if step.completed %}checked{% endif %}>
-                                <label class="form-check-label {{#if step.completed}}text-decoration-line-through text-muted{{/if}}">
+                                <label class="form-check-label {% if step.completed %}text-decoration-line-through text-muted{% endif %}">
                                     {{ step.title }}
                                     {% if step.due_date %} <small>({{ step.due_date.strftime('%m/%d') }})</small> {% endif %}
                                 </label>

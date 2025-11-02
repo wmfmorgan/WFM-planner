@@ -7,37 +7,40 @@
     </h1>
 
     <!-- Add Goal Form -->
-    <div class="card bg-dark border-warning mb-4">
-        <div class="card-body">
-            <form id="goalForm">
-                <div class="row g-3">
-                    <div class="col-md-6">
-                        <input type="text" class="form-control" placeholder="Goal Title" name="title" required>
-                    </div>
-                    <div class="col-md-3">
-                        <select class="form-select" name="type" required>
-                            <option value="">Goal Type</option>
-                            {% for val, label in form.type.choices %}
-                                <option value="{{ val }}">{{ label }}</option>
-                            {% endfor %}
-                        </select>
-                    </div>
-                    <div class="col-md-3">
-                        <button type="submit" class="btn btn-warning w-100">ADD GOAL</button>
-                    </div>
+<!-- app/templates/goals.html — REPLACE the <form> block -->
+<div class="card bg-dark border-warning mb-4">
+    <div class="card-body">
+        <form method="POST" action="{{ url_for('main.goals') }}">
+            {{ form.hidden_tag() }}
+            <div class="row g-3">
+                <div class="col-md-6">
+                    {{ form.title(class="form-control", placeholder="Goal Title") }}
                 </div>
-                <div class="mt-3">
-                    <textarea class="form-control" name="description" rows="3" placeholder="Describe your SMART goal..."></textarea>
-                    <textarea class="form-control mt-2" name="motivation" rows="2" placeholder="Why does this matter?"></textarea>
+                <div class="col-md-3">
+                    {{ form.type(class="form-select") }}
                 </div>
-            </form>
-        </div>
+                <div class="col-md-3">
+                    {{ form.submit(class="btn btn-warning w-100") }}
+                </div>
+            </div>
+            <div class="mt-3">
+                {{ form.description(class="form-control", rows=5, placeholder="Describe your SMART goal...") }}
+                <small class="text-muted">Tip: Make it SMART!</small>
+            </div>
+            <div class="mt-2">
+                {{ form.motivation(class="form-control", rows=2, placeholder="Why does this matter to you?") }}
+            </div>
+        </form>
     </div>
+</div>
 
     <!-- Goal Cards -->
+    <!-- Inside goals.html, replace the goals container -->
     <div id="goalsContainer" class="row">
         {% for goal in goals %}
-            {% include 'goal_card.html' %}
+            {% with goal=goal %}
+                {% include 'goal_card.html' %}
+            {% endwith %}
         {% endfor %}
     </div>
 </div>

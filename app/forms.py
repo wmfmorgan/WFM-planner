@@ -9,9 +9,21 @@ GOAL_TYPES = [
     ('Social', 'Social'), ('Financial', 'Financial')
 ]
 
+# SMART EXAMPLE TEXT
+SMART_EXAMPLE = (
+    "Specific, Measurable, Achievable, Relevant, Time-Bound: "
+    "By the end of 2025, I want to set my retirement savings to IRS annual limits ($23,000) "
+    "in increments of 5% each quarter so I hit the max by the end of 2025, "
+    "so that I have a comfortable retirement."
+)
+
 class GoalForm(FlaskForm):
     title = StringField('Goal Title', validators=[DataRequired()])
     type = SelectField('Goal Type', choices=GOAL_TYPES, validators=[DataRequired()])
-    description = TextAreaField('Goal Description', validators=[DataRequired()])
+    description = TextAreaField(
+        'Goal Description',
+        validators=[DataRequired()],
+        default=SMART_EXAMPLE  # DEFAULT TEXT HERE
+    )
     motivation = TextAreaField('Goal Motivation')
     submit = SubmitField('Save Goal')
