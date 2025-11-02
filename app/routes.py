@@ -19,7 +19,8 @@ def goals():
             title=form.title.data,
             type=form.type.data,
             description=form.description.data,
-            motivation=form.motivation.data
+            motivation=form.motivation.data,
+            due_date=form.due_date.data  # ← SAVE THE DATE!
         )
         db.session.add(goal)
         db.session.commit()
@@ -127,4 +128,50 @@ def quarter_page(year, q_num):
         quarterly_goals=quarterly_goals,
         prev_url=f"/quarter/{prev_year}/Q{prev_q}",
         next_url=f"/quarter/{next_year}/Q{next_q}"
+    )
+
+
+@bp.route('/year/<int:year>')
+def year_page(year):
+    # Validate year
+    if year < 2000 or year > 2100:
+        abort(404)
+
+    # Year start/end
+    y_start = datetime(year, 1, 1).date()
+    y_end = datetime(year, 12, 31).date()
+
+    # Annual goals (root goals with due_date in this year)
+    annual_goals = Goal.query.filter(
+        Goal.parent_id.is_(None),
+        (
+            (Goal.due_date >= y_start) &
+            (Goal.due_date <= y_end)
+            | (Goal.due_date.is_(None))
+        )
+    ).order_by(Goal.due_date.asc(), Goal.id).all()
+
+    # Build quarter calendar (Q1-Q4)
+    quarters = []
+    for q in range(1, 5):
+        q_start = datetime(year, (q-1)*3 + 1, 1).date()
+        q_end = q_start + relativedelta(months=3) - timedelta(days=1)
+        quarters.append({
+            'num': q,
+            'start': q_start,
+            'end': q_end,
+            'url': f"/quarter/{year}/Q{q}"
+        })
+
+    # Nav
+    prev_year = year - 1
+    next_year = year + 1
+
+    return render_template(
+        'year.html',
+        year=year,
+        annual_goals=annual_goals,
+        quarters=quarters,
+        prev_url=f"/year/{prev_year}",
+        next_url=f"/year/{next_year}"
     )

@@ -10,7 +10,8 @@
 <!-- app/templates/goals.html — REPLACE the <form> block -->
 <div class="card bg-dark border-warning mb-4">
     <div class="card-body">
-        <form method="POST" action="{{ url_for('main.goals') }}">
+        <!-- In the "Create Annual Goal" form -->
+        <form method="POST" class="mt-4">
             {{ form.hidden_tag() }}
             <div class="row g-3">
                 <div class="col-md-6">
@@ -20,16 +21,20 @@
                     {{ form.type(class="form-select") }}
                 </div>
                 <div class="col-md-3">
-                    {{ form.submit(class="btn btn-warning w-100") }}
+                    {{ form.submit(class="btn btn-dark w-100") }}
                 </div>
             </div>
             <div class="mt-3">
-                {{ form.description(class="form-control", rows=5, placeholder="Describe your SMART goal...") }}
-                <small class="text-muted">Tip: Make it SMART!</small>
+                {{ form.description(class="form-control", rows=3, placeholder="Goal description...") }}
             </div>
             <div class="mt-2">
-                {{ form.motivation(class="form-control", rows=2, placeholder="Why does this matter to you?") }}
+                {{ form.motivation(class="form-control", rows=2, placeholder="Why this goal?") }}
             </div>
+            <div class="mt-2">
+                {{ form.due_date(class="form-control", placeholder="Due Date (YYYY-MM-DD)") }}
+                <small class="text-muted">Optional: Set a target completion date</small>
+            </div>
+        </form>
         </form>
     </div>
 </div>

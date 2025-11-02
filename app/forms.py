@@ -1,6 +1,7 @@
 # app/forms.py
 from flask_wtf import FlaskForm
 from wtforms import StringField, SelectField, TextAreaField, SubmitField
+from wtforms import StringField, SelectField, TextAreaField, DateField, SubmitField  # ← ADDED DateField!
 from wtforms.validators import DataRequired
 
 GOAL_TYPES = [
@@ -28,4 +29,5 @@ class GoalForm(FlaskForm):
     ], validators=[DataRequired()])
     description = TextAreaField('Description', validators=[DataRequired()])
     motivation = TextAreaField('Motivation')
-    submit = SubmitField('Create Annual Goal')
+    due_date = DateField('Due Date (Optional)', format='%Y-%m-%d')  # ← NOW WORKS!
+    submit = SubmitField('Create Goal')

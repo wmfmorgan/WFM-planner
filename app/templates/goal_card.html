@@ -13,7 +13,7 @@
                         <span class="goal-title">{{ goal.title }}</span>
                         {% if goal.due_date %}
                             <small class="text-muted ms-2">
-                                ({{ goal.due_date.strftime('%b %d') }}{% if goal.level() == 'week' %} Mon{% endif %})
+                                Due: {{ goal.due_date.strftime('%b %d, %Y') }}
                             </small>
                         {% endif %}
                     </h6>

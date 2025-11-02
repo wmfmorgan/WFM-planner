@@ -1,0 +1,100 @@
+<!-- app/templates/year.html -->
+{% extends "base.html" %}
+{% block content %}
+<div class="container mt-4">
+    <!-- NAVIGATION -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <a href="{{ prev_url }}" class="btn btn-outline-dark">Previous Year</a>
+        <h1 class="display-5 fw-bold text-center">{{ year }}</h1>
+        <a href="{{ next_url }}" class="btn btn-outline-dark">Next Year</a>
+    </div>
+
+    <!-- QUARTER CALENDAR GRID -->
+    <div class="card border-dark mb-5">
+        <div class="card-header bg-dark text-white">
+            <h5 class="mb-0">Quarter Navigation</h5>
+        </div>
+        <div class="card-body">
+            <div class="row g-3 text-center">
+                {% for q in quarters %}
+                    <div class="col-3">
+                        <a href="{{ q.url }}" class="btn btn-lg btn-outline-dark w-100 p-4">
+                            <div class="fw-bold">Q{{ q.num }}</div>
+                            <small class="d-block text-muted">
+                                {{ q.start.strftime('%b') }} - {{ q.end.strftime('%b %Y') }}
+                            </small>
+                        </a>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <!-- PREP FOR THE YEAR -->
+    <div class="card border-dark mb-4">
+        <div class="card-header bg-dark text-white">
+            <h5 class="mb-0">Prep for the Year</h5>
+        </div>
+        <div class="card-body">
+            <textarea class="form-control" rows="5" placeholder="At the end of {{ year }}, what will my world look like? How will I get there?"></textarea>
+        </div>
+    </div>
+
+    <!-- ANNUAL GOAL CARDS -->
+    <h5 class="mb-3">Annual Goals</h5>
+    {% if annual_goals %}
+        <div class="row g-3">
+            {% for goal in annual_goals %}
+                <div class="col-md-6">
+                    <div class="card border-dark h-100">
+                        <div class="card-body">
+                            <h6 class="card-title fw-bold">{{ goal.title }}</h6>
+                            <p class="small text-muted">{{ goal.description }}</p>
+                            <div class="progress" style="height: 6px;">
+                                <div class="progress-bar bg-dark" style="width: {{ goal.progress() }}%"></div>
+                            </div>
+                            <small class="float-end">{{ goal.progress() }}%</small>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <p class="text-muted">No annual goals set for {{ year }}.</p>
+    {% endif %}
+
+    <!-- NOTES -->
+    <div class="card border-dark mt-5">
+        <div class="card-header bg-dark text-white">
+            <h5 class="mb-0">Yearly Notes</h5>
+        </div>
+        <div class="card-body">
+            <textarea class="form-control" rows="4" placeholder="Themes, blockers, ideas..."></textarea>
+        </div>
+    </div>
+
+    <!-- REVIEW -->
+    <div class="row mt-5">
+        <div class="col-md-6">
+            <div class="card border-success h-100">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0">Wins, Successes, Accomplishments</h5>
+                </div>
+                <div class="card-body">
+                    <textarea class="form-control" rows="4" placeholder="What crushed it this year?"></textarea>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card border-warning h-100">
+                <div class="card-header bg-warning text-dark">
+                    <h5 class="mb-0">Areas to Improve</h5>
+                </div>
+                <div class="card-body">
+                    <textarea class="form-control" rows="4" placeholder="What to level up next year?"></textarea>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
