@@ -1,0 +1,44 @@
+<!-- app/templates/goals.html -->
+{% extends "base.html" %}
+{% block content %}
+<div class="container mt-5">
+    <h1 class="display-3 text-center text-warning mb-5 fw-bold" style="text-shadow: 3px 3px 0 #f00;">
+        GOALS
+    </h1>
+
+    <!-- Add Goal Form -->
+    <div class="card bg-dark border-warning mb-4">
+        <div class="card-body">
+            <form id="goalForm">
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <input type="text" class="form-control" placeholder="Goal Title" name="title" required>
+                    </div>
+                    <div class="col-md-3">
+                        <select class="form-select" name="type" required>
+                            <option value="">Goal Type</option>
+                            {% for val, label in form.type.choices %}
+                                <option value="{{ val }}">{{ label }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <button type="submit" class="btn btn-warning w-100">ADD GOAL</button>
+                    </div>
+                </div>
+                <div class="mt-3">
+                    <textarea class="form-control" name="description" rows="3" placeholder="Describe your SMART goal..."></textarea>
+                    <textarea class="form-control mt-2" name="motivation" rows="2" placeholder="Why does this matter?"></textarea>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Goal Cards -->
+    <div id="goalsContainer" class="row">
+        {% for goal in goals %}
+            {% include 'goal_card.html' %}
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}
