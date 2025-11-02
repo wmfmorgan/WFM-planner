@@ -27,21 +27,52 @@ def goals():
     goals = Goal.query.all()
     return render_template('goals.html', goals=goals, form=form)
 
+# app/routes.py
+from datetime import datetime
+from .models import Step
+
 @bp.route('/api/goal/<int:goal_id>/step', methods=['POST'])
 def add_step(goal_id):
     data = request.json
+    title = data['title']
+    due_date_str = data.get('due_date')
+    user_type = data.get('step_type', 'day')  # ← User override
+
+    # Convert date string
+    due_date = None
+    if due_date_str:
+        try:
+            due_date = datetime.strptime(due_date_str, '%Y-%m-%d').date()
+        except ValueError:
+            return jsonify({'status': 'error', 'message': 'Invalid date'}), 400
+
+    # === FINAL TYPE: User override wins ===
+    final_type = user_type if user_type != 'auto' else 'day'
+    if due_date and user_type == 'auto':
+        final_type = get_step_type(due_date)  # Auto-detect
+
     step = Step(
-        title=data['title'],
-        due_date=data.get('due_date'),
-        goal_id=goal_id
+        title=title,
+        due_date=due_date,
+        goal_id=goal_id,
+        _type=final_type  # ← Set directly
     )
     db.session.add(step)
     db.session.commit()
-    return jsonify({'status': 'success', 'step_id': step.id})
+
+    return jsonify({
+        'status': 'success',
+        'step_id': step.id,
+        'step_type': step.step_type
+    })
 
 @bp.route('/api/step/<int:step_id>/toggle', methods=['POST'])
 def toggle_step(step_id):
     step = Step.query.get_or_404(step_id)
     step.completed = not step.completed
     db.session.commit()
-    return jsonify({'status': 'success', 'completed': step.completed, 'progress': step.goal.progress()})
+    return jsonify({
+        'status': 'success',
+        'completed': step.completed,
+        'progress': step.goal.progress()
+    })

@@ -20,27 +20,72 @@
             </div>
 
             <!-- Steps -->
+            <!-- app/templates/goal_card.html — Replace <div class="steps-container"> -->
             <div class="steps-container">
-                <h6>Nested Steps:</h6>
-                <ul class="list-group list-group-flush">
-                    {% for step in goal.steps %}
-                        <li class="list-group-item bg-dark step-item" data-step-id="{{ step.id }}">
-                            <div class="form-check">
-                                <input class="form-check-input step-checkbox" type="checkbox" 
-                                       {% if step.completed %}checked{% endif %}>
-                                <label class="form-check-label {% if step.completed %}text-decoration-line-through text-muted{% endif %}">
-                                    {{ step.title }}
-                                    {% if step.due_date %} <small>({{ step.due_date.strftime('%m/%d') }})</small> {% endif %}
-                                </label>
-                            </div>
-                        </li>
+                <h6 class="text-warning">Progress by Level:</h6>
+                <div class="row text-center mb-3">
+                    <div class="col">
+                        <small>Quarter</small><br>
+                        <div class="progress" style="height: 8px;"><div class="progress-bar bg-info" style="width: {{ goal.progress_by_type('quarter') }}%"></div></div>
+                    </div>
+                    <div class="col">
+                        <small>Month</small><br>
+                        <div class="progress" style="height: 8px;"><div class="progress-bar bg-success" style="width: {{ goal.progress_by_type('month') }}%"></div></div>
+                    </div>
+                    <div class="col">
+                        <small>Week</small><br>
+                        <div class="progress" style="height: 8px;"><div class="progress-bar bg-warning" style="width: {{ goal.progress_by_type('week') }}%"></div></div>
+                    </div>
+                    <div class="col">
+                        <small>Day</small><br>
+                        <div class="progress" style="height: 8px;"><div class="progress-bar bg-danger" style="width: {{ goal.progress_by_type('day') }}%"></div></div>
+                    </div>
+                </div>
+
+                <div class="nested-steps">
+                    {% for quarter, months in goal.nested_steps().items() %}
+                        <div class="mb-3 p-2 border border-info rounded">
+                            <h6 class="text-info mb-1">Q{{ ((quarter.month-1)//3)+1 }}: {{ quarter.strftime('%B %Y') }}</h6>
+                            {% for month, weeks in months.items() %}
+                                <div class="ms-3 mb-2 p-2 border border-success rounded">
+                                    <h6 class="text-success mb-1">{{ month.strftime('%B') }}</h6>
+                                    {% for week, days in weeks.items() %}
+                                        <div class="ms-3 mb-1 p-1 border border-warning rounded">
+                                            <small class="text-warning">Week of {{ week.strftime('%m/%d') }}</small>
+                                            <ul class="list-group list-group-flush">
+                                                {% for step in days %}
+                                                    <li class="list-group-item bg-dark p-1 step-item" data-step-id="{{ step.id }}">
+                                                        <div class="form-check form-check-inline">
+                                                            <input class="form-check-input step-checkbox" type="checkbox" {% if step.completed %}checked{% endif %}>
+                                                            <label class="form-check-label small {% if step.completed %}text-decoration-line-through text-muted{% endif %}">
+                                                                {{ step.title }}
+                                                            </label>
+                                                        </div>
+                                                    </li>
+                                                {% endfor %}
+                                            </ul>
+                                        </div>
+                                    {% endfor %}
+                                </div>
+                            {% endfor %}
+                        </div>
                     {% else %}
-                        <li class="text-muted">No steps yet. Add one!</li>
+                        <p class="text-muted">Add dated steps to see the hierarchy!</p>
                     {% endfor %}
-                </ul>
-                <div class="input-group mt-2">
+                </div>
+
+                <!-- Add Step -->
+                <!-- app/templates/goal_card.html — Replace Add Step section -->
+                <div class="input-group mt-3">
                     <input type="text" class="form-control form-control-sm new-step" placeholder="New step...">
-                    <input type="date" class="form-control form-control-sm" style="width: 120px;">
+                    <input type="date" class="form-control form-control-sm date-input" style="width: 130px;">
+                    <select class="form-select form-select-sm type-select" style="width: 110px;">
+                        <option value="auto">Auto</option>
+                        <option value="quarter">Quarter</option>
+                        <option value="month">Month</option>
+                        <option value="week">Week</option>
+                        <option value="day">Day</option>
+                    </select>
                     <button class="btn btn-sm btn-outline-warning add-step">Add</button>
                 </div>
             </div>
