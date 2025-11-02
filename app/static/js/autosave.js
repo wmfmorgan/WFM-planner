@@ -18,25 +18,27 @@ document.addEventListener('DOMContentLoaded', function () {
             .then(res => res.json())
             .then(data => {
                 if (data.status === 'success') {
-                    showToast('Goal added! SMASH!', 'success');
+                    showToast('Goal added successfully!', 'success');
                     location.reload();
                 } else {
-                    showToast('Error saving goal!', 'danger');
+                    showToast('Error saving goal.', 'danger');
                 }
             })
             .catch(err => {
                 console.error('Goal save error:', err);
-                showToast('Network error. Check connection!', 'danger');
+                showToast('Network error. Try again.', 'danger');
             });
         });
     }
 
     // ========================================
-    // 2. ADD STEP WITH TYPE + DATE LOGIC
+    // 2. ADD STEP
     // ========================================
     goalsContainer.addEventListener('click', function (e) {
         if (e.target.classList.contains('add-step')) {
-            const card = e.target.closest('[data-goal-id']);
+            console.log('ADD STEP BUTTON CLICKED!'); // ← DEBUG LOG
+
+            const card = e.target.closest('[data-goal-id]');
             if (!card) return;
 
             const goalId = card.dataset.goalId;
@@ -49,21 +51,20 @@ document.addEventListener('DOMContentLoaded', function () {
             const selected_type = typeSelect.value;
 
             if (!title) {
-                showToast('Step title required!', 'warning');
+                showToast('Step title is required.', 'warning');
                 titleInput.focus();
                 return;
             }
 
-            // === DETERMINE FINAL STEP TYPE ===
+            // Determine final step type
             let step_type = 'day';
-            if (selected_type !== 'auto' && selected_type) {
+            if (selected_type !== 'auto') {
                 step_type = selected_type;
             } else if (due_date) {
-                // Auto-detect from date
                 const date = new Date(due_date);
                 const day = date.getDate();
-                const month = date.getMonth() + 1;  // JS months are 0-indexed
-                const weekday = date.getDay();      // 0=Sun, 1=Mon
+                const month = date.getMonth() + 1;
+                const weekday = date.getDay();
 
                 if (day === 1 && [1, 4, 7, 10].includes(month)) {
                     step_type = 'quarter';
@@ -71,58 +72,52 @@ document.addEventListener('DOMContentLoaded', function () {
                     step_type = 'month';
                 } else if (weekday === 1) {
                     step_type = 'week';
-                } else {
-                    step_type = 'day';
                 }
             }
 
             fetch(`/api/goal/${goalId}/step`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ 
-                    title, 
-                    due_date, 
-                    step_type  // ← SEND FINAL TYPE
-                })
+                body: JSON.stringify({ title, due_date, step_type })
             })
             .then(res => {
-                if (!res.ok) throw new Error(`HTTP ${res.status}`);
+                if (!res.ok) {
+                    return res.json().then(err => { throw err; });
+                }
                 return res.json();
             })
             .then(data => {
-                showToast(`Step added: ${data.step_type.toUpperCase()}!`, 'success');
-                titleInput.value = '';
-                dateInput.value = '';
-                typeSelect.value = 'auto';  // Reset to Auto
-                location.reload();
+                if (data.status === 'success') {
+                    showToast(`Step added: ${data.step_type.toUpperCase()}`, 'success');
+                    titleInput.value = '';
+                    dateInput.value = '';
+                    typeSelect.value = 'auto';
+                    setTimeout(() => location.reload(), 300);
+                }
             })
             .catch(err => {
-                console.error('Step add error:', err);
-                showToast('Failed to add step!', 'danger');
+                console.error('Step add failed:', err);
+                showToast(err.message || 'Failed to add step.', 'danger');
             });
         }
     });
 
     // ========================================
-    // 3. TOGGLE STEP COMPLETION
+    // 3. TOGGLE STEP
     // ========================================
     goalsContainer.addEventListener('change', function (e) {
         if (e.target.classList.contains('step-checkbox')) {
-            const stepItem = e.target.closest('.step-item');
-            const stepId = stepItem.dataset.stepId;
+            const stepId = e.target.closest('.step-item').dataset.stepId;
             const card = e.target.closest('[data-goal-id]');
             const progressBar = card.querySelector('.progress-bar');
 
-            fetch(`/api/step/${stepId}/toggle`, {
-                method: 'POST'
-            })
-            .then(res => res.json())
-            .then(data => {
-                if (data.status === 'success') {
+            fetch(`/api/step/${stepId}/toggle`, { method: 'POST' })
+                .then(res => res.json())
+                .then(data => {
                     progressBar.style.width = data.progress + '%';
                     progressBar.textContent = data.progress + '%';
 
-                    const label = stepItem.querySelector('.form-check-label');
+                    const label = e.target.closest('.form-check').querySelector('.form-check-label');
                     if (data.completed) {
                         label.classList.add('text-decoration-line-through', 'text-muted');
                     } else {
@@ -130,25 +125,22 @@ document.addEventListener('DOMContentLoaded', function () {
                     }
 
                     showToast(data.completed ? 'Step completed!' : 'Step reopened!', 'info');
-                }
-            })
-            .catch(err => {
-                console.error('Toggle error:', err);
-                e.target.checked = !e.target.checked;
-                showToast('Failed to update step!', 'danger');
-            });
+                })
+                .catch(err => {
+                    console.error('Toggle error:', err);
+                    e.target.checked = !e.target.checked;
+                    showToast('Failed to update step.', 'danger');
+                });
         }
     });
 
     // ========================================
-    // 4. BONUS: AUTO-FILL TYPE WHEN DATE CHANGES
+    // 4. AUTO-FILL TYPE ON DATE CHANGE
     // ========================================
     goalsContainer.addEventListener('change', function (e) {
         if (e.target.classList.contains('date-input')) {
             const dateInput = e.target;
             const typeSelect = dateInput.closest('.input-group').querySelector('.type-select');
-            
-            // Only auto-fill if currently set to 'auto'
             if (typeSelect.value !== 'auto') return;
 
             const dateStr = dateInput.value;
@@ -163,13 +155,9 @@ document.addEventListener('DOMContentLoaded', function () {
             const weekday = date.getDay();
 
             let detected = 'day';
-            if (day === 1 && [1, 4, 7, 10].includes(month)) {
-                detected = 'quarter';
-            } else if (day === 1) {
-                detected = 'month';
-            } else if (weekday === 1) {
-                detected = 'week';
-            }
+            if (day === 1 && [1, 4, 7, 10].includes(month)) detected = 'quarter';
+            else if (day === 1) detected = 'month';
+            else if (weekday === 1) detected = 'week';
 
             typeSelect.value = detected;
         }
@@ -187,7 +175,7 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 
     // ========================================
-    // 6. TOAST NOTIFICATIONS
+    // 6. TOAST FUNCTION
     // ========================================
     function showToast(message, type = 'info') {
         const toast = document.createElement('div');
@@ -202,11 +190,10 @@ document.addEventListener('DOMContentLoaded', function () {
             </div>
         `;
         document.body.appendChild(toast);
-
         const bsToast = new bootstrap.Toast(toast, { delay: 3000 });
         bsToast.show();
         toast.addEventListener('hidden.bs.toast', () => toast.remove());
     }
 
-    console.log('AUTOSAVE.JS LOADED — WFM PLANNER IS RUNNING WILD!');
+    console.log('AUTOSAVE.JS LOADED — READY TO DOMINATE!');
 });

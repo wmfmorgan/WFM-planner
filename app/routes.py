@@ -1,8 +1,9 @@
 # app/routes.py
 from flask import Blueprint, render_template, request, jsonify
-from . import db  # Import from __init__.py
+from . import db
 from .models import Goal, Step
 from .forms import GoalForm
+from datetime import datetime
 
 bp = Blueprint('main', __name__)
 
@@ -23,22 +24,19 @@ def goals():
         db.session.add(goal)
         db.session.commit()
         return jsonify({'status': 'success', 'goal_id': goal.id})
-
     goals = Goal.query.all()
     return render_template('goals.html', goals=goals, form=form)
-
-# app/routes.py
-from datetime import datetime
-from .models import Step
 
 @bp.route('/api/goal/<int:goal_id>/step', methods=['POST'])
 def add_step(goal_id):
     data = request.json
-    title = data['title']
+    title = data.get('title')
     due_date_str = data.get('due_date')
-    user_type = data.get('step_type', 'day')  # ← User override
+    step_type = data.get('step_type', 'auto')
 
-    # Convert date string
+    if not title:
+        return jsonify({'status': 'error', 'message': 'Title required'}), 400
+
     due_date = None
     if due_date_str:
         try:
@@ -46,19 +44,10 @@ def add_step(goal_id):
         except ValueError:
             return jsonify({'status': 'error', 'message': 'Invalid date'}), 400
 
-    # === FINAL TYPE: User override wins ===
-    final_type = user_type if user_type != 'auto' else 'day'
-    if due_date and user_type == 'auto':
-        final_type = get_step_type(due_date)  # Auto-detect
-
-    step = Step(
-        title=title,
-        due_date=due_date,
-        goal_id=goal_id,
-        _type=final_type  # ← Set directly
-    )
-    db.session.add(step)
-    db.session.commit()
+    step = Step(title=title, due_date=due_date, goal_id=goal_id)
+    if step_type != 'auto':
+        step._type = step_type
+    step.save()
 
     return jsonify({
         'status': 'success',
