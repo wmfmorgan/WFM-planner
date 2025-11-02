@@ -19,11 +19,13 @@ SMART_EXAMPLE = (
 
 class GoalForm(FlaskForm):
     title = StringField('Goal Title', validators=[DataRequired()])
-    type = SelectField('Goal Type', choices=GOAL_TYPES, validators=[DataRequired()])
-    description = TextAreaField(
-        'Goal Description',
-        validators=[DataRequired()],
-        default=SMART_EXAMPLE  # DEFAULT TEXT HERE
-    )
-    motivation = TextAreaField('Goal Motivation')
-    submit = SubmitField('Save Goal')
+    type = SelectField('Goal Type', choices=[
+        ('annual', 'Annual'),
+        ('quarter', 'Quarter'),
+        ('month', 'Month'),
+        ('week', 'Week'),
+        ('day', 'Day')
+    ], validators=[DataRequired()])
+    description = TextAreaField('Description', validators=[DataRequired()])
+    motivation = TextAreaField('Motivation')
+    submit = SubmitField('Create Annual Goal')

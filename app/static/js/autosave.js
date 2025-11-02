@@ -307,6 +307,26 @@ document.addEventListener('DOMContentLoaded', function () {
         setTimeout(() => location.reload(), 300);
     }
 
+        goalsContainer.addEventListener('click', function (e) {
+        if (e.target.classList.contains('add-subgoal')) {
+            const parentId = e.target.dataset.parentId;
+            const title = prompt('Sub-goal title:');
+            if (!title) return;
+
+            const due_date = prompt('Due date (YYYY-MM-DD):') || null;
+
+            fetch(`/api/goal/${parentId}/subgoal`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ title, due_date })
+            })
+            .then(() => {
+                showToast('Sub-goal added!');
+                location.reload();
+            });
+        }
+    });
+    
     console.log('AUTOSAVE.JS LOADED — READY TO DOMINATE!');
 
 });
