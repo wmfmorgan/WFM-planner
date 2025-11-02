@@ -195,5 +195,118 @@ document.addEventListener('DOMContentLoaded', function () {
         toast.addEventListener('hidden.bs.toast', () => toast.remove());
     }
 
+    // ========================================
+    // DELETE GOAL
+    // ========================================
+    goalsContainer.addEventListener('click', function (e) {
+        if (e.target.classList.contains('delete-goal')) {
+            const card = e.target.closest('[data-goal-id]');
+            const goalId = card.dataset.goalId;
+            if (!confirm('Delete this goal and all steps?')) return;
+
+            fetch(`/api/goal/${goalId}`, { method: 'DELETE' })
+                .then(res => res.json())
+                .then(() => {
+                    showToast('Goal deleted!', 'danger');
+                    card.remove();
+                })
+                .catch(() => showToast('Failed to delete goal.', 'danger'));
+        }
+    });
+
+    // ========================================
+    // EDIT GOAL
+    // ========================================
+    goalsContainer.addEventListener('click', function (e) {
+        if (e.target.classList.contains('edit-goal')) {
+            const card = e.target.closest('[data-goal-id]');
+            const goalId = card.dataset.goalId;
+            const titleSpan = card.querySelector('.goal-title');
+            const currentTitle = titleSpan.textContent.trim();
+
+            const newTitle = prompt('Edit goal title:', currentTitle);
+            if (!newTitle || newTitle === currentTitle) return;
+
+            fetch(`/api/goal/${goalId}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ title: newTitle })
+            })
+            .then(() => {
+                titleSpan.textContent = newTitle;
+                showToast('Goal updated!', 'success');
+            })
+            .catch(() => showToast('Failed to update.', 'danger'));
+        }
+    });
+
+    // ========================================
+    // DELETE STEP — FIXED!
+    // ========================================
+    goalsContainer.addEventListener('click', function (e) {
+        if (e.target.classList.contains('delete-step')) {
+            const stepItem = e.target.closest('.step-item');
+            const stepId = stepItem.dataset.stepId;
+            const card = stepItem.closest('[data-goal-id]');
+
+            if (!confirm('Delete this step?')) return;
+
+            fetch(`/api/step/${stepId}`, { 
+                method: 'DELETE' 
+            })
+            .then(res => {
+                if (!res.ok) {
+                    // Only throw if server error
+                    return res.json().then(err => { throw err; });
+                }
+                return res.json();
+            })
+            .then(data => {
+                showToast('Step deleted!', 'danger');
+                stepItem.remove();
+                updateProgress(card);
+            })
+            .catch(err => {
+                console.error('Delete error:', err);
+                showToast(err.message || 'Failed to delete step.', 'danger');
+            });
+        }
+    });
+
+    // ========================================
+    // EDIT STEP
+    // ========================================
+    goalsContainer.addEventListener('click', function (e) {
+        if (e.target.classList.contains('edit-step')) {
+            const stepItem = e.target.closest('.step-item');
+            const stepId = stepItem.dataset.stepId;
+            const titleSpan = stepItem.querySelector('.step-title');
+            const currentTitle = titleSpan.textContent.trim();
+
+            const newTitle = prompt('Edit step:', currentTitle);
+            if (!newTitle || newTitle === currentTitle) return;
+
+            fetch(`/api/step/${stepId}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ title: newTitle })
+            })
+            .then(() => {
+                titleSpan.textContent = newTitle;
+                showToast('Step updated!', 'success');
+            })
+            .catch(() => showToast('Failed to update.', 'danger'));
+        }
+    });
+
+    // ========================================
+    // UPDATE PROGRESS AFTER STEP DELETE
+    // ========================================
+    function updateProgress(card) {
+        // Simple: Reload to recalculate nested progress & progress bars
+        setTimeout(() => location.reload(), 300);
+    }
+
     console.log('AUTOSAVE.JS LOADED — READY TO DOMINATE!');
+
 });

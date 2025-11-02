@@ -65,3 +65,59 @@ def toggle_step(step_id):
         'completed': step.completed,
         'progress': step.goal.progress()
     })
+
+
+# app/routes.py — ADD THESE ROUTES
+
+@bp.route('/api/goal/<int:goal_id>', methods=['DELETE'])
+def delete_goal(goal_id):
+    goal = Goal.query.get_or_404(goal_id)
+    db.session.delete(goal)
+    db.session.commit()
+    return jsonify({'status': 'success', 'message': 'Goal deleted'})
+
+@bp.route('/api/goal/<int:goal_id>', methods=['PUT'])
+def edit_goal(goal_id):
+    goal = Goal.query.get_or_404(goal_id)
+    data = request.json
+    goal.title = data.get('title', goal.title)
+    goal.type = data.get('type', goal.type)
+    goal.description = data.get('description', goal.description)
+    goal.motivation = data.get('motivation', goal.motivation)
+    db.session.commit()
+    return jsonify({'status': 'success'})
+
+# app/routes.py
+@bp.route('/api/step/<int:step_id>', methods=['DELETE'])
+def delete_step(step_id):
+    step = Step.query.get_or_404(step_id)
+    db.session.delete(step)
+    db.session.commit()
+    return jsonify({'status': 'success', 'message': 'Step deleted'}), 200
+
+@bp.route('/api/step/<int:step_id>', methods=['PUT'])
+def edit_step(step_id):
+    step = Step.query.get_or_404(step_id)
+    data = request.json
+    step.title = data.get('title', step.title)
+    due_date_str = data.get('due_date')
+    step_type = data.get('step_type', 'auto')
+
+    if due_date_str:
+        try:
+            step.due_date = datetime.strptime(due_date_str, '%Y-%m-%d').date()
+        except:
+            step.due_date = None
+    else:
+        step.due_date = None
+
+    if step_type != 'auto':
+        step._type = step_type
+    else:
+        step._type = get_step_type(step.due_date) if step.due_date else 'day'
+
+    db.session.commit()
+    return jsonify({
+        'status': 'success',
+        'step_type': step.step_type
+    })

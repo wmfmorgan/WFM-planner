@@ -1,9 +1,15 @@
 <!-- app/templates/goal_card.html -->
 <div class="col-md-6 mb-4">
     <div class="card bg-secondary text-white border-warning shadow-lg h-100" data-goal-id="{{ goal.id }}">
-        <div class="card-header bg-warning text-dark d-flex justify-content-between align-items-center">
-            <h5 class="mb-0">{{ goal.title }}</h5>
-            <span class="badge bg-dark">{{ goal.type }}</span>
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">
+                <span class="goal-title">{{ goal.title }}</span>
+                <small class="badge bg-dark ms-2">{{ goal.type }}</small>
+            </h5>
+            <div>
+                <button class="btn btn-sm btn-outline-dark edit-goal" title="Edit Goal">Edit</button>
+                <button class="btn btn-sm btn-outline-danger delete-goal" title="Delete Goal">Delete</button>
+            </div>
         </div>
         <div class="card-body">
             <p><strong>Description:</strong> {{ goal.description }}</p>
@@ -54,14 +60,20 @@
                                             <small class="text-warning">Week of {{ week.strftime('%m/%d') }}</small>
                                             <ul class="list-group list-group-flush">
                                                 {% for step in days %}
-                                                    <li class="list-group-item bg-dark p-1 step-item" data-step-id="{{ step.id }}">
-                                                        <div class="form-check form-check-inline">
-                                                            <input class="form-check-input step-checkbox" type="checkbox" {% if step.completed %}checked{% endif %}>
-                                                            <label class="form-check-label small {% if step.completed %}text-decoration-line-through text-muted{% endif %}">
-                                                                {{ step.title }}
-                                                            </label>
-                                                        </div>
-                                                    </li>
+                                                <li class="list-group-item p-1 step-item d-flex justify-content-between align-items-center" data-step-id="{{ step.id }}">
+                                                    <div class="form-check form-check-inline flex-grow-1">
+                                                        <input class="form-check-input step-checkbox" type="checkbox" {% if step.completed %}checked{% endif %}>
+                                                        <label class="form-check-label small {% if step.completed %}text-decoration-line-through text-muted{% endif %}">
+                                                            <span class="step-title">{{ step.title }}</span>
+                                                            {% if step.due_date %} <small class="text-muted">({{ step.due_date.strftime('%m/%d') }})</small>{% endif %}
+                                                            <small class="badge bg-secondary ms-1">{{ step.step_type }}</small>
+                                                        </label>
+                                                    </div>
+                                                    <div>
+                                                        <button class="btn btn-sm btn-outline-dark edit-step" title="Edit Step">Edit</button>
+                                                        <button class="btn btn-sm btn-outline-danger delete-step" title="Delete Step">Delete</button>
+                                                    </div>
+                                                </li>
                                                 {% endfor %}
                                             </ul>
                                         </div>
