@@ -1,0 +1,79 @@
+<!-- app/templates/quarter.html -->
+{% extends "base.html" %}
+{% block content %}
+<div class="container mt-4">
+    <!-- NAVIGATION -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <a href="{{ prev_url }}" class="btn btn-outline-dark">Previous Quarter</a>
+        <h1 class="display-5 fw-bold text-center">{{ title }}</h1>
+        <a href="{{ next_url }}" class="btn btn-outline-dark">Next Quarter</a>
+    </div>
+
+    <!-- PREP FOR THE QUARTER -->
+    <div class="card border-dark mb-4">
+        <div class="card-header bg-dark text-white">
+            <h5 class="mb-0">Prep for the Quarter</h5>
+        </div>
+        <div class="card-body">
+            <textarea class="form-control" rows="5" placeholder="At the end of this quarter, what will my world look like? How will I get to this state?"></textarea>
+        </div>
+    </div>
+
+    <!-- QUARTERLY GOAL CARDS -->
+    <h5 class="mb-3">Quarterly Goals</h5>
+    {% if quarterly_goals %}
+        <div class="row g-3">
+            {% for goal in quarterly_goals %}
+                <div class="col-md-6">
+                    <div class="card border-dark h-100">
+                        <div class="card-body">
+                            <h6 class="card-title fw-bold">{{ goal.title }}</h6>
+                            <p class="small text-muted">{{ goal.description }}</p>
+                            <div class="progress" style="height: 6px;">
+                                <div class="progress-bar bg-dark" style="width: {{ goal.progress() }}%"></div>
+                            </div>
+                            <small class="float-end">{{ goal.progress() }}%</small>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <p class="text-muted">No quarterly goals set.</p>
+    {% endif %}
+
+    <!-- NOTES -->
+    <div class="card border-dark mt-5">
+        <div class="card-header bg-dark text-white">
+            <h5 class="mb-0">Notes</h5>
+        </div>
+        <div class="card-body">
+            <textarea class="form-control" rows="4" placeholder="Jot down thoughts, ideas, blockers..."></textarea>
+        </div>
+    </div>
+
+    <!-- REVIEW -->
+    <div class="row mt-5">
+        <div class="col-md-6">
+            <div class="card border-success h-100">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0">Wins, Successes, Accomplishments</h5>
+                </div>
+                <div class="card-body">
+                    <textarea class="form-control" rows="4" placeholder="What went well?"></textarea>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card border-warning h-100">
+                <div class="card-header bg-warning text-dark">
+                    <h5 class="mb-0">Areas to Improve</h5>
+                </div>
+                <div class="card-body">
+                    <textarea class="form-control" rows="4" placeholder="What could be better?"></textarea>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

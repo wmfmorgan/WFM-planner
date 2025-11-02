@@ -1,9 +1,9 @@
-# app/routes.py
-from flask import Blueprint, render_template, request, jsonify
+from flask import Blueprint, render_template, request, jsonify, abort
 from . import db
 from .models import Goal
 from .forms import GoalForm
-from datetime import datetime
+from datetime import datetime, timedelta
+from dateutil.relativedelta import relativedelta
 
 bp = Blueprint('main', __name__)
 
@@ -93,3 +93,38 @@ def edit_goal(goal_id):
             goal.due_date = None
     db.session.commit()
     return jsonify({'status': 'success'})
+
+@bp.route('/quarter/<int:year>/Q<int:q_num>')
+def quarter_page(year, q_num):
+    if q_num not in [1, 2, 3, 4]:
+        abort(404)
+
+    # Calculate quarter start/end
+    start_month = (q_num - 1) * 3 + 1
+    q_start = datetime(year, start_month, 1).date()  # ← Already a date
+    q_end = q_start + relativedelta(months=3) - timedelta(days=1)  # ← REMOVE .date()
+
+    # Filter quarterly goals
+    quarterly_goals = Goal.query.filter(
+        Goal.due_date >= q_start,
+        Goal.due_date <= q_end,
+        Goal.parent_id.isnot(None)
+    ).order_by(Goal.due_date).all()
+
+    # Navigation
+    prev_year = year - 1 if q_num == 1 else year
+    prev_q = 4 if q_num == 1 else q_num - 1
+    next_year = year + 1 if q_num == 4 else year
+    next_q = 1 if q_num == 4 else q_num + 1
+
+    return render_template(
+        'quarter.html',
+        year=year,
+        q_num=q_num,
+        title=f"{year} Q{q_num}",
+        q_start=q_start,
+        q_end=q_end,
+        quarterly_goals=quarterly_goals,
+        prev_url=f"/quarter/{prev_year}/Q{prev_q}",
+        next_url=f"/quarter/{next_year}/Q{next_q}"
+    )
