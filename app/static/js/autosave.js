@@ -1,181 +1,108 @@
-// app/static/js/autosave.js
+// app/static/js/autosave.js — HIERARCHY EDITION
 document.addEventListener('DOMContentLoaded', function () {
-    const goalForm = document.getElementById('goalForm');
-    const goalsContainer = document.getElementById('goalsContainer');
+    const goalsContainer = document.querySelector('.goals-container') || document.body;
 
     // ========================================
-    // 1. ADD NEW GOAL
-    // ========================================
-    if (goalForm) {
-        goalForm.addEventListener('submit', function (e) {
-            e.preventDefault();
-            const formData = new FormData(this);
-
-            fetch('/goals', {
-                method: 'POST',
-                body: formData
-            })
-            .then(res => res.json())
-            .then(data => {
-                if (data.status === 'success') {
-                    showToast('Goal added successfully!', 'success');
-                    location.reload();
-                } else {
-                    showToast('Error saving goal.', 'danger');
-                }
-            })
-            .catch(err => {
-                console.error('Goal save error:', err);
-                showToast('Network error. Try again.', 'danger');
-            });
-        });
-    }
-
-    // ========================================
-    // 2. ADD STEP
+    // 1. ADD SUB-GOAL (ANY LEVEL)
     // ========================================
     goalsContainer.addEventListener('click', function (e) {
-        if (e.target.classList.contains('add-step')) {
-            console.log('ADD STEP BUTTON CLICKED!'); // ← DEBUG LOG
+        if (e.target.classList.contains('add-subgoal')) {
+            const parentId = e.target.dataset.parentId;
+            const title = prompt('Sub-goal title:');
+            if (!title) return;
 
-            const card = e.target.closest('[data-goal-id]');
-            if (!card) return;
+            const dueInput = prompt('Due date (YYYY-MM-DD) - optional:');
+            const due_date = dueInput || null;
 
-            const goalId = card.dataset.goalId;
-            const titleInput = card.querySelector('.new-step');
-            const dateInput = card.querySelector('.date-input');
-            const typeSelect = card.querySelector('.type-select');
-
-            const title = titleInput.value.trim();
-            const due_date = dateInput.value || null;
-            const selected_type = typeSelect.value;
-
-            if (!title) {
-                showToast('Step title is required.', 'warning');
-                titleInput.focus();
-                return;
-            }
-
-            // Determine final step type
-            let step_type = 'day';
-            if (selected_type !== 'auto') {
-                step_type = selected_type;
-            } else if (due_date) {
-                const date = new Date(due_date);
-                const day = date.getDate();
-                const month = date.getMonth() + 1;
-                const weekday = date.getDay();
-
-                if (day === 1 && [1, 4, 7, 10].includes(month)) {
-                    step_type = 'quarter';
-                } else if (day === 1) {
-                    step_type = 'month';
-                } else if (weekday === 1) {
-                    step_type = 'week';
-                }
-            }
-
-            fetch(`/api/goal/${goalId}/step`, {
+            fetch(`/api/goal/${parentId}/subgoal`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ title, due_date, step_type })
+                body: JSON.stringify({ title, due_date })
             })
             .then(res => {
-                if (!res.ok) {
-                    return res.json().then(err => { throw err; });
-                }
+                if (!res.ok) throw new Error('Network error');
                 return res.json();
             })
-            .then(data => {
-                if (data.status === 'success') {
-                    showToast(`Step added: ${data.step_type.toUpperCase()}`, 'success');
-                    titleInput.value = '';
-                    dateInput.value = '';
-                    typeSelect.value = 'auto';
-                    setTimeout(() => location.reload(), 300);
-                }
+            .then(() => {
+                showToast('Sub-goal added!', 'success');
+                setTimeout(() => location.reload(), 300);
             })
             .catch(err => {
-                console.error('Step add failed:', err);
-                showToast(err.message || 'Failed to add step.', 'danger');
+                console.error('Add subgoal error:', err);
+                showToast('Failed to add sub-goal.', 'danger');
             });
         }
     });
 
     // ========================================
-    // 3. TOGGLE STEP
+    // 2. TOGGLE GOAL COMPLETION
     // ========================================
     goalsContainer.addEventListener('change', function (e) {
-        if (e.target.classList.contains('step-checkbox')) {
-            const stepId = e.target.closest('.step-item').dataset.stepId;
-            const card = e.target.closest('[data-goal-id]');
+        if (e.target.classList.contains('complete-goal')) {
+            const goalId = e.target.dataset.goalId;
+            const card = e.target.closest('.goal-node');
             const progressBar = card.querySelector('.progress-bar');
 
-            fetch(`/api/step/${stepId}/toggle`, { method: 'POST' })
+            fetch(`/api/goal/${goalId}/toggle`, { method: 'POST' })
                 .then(res => res.json())
                 .then(data => {
                     progressBar.style.width = data.progress + '%';
-                    progressBar.textContent = data.progress + '%';
-
-                    const label = e.target.closest('.form-check').querySelector('.form-check-label');
-                    if (data.completed) {
-                        label.classList.add('text-decoration-line-through', 'text-muted');
-                    } else {
-                        label.classList.remove('text-decoration-line-through', 'text-muted');
-                    }
-
-                    showToast(data.completed ? 'Step completed!' : 'Step reopened!', 'info');
+                    showToast(data.completed ? 'Goal completed!' : 'Goal reopened!', 'info');
                 })
-                .catch(err => {
-                    console.error('Toggle error:', err);
+                .catch(() => {
                     e.target.checked = !e.target.checked;
-                    showToast('Failed to update step.', 'danger');
+                    showToast('Failed to update.', 'danger');
                 });
         }
     });
 
     // ========================================
-    // 4. AUTO-FILL TYPE ON DATE CHANGE
+    // 3. EDIT GOAL
     // ========================================
-    goalsContainer.addEventListener('change', function (e) {
-        if (e.target.classList.contains('date-input')) {
-            const dateInput = e.target;
-            const typeSelect = dateInput.closest('.input-group').querySelector('.type-select');
-            if (typeSelect.value !== 'auto') return;
+    goalsContainer.addEventListener('click', function (e) {
+        if (e.target.classList.contains('edit-goal')) {
+            const goalId = e.target.dataset.goalId;
+            const card = e.target.closest('.goal-node');
+            const titleEl = card.querySelector('h6 .goal-title') || card.querySelector('h6');
+            if (!titleEl) return;
 
-            const dateStr = dateInput.value;
-            if (!dateStr) {
-                typeSelect.value = 'auto';
-                return;
-            }
+            const currentTitle = titleEl.textContent.trim();
+            const newTitle = prompt('Edit goal title:', currentTitle);
+            if (!newTitle || newTitle === currentTitle) return;
 
-            const date = new Date(dateStr);
-            const day = date.getDate();
-            const month = date.getMonth() + 1;
-            const weekday = date.getDay();
-
-            let detected = 'day';
-            if (day === 1 && [1, 4, 7, 10].includes(month)) detected = 'quarter';
-            else if (day === 1) detected = 'month';
-            else if (weekday === 1) detected = 'week';
-
-            typeSelect.value = detected;
+            fetch(`/api/goal/${goalId}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ title: newTitle })
+            })
+            .then(() => {
+                titleEl.textContent = newTitle;
+                showToast('Goal updated!', 'success');
+            })
+            .catch(() => showToast('Failed to update.', 'danger'));
         }
     });
 
     // ========================================
-    // 5. ENTER KEY SUPPORT
+    // 4. DELETE GOAL
     // ========================================
-    goalsContainer.addEventListener('keydown', function (e) {
-        if (e.key === 'Enter' && e.target.classList.contains('new-step')) {
-            e.preventDefault();
-            const addButton = e.target.closest('.input-group').querySelector('.add-step');
-            if (addButton) addButton.click();
+    goalsContainer.addEventListener('click', function (e) {
+        if (e.target.classList.contains('delete-goal')) {
+            const goalId = e.target.dataset.goalId;
+            const card = e.target.closest('.goal-node');
+            if (!confirm('Delete this goal and all sub-goals?')) return;
+
+            fetch(`/api/goal/${goalId}`, { method: 'DELETE' })
+                .then(() => {
+                    showToast('Goal deleted!', 'danger');
+                    card.remove();
+                })
+                .catch(() => showToast('Failed to delete.', 'danger'));
         }
     });
 
     // ========================================
-    // 6. TOAST FUNCTION
+    // 5. TOAST NOTIFICATIONS
     // ========================================
     function showToast(message, type = 'info') {
         const toast = document.createElement('div');
@@ -196,137 +123,56 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     // ========================================
-    // DELETE GOAL
+    // 6. EDIT GOAL — EXPAND + INLINE FORM
     // ========================================
     goalsContainer.addEventListener('click', function (e) {
-        if (e.target.classList.contains('delete-goal')) {
-            const card = e.target.closest('[data-goal-id]');
-            const goalId = card.dataset.goalId;
-            if (!confirm('Delete this goal and all steps?')) return;
-
-            fetch(`/api/goal/${goalId}`, { method: 'DELETE' })
-                .then(res => res.json())
-                .then(() => {
-                    showToast('Goal deleted!', 'danger');
-                    card.remove();
-                })
-                .catch(() => showToast('Failed to delete goal.', 'danger'));
+        if (e.target.classList.contains('edit-goal-btn')) {
+            const card = e.target.closest('.goal-card');
+            card.querySelector('.view-mode').classList.add('d-none');
+            card.querySelector('.edit-mode').classList.remove('d-none');
         }
     });
 
-    // ========================================
-    // EDIT GOAL
-    // ========================================
+    // Cancel Edit
     goalsContainer.addEventListener('click', function (e) {
-        if (e.target.classList.contains('edit-goal')) {
-            const card = e.target.closest('[data-goal-id]');
-            const goalId = card.dataset.goalId;
-            const titleSpan = card.querySelector('.goal-title');
-            const currentTitle = titleSpan.textContent.trim();
+        if (e.target.classList.contains('cancel-edit')) {
+            const card = e.target.closest('.goal-card');
+            card.querySelector('.view-mode').classList.remove('d-none');
+            card.querySelector('.edit-mode').classList.add('d-none');
+        }
+    });
 
-            const newTitle = prompt('Edit goal title:', currentTitle);
-            if (!newTitle || newTitle === currentTitle) return;
+    // Save Edit
+    goalsContainer.addEventListener('submit', function (e) {
+        if (e.target.classList.contains('edit-goal-form')) {
+            e.preventDefault();
+            const form = e.target;
+            const goalId = form.querySelector('[name="goal_id"]').value;
+            const data = {
+                title: form.querySelector('.goal-title-input').value,
+                description: form.querySelector('.goal-description-input').value,
+                motivation: form.querySelector('.goal-motivation-input').value,
+                due_date: form.querySelector('.goal-due-date-input').value || null
+            };
 
             fetch(`/api/goal/${goalId}`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ title: newTitle })
-            })
-            .then(() => {
-                titleSpan.textContent = newTitle;
-                showToast('Goal updated!', 'success');
-            })
-            .catch(() => showToast('Failed to update.', 'danger'));
-        }
-    });
-
-    // ========================================
-    // DELETE STEP — FIXED!
-    // ========================================
-    goalsContainer.addEventListener('click', function (e) {
-        if (e.target.classList.contains('delete-step')) {
-            const stepItem = e.target.closest('.step-item');
-            const stepId = stepItem.dataset.stepId;
-            const card = stepItem.closest('[data-goal-id]');
-
-            if (!confirm('Delete this step?')) return;
-
-            fetch(`/api/step/${stepId}`, { 
-                method: 'DELETE' 
+                body: JSON.stringify(data)
             })
             .then(res => {
-                if (!res.ok) {
-                    // Only throw if server error
-                    return res.json().then(err => { throw err; });
-                }
+                if (!res.ok) throw new Error('Save failed');
                 return res.json();
             })
-            .then(data => {
-                showToast('Step deleted!', 'danger');
-                stepItem.remove();
-                updateProgress(card);
+            .then(() => {
+                showToast('Goal saved!', 'success');
+                setTimeout(() => location.reload(), 300);
             })
-            .catch(err => {
-                console.error('Delete error:', err);
-                showToast(err.message || 'Failed to delete step.', 'danger');
+            .catch(() => {
+                showToast('Failed to save.', 'danger');
             });
         }
     });
 
-    // ========================================
-    // EDIT STEP
-    // ========================================
-    goalsContainer.addEventListener('click', function (e) {
-        if (e.target.classList.contains('edit-step')) {
-            const stepItem = e.target.closest('.step-item');
-            const stepId = stepItem.dataset.stepId;
-            const titleSpan = stepItem.querySelector('.step-title');
-            const currentTitle = titleSpan.textContent.trim();
-
-            const newTitle = prompt('Edit step:', currentTitle);
-            if (!newTitle || newTitle === currentTitle) return;
-
-            fetch(`/api/step/${stepId}`, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ title: newTitle })
-            })
-            .then(() => {
-                titleSpan.textContent = newTitle;
-                showToast('Step updated!', 'success');
-            })
-            .catch(() => showToast('Failed to update.', 'danger'));
-        }
-    });
-
-    // ========================================
-    // UPDATE PROGRESS AFTER STEP DELETE
-    // ========================================
-    function updateProgress(card) {
-        // Simple: Reload to recalculate nested progress & progress bars
-        setTimeout(() => location.reload(), 300);
-    }
-
-        goalsContainer.addEventListener('click', function (e) {
-        if (e.target.classList.contains('add-subgoal')) {
-            const parentId = e.target.dataset.parentId;
-            const title = prompt('Sub-goal title:');
-            if (!title) return;
-
-            const due_date = prompt('Due date (YYYY-MM-DD):') || null;
-
-            fetch(`/api/goal/${parentId}/subgoal`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ title, due_date })
-            })
-            .then(() => {
-                showToast('Sub-goal added!');
-                location.reload();
-            });
-        }
-    });
-    
     console.log('AUTOSAVE.JS LOADED — READY TO DOMINATE!');
-
 });

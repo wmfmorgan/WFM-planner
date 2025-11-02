@@ -1,56 +1,90 @@
 <!-- app/templates/goal_card.html -->
 {% macro render_goal(goal, depth=0) %}
-    <div class="goal-node mb-3" style="margin-left: {{ depth * 25 }}px;">
-        <div class="card border-dark shadow-sm">
-            <div class="card-header bg-light d-flex justify-content-between align-items-center py-2">
-                <div class="d-flex align-items-center flex-grow-1">
-                    <input type="checkbox"
-                           class="form-check-input complete-goal me-2"
-                           data-goal-id="{{ goal.id }}"
-                           {% if goal.progress() == 100 %}checked{% endif %}>
-                    <h6 class="mb-0 fw-bold">
-                        <span class="text-uppercase text-primary">{{ goal.level() }}</span>:
-                        <span class="goal-title">{{ goal.title }}</span>
-                        {% if goal.due_date %}
-                            <small class="text-muted ms-2">
-                                Due: {{ goal.due_date.strftime('%b %d, %Y') }}
-                            </small>
-                        {% endif %}
-                    </h6>
-                </div>
-                <div class="btn-group btn-group-sm">
-                    <button class="btn btn-outline-success add-subgoal"
-                            data-parent-id="{{ goal.id }}"
-                            title="Add Sub-Goal">
-                        +
-                    </button>
-                    <button class="btn btn-outline-dark edit-goal"
-                            data-goal-id="{{ goal.id }}"
-                            title="Edit">
-                        Edit
-                    </button>
-                    <button class="btn btn-outline-danger delete-goal"
-                            data-goal-id="{{ goal.id }}"
-                            title="Delete">
-                        Delete
-                    </button>
-                </div>
-            </div>
-            <div class="card-body py-2 px-3">
-                {% if goal.description %}
-                    <p class="small text-muted mb-1">{{ goal.description }}</p>
-                {% endif %}
-                <div class="progress" style="height: 6px;">
-                    <div class="progress-bar bg-dark"
-                         style="width: {{ goal.progress() }}%"
-                         role="progressbar">
+    <div class="goal-node mb-3" style="margin-left: {{ depth * 25 }}px;" data-goal-id="{{ goal.id }}">
+        <div class="card border-dark shadow-sm goal-card">
+            <!-- VIEW MODE -->
+            <div class="view-mode">
+                <div class="card-header bg-light d-flex justify-content-between align-items-center py-2">
+                    <div class="d-flex align-items-center flex-grow-1">
+                        <input type="checkbox"
+                               class="form-check-input complete-goal me-2"
+                               data-goal-id="{{ goal.id }}"
+                               {% if goal.progress() == 100 %}checked{% endif %}>
+                        <h6 class="mb-0 fw-bold">
+                            <span class="text-uppercase text-primary">{{ goal.level() }}</span>:
+                            <span class="goal-title">{{ goal.title }}</span>
+                            {% if goal.due_date %}
+                                <small class="text-muted ms-2">
+                                    ({{ goal.due_date.strftime('%b %d, %Y') }})
+                                </small>
+                            {% endif %}
+                        </h6>
+                    </div>
+                    <div class="btn-group btn-group-sm">
+                        <button class="btn btn-outline-success add-subgoal"
+                                data-parent-id="{{ goal.id }}"
+                                title="Add Sub-Goal">
+                            +
+                        </button>
+                        <button class="btn btn-outline-dark edit-goal-btn"
+                                title="Edit">
+                            Edit
+                        </button>
+                        <button class="btn btn-outline-danger delete-goal"
+                                data-goal-id="{{ goal.id }}"
+                                title="Delete">
+                            Delete
+                        </button>
                     </div>
                 </div>
-                <small class="text-muted float-end">{{ goal.progress() }}%</small>
+                <div class="card-body py-2 px-3">
+                    {% if goal.description %}
+                        <p class="small text-muted mb-1 goal-description">{{ goal.description }}</p>
+                    {% endif %}
+                    {% if goal.motivation %}
+                        <p class="small text-secondary mb-1"><em>{{ goal.motivation }}</em></p>
+                    {% endif %}
+                    <div class="progress" style="height: 6px;">
+                        <div class="progress-bar bg-dark"
+                             style="width: {{ goal.progress() }}%">
+                        </div>
+                    </div>
+                    <small class="text-muted float-end">{{ goal.progress() }}%</small>
+                </div>
+            </div>
+
+            <!-- EDIT MODE (HIDDEN INITIALLY) -->
+            <div class="edit-mode d-none">
+                <div class="card-body">
+                    <form class="edit-goal-form">
+                        <input type="hidden" name="goal_id" value="{{ goal.id }}">
+                        <div class="mb-2">
+                            <input type="text" class="form-control form-control-sm goal-title-input"
+                                   value="{{ goal.title }}" required>
+                        </div>
+                        <div class="mb-2">
+                            <textarea class="form-control form-control-sm goal-description-input"
+                                      rows="2">{{ goal.description }}</textarea>
+                        </div>
+                        <div class="mb-2">
+                            <textarea class="form-control form-control-sm goal-motivation-input"
+                                      rows="2" placeholder="Motivation (optional)">{{ goal.motivation or '' }}</textarea>
+                        </div>
+                        <div class="mb-2">
+                            <input type="date" class="form-control form-control-sm goal-due-date-input"
+                                   value="{{ goal.due_date.strftime('%Y-%m-%d') if goal.due_date else '' }}">
+                            <small class="text-muted">Due Date (optional)</small>
+                        </div>
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-sm btn-success">Save</button>
+                            <button type="button" class="btn btn-sm btn-secondary cancel-edit">Cancel</button>
+                        </div>
+                    </form>
+                </div>
             </div>
         </div>
 
-        <!-- RECURSIVE CHILDREN -->
+        <!-- CHILDREN -->
         {% for child in goal.children|sort(attribute='due_date') %}
             {{ render_goal(child, depth + 1) }}
         {% endfor %}
