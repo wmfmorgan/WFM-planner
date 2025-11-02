@@ -1,0 +1,8 @@
+body {
+    font-family: 'Impact', sans-serif;
+    background: linear-gradient(135deg, #000, #330000);
+    min-height: 100vh;
+}
+h1, h3 {
+    text-shadow: 3px 3px 0px #ff0, -1px -1px 0 #f00;
+}
