@@ -81,6 +81,18 @@ h1, h2, h3, h5, h6 {
     color: #fff !important;
 }
 
+/* BLOCK BAD EXTENSIONS FROM INJECTING SVGs */
+.no-svg-inject,
+.no-svg-inject * {
+    -webkit-user-modify: read-only !important;
+    pointer-events: none !important;
+}
+
+/* OR HARD BLOCK */
+.progress-bar {
+    background-image: none !important;
+}
+
 /* Borders for nesting */
 .border-info { border-color: #000 !important; }
 .border-success { border-color: #000 !important; }
