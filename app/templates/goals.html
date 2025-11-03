@@ -80,7 +80,9 @@
                                     </button>
                                 {% endif %}
                                 <button class="btn btn-sm btn-outline-dark edit-goal-btn">Edit</button>
-                                <button class="btn btn-sm btn-outline-primary add-subgoal-btn" data-parent-id="{{ goal.id }}">Add Sub-Goal</button>
+                                {% if goal.type != 'daily' %}
+                                    <button class="btn btn-sm btn-outline-primary add-subgoal-btn" data-parent-id="{{ goal.id }}">Add Sub-Goal</button>
+                                {% endif %}
                                 <button class="btn btn-sm btn-outline-danger delete-goal-btn" data-goal-id="{{ goal.id }}">Delete</button>
                             </div>
                         </div>
@@ -150,7 +152,6 @@
     {% endif %}
 
     <!-- REUSABLE SUB-GOAL FORM (HIDDEN) -->
-<!-- REUSABLE SUB-GOAL FORM (HIDDEN) -->
     <div id="subgoal-form-container" class="d-none mt-4">
         <h3 class="h5">Add Sub-Goal</h3>
         <form id="subgoal-form" class="card p-3">
@@ -180,7 +181,7 @@
     </div>
 </div>
 
-<!-- EDIT + SUB-GOAL + DELETE LOGIC -->
+<!-- EDIT + SUB-GOAL + DELETE + COLLAPSE LOGIC -->
 <script>
     // EDIT BUTTON
     document.addEventListener('click', function(e) {
@@ -236,7 +237,6 @@
     });
 
     // ADD SUB-GOAL BUTTON
-    // ADD SUB-GOAL BUTTON
     document.addEventListener('click', function(e) {
         if (e.target.classList.contains('add-subgoal-btn')) {
             const parentId = e.target.dataset.parentId;
@@ -249,7 +249,7 @@
                 'quarterly': 'monthly',
                 'monthly': 'weekly',
                 'weekly': 'daily',
-                'daily': 'daily'  // Can't go lower
+                'daily': 'daily'
             };
             const childType = typeMap[parentType] || 'daily';
 
