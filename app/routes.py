@@ -35,6 +35,7 @@ def index():
     return render_template('index.html', title="WFM Planner", today=today, today_quarter=today_quarter)
 
 
+# app/routes.py — UPDATE goals() route
 @bp.route('/goals', methods=['GET', 'POST'])
 def goals():
     form = GoalForm()
@@ -51,10 +52,21 @@ def goals():
         flash('Goal created successfully!', 'success')
         return redirect(url_for('main.goals'))
 
+    # FETCH + SORT: oldest to newest, with children
     goals = Goal.query.filter_by(parent_id=None).options(
-    db.joinedload(Goal.children)
-    ).all()
-    
+        db.joinedload(Goal.children)
+    ).order_by(Goal.due_date.asc(), Goal.id).all()
+
+    # SORT CHILDREN RECURSIVELY
+    def sort_children(goal):
+        if goal.children:
+            goal.children.sort(key=lambda x: (x.due_date or datetime.max.date(), x.id))
+            for child in goal.children:
+                sort_children(child)
+
+    for goal in goals:
+        sort_children(goal)
+
     return render_template('goals.html', goals=goals, form=form, today=today, today_quarter=today_quarter)
 
 
