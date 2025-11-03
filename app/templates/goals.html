@@ -63,12 +63,124 @@
         <div class="row g-3">
             {% for goal in goals %}
                 <div class="col-md-6">
-                    {% with goal=goal %}
-                        {% include 'goal_card_simple.html' %}
-                    {% endwith %}
+                    <div class="card goal-card" data-goal-id="{{ goal.id }}">
+                        <!-- VIEW MODE -->
+                        <div class="view-mode p-3">
+                            <h6 class="card-title mb-1 goal-title-text">{{ goal.title }}</h6>
+                            <small class="text-muted">{{ goal.type|capitalize }}</small>
+                            {% if goal.due_date %}
+                                <small class="text-muted d-block">{{ goal.due_date.strftime('%b %d') }}</small>
+                            {% endif %}
+                            <div class="mt-2">
+                                <button class="btn btn-sm btn-outline-dark edit-goal-btn">Edit</button>
+                            </div>
+                        </div>
+
+                        <!-- EDIT MODE -->
+                        <div class="edit-mode d-none p-3">
+                            <form class="edit-goal-form">
+                                <input type="hidden" name="goal_id" value="{{ goal.id }}">
+                                
+                                <!-- TITLE -->
+                                <div class="mb-2">
+                                    <input type="text" class="form-control form-control-sm goal-title-input" 
+                                           value="{{ goal.title }}" required>
+                                </div>
+
+                                <!-- TYPE -->
+                                <div class="mb-2">
+                                    <select class="form-select form-select-sm goal-type-input">
+                                        <option value="annual" {% if goal.type == 'annual' %}selected{% endif %}>Annual</option>
+                                        <option value="quarterly" {% if goal.type == 'quarterly' %}selected{% endif %}>Quarterly</option>
+                                        <option value="monthly" {% if goal.type == 'monthly' %}selected{% endif %}>Monthly</option>
+                                        <option value="weekly" {% if goal.type == 'weekly' %}selected{% endif %}>Weekly</option>
+                                        <option value="daily" {% if goal.type == 'daily' %}selected{% endif %}>Daily</option>
+                                    </select>
+                                </div>
+
+                                <!-- DESCRIPTION -->
+                                <div class="mb-2">
+                                    <textarea class="form-control form-control-sm goal-description-input" rows="2">{{ goal.description or '' }}</textarea>
+                                </div>
+
+                                <!-- MOTIVATION -->
+                                <div class="mb-2">
+                                    <textarea class="form-control form-control-sm goal-motivation-input" rows="2">{{ goal.motivation or '' }}</textarea>
+                                </div>
+
+                                <!-- DUE DATE -->
+                                <div class="mb-2">
+                                    <input type="date" class="form-control form-control-sm goal-due-date-input" 
+                                           value="{{ goal.due_date.strftime('%Y-%m-%d') if goal.due_date else '' }}">
+                                </div>
+
+                                <!-- SAVE / CANCEL -->
+                                <div class="d-flex gap-1">
+                                    <button type="submit" class="btn btn-sm btn-success">Save</button>
+                                    <button type="button" class="btn btn-sm btn-secondary cancel-edit">Cancel</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
                 </div>
             {% endfor %}
         </div>
     {% endif %}
 </div>
+
+<!-- EDIT LOGIC -->
+<script>
+    // EDIT BUTTON
+    document.addEventListener('click', function(e) {
+        if (e.target.classList.contains('edit-goal-btn')) {
+            const card = e.target.closest('.goal-card');
+            card.querySelector('.view-mode').classList.add('d-none');
+            card.querySelector('.edit-mode').classList.remove('d-none');
+        }
+    });
+
+    // CANCEL
+    document.addEventListener('click', function(e) {
+        if (e.target.classList.contains('cancel-edit')) {
+            const card = e.target.closest('.goal-card');
+            card.querySelector('.view-mode').classList.remove('d-none');
+            card.querySelector('.edit-mode').classList.add('d-none');
+        }
+    });
+
+    // SAVE
+    document.addEventListener('submit', function(e) {
+        if (e.target.classList.contains('edit-goal-form')) {
+            e.preventDefault();
+            const form = e.target;
+            const goalId = form.querySelector('[name="goal_id"]').value;
+            const data = {
+                title: form.querySelector('.goal-title-input').value,
+                type: form.querySelector('.goal-type-input').value,
+                description: form.querySelector('.goal-description-input').value,
+                motivation: form.querySelector('.goal-motivation-input').value,
+                due_date: form.querySelector('.goal-due-date-input').value || null
+            };
+
+            fetch(`/api/goal/${goalId}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            }).then(() => {
+                const card = form.closest('.goal-card');
+                card.querySelector('.goal-title-text').textContent = data.title;
+                const typeEl = card.querySelector('small.text-muted');
+                typeEl.textContent = data.type.charAt(0).toUpperCase() + data.type.slice(1);
+                const dueEl = card.querySelector('small.d-block');
+                if (data.due_date) {
+                    dueEl.textContent = new Date(data.due_date).toLocaleDateString('en', { month: 'short', day: 'numeric' });
+                } else {
+                    dueEl.textContent = '';
+                }
+                card.querySelector('.view-mode').classList.remove('d-none');
+                card.querySelector('.edit-mode').classList.add('d-none');
+            });
+        }
+    });
+</script>
 {% endblock %}
