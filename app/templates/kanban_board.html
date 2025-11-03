@@ -24,21 +24,48 @@
                                     </div>
                                 </div>
 
-                                <!-- EDIT MODE (HIDDEN) -->
+                                <!-- EDIT MODE -->
                                 <div class="edit-mode d-none p-2">
                                     <form class="edit-goal-form">
                                         <input type="hidden" name="goal_id" value="{{ goal.id }}">
+                                        
+                                        <!-- TITLE -->
                                         <div class="mb-2">
                                             <input type="text" class="form-control form-control-sm goal-title-input" 
-                                                   value="{{ goal.title }}" required>
+                                                   value="{{ goal.title }}" placeholder="Title" required>
                                         </div>
+
+                                        <!-- TYPE -->
                                         <div class="mb-2">
-                                            <textarea class="form-control form-control-sm goal-description-input" rows="2">{{ goal.description or '' }}</textarea>
+                                            <label class="form-label small mb-1">Type</label>
+                                            <select class="form-select form-select-sm goal-type-input">
+                                                <option value="annual" {% if goal.type == 'annual' %}selected{% endif %}>Annual</option>
+                                                <option value="quarterly" {% if goal.type == 'quarterly' %}selected{% endif %}>Quarterly</option>
+                                                <option value="monthly" {% if goal.type == 'monthly' %}selected{% endif %}>Monthly</option>
+                                                <option value="weekly" {% if goal.type == 'weekly' %}selected{% endif %}>Weekly</option>
+                                                <option value="daily" {% if goal.type == 'daily' %}selected{% endif %}>Daily</option>
+                                            </select>
                                         </div>
+
+                                        <!-- DESCRIPTION -->
+                                        <div class="mb-2">
+                                            <textarea class="form-control form-control-sm goal-description-input" rows="2" 
+                                                      placeholder="Description">{{ goal.description or '' }}</textarea>
+                                        </div>
+
+                                        <!-- MOTIVATION -->
+                                        <div class="mb-2">
+                                            <textarea class="form-control form-control-sm goal-motivation-input" rows="2" 
+                                                      placeholder="Why this matters">{{ goal.motivation or '' }}</textarea>
+                                        </div>
+
+                                        <!-- DUE DATE -->
                                         <div class="mb-2">
                                             <input type="date" class="form-control form-control-sm goal-due-date-input" 
                                                    value="{{ goal.due_date.strftime('%Y-%m-%d') if goal.due_date else '' }}">
                                         </div>
+
+                                        <!-- SAVE / CANCEL -->
                                         <div class="d-flex gap-1">
                                             <button type="submit" class="btn btn-sm btn-success">Save</button>
                                             <button type="button" class="btn btn-sm btn-secondary cancel-edit">Cancel</button>
@@ -70,7 +97,6 @@
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ status: newStatus })
                 }).then(() => {
-                    // Update badge counts
                     document.querySelectorAll('.kanban-column').forEach(c => {
                         const badge = c.closest('.card').querySelector('.badge');
                         if (badge) badge.textContent = c.children.length;
@@ -106,7 +132,9 @@
             const goalId = form.querySelector('[name="goal_id"]').value;
             const data = {
                 title: form.querySelector('.goal-title-input').value,
+                type: form.querySelector('.goal-type-input').value,  // ← ADDED
                 description: form.querySelector('.goal-description-input').value,
+                motivation: form.querySelector('.goal-motivation-input').value,
                 due_date: form.querySelector('.goal-due-date-input').value || null
             };
 
@@ -123,6 +151,7 @@
                 } else {
                     dueEl.textContent = '';
                 }
+                // Optional: Show type badge
                 card.querySelector('.view-mode').classList.remove('d-none');
                 card.querySelector('.edit-mode').classList.add('d-none');
             });

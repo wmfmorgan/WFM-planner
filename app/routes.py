@@ -63,12 +63,12 @@ def year_page(year):
     y_end = datetime(year, 12, 31).date()
 
     annual_goals = Goal.query.filter(
-        Goal.parent_id.is_(None),
-        (
-            (Goal.due_date >= y_start) &
-            (Goal.due_date <= y_end)
-            | (Goal.due_date.is_(None))
-        )
+        Goal.type == 'annual',
+        db.or_(
+            db.and_(Goal.due_date >= y_start, Goal.due_date <= y_end),
+            Goal.due_date.is_(None)
+        ),
+        Goal.parent_id.is_(None)
     ).order_by(Goal.due_date.asc(), Goal.id).all()
 
     quarters = []
@@ -85,7 +85,6 @@ def year_page(year):
     prev_year = year - 1
     next_year = year + 1
 
-    # GROUP GOALS
     annual_goals_grouped = group_goals_by_status(annual_goals)
 
     return render_template(
@@ -110,6 +109,7 @@ def quarter_page(year, q_num):
     q_end = q_start + relativedelta(months=3) - timedelta(days=1)
 
     quarterly_goals = Goal.query.filter(
+        Goal.type == 'quarterly',
         Goal.due_date >= q_start,
         Goal.due_date <= q_end,
         Goal.parent_id.isnot(None)
@@ -130,7 +130,6 @@ def quarter_page(year, q_num):
             'url': f"/month/{year}/{m}"
         })
     
-    # GROUP GOALS
     quarterly_goals_grouped = group_goals_by_status(quarterly_goals)
 
     return render_template(
@@ -161,6 +160,7 @@ def month_page(year, month):
         m_end = datetime(year, month + 1, 1).date() - timedelta(days=1)
 
     monthly_goals = Goal.query.filter(
+        Goal.type == 'monthly',
         Goal.due_date >= m_start,
         Goal.due_date <= m_end,
         Goal.parent_id.isnot(None)
@@ -193,7 +193,6 @@ def month_page(year, month):
             'days': week_data
         })
 
-    # GROUP GOALS
     monthly_goals_grouped = group_goals_by_status(monthly_goals)
 
     return render_template(
@@ -217,21 +216,20 @@ def week_page(year, week):
     if week < 1 or week > 53:
         abort(404)
 
-    # Get Monday of the ISO week
     try:
         w_start = datetime.strptime(f'{year}-W{week}-1', '%Y-W%W-%w').date()
     except ValueError:
         abort(404)
     w_end = w_start + timedelta(days=6)
 
-    # Weekly goals
     weekly_goals = Goal.query.filter(
+        Goal.type == 'weekly',
         Goal.due_date >= w_start,
         Goal.due_date <= w_end,
         Goal.parent_id.isnot(None)
     ).order_by(Goal.due_date).all()
 
-    # Build 7-day calendar (Sun-Sat) — CORRECT WEEK
+    # Build 7-day calendar (Sun-Sat)
     days = []
     current = w_start
     for i in range(7):
@@ -242,18 +240,15 @@ def week_page(year, week):
             'url': f"/day/{day_date.year}/{day_date.month}/{day_date.day:02d}"
         })
 
-    # Calendar structure
     weeks = [{
         'week_num': week,
         'week_url': url_for('main.week_page', year=year, week=week),
         'days': days
     }]
 
-    # Breadcrumb
     sample_month = w_start.month
     month_name = w_start.strftime('%B')
 
-    # Navigation
     prev_week = week - 1
     prev_year = year
     if prev_week == 0:
@@ -293,6 +288,7 @@ def day_page(year, month, day):
         abort(404)
 
     daily_goals = Goal.query.filter(
+        Goal.type == 'daily',
         Goal.due_date == day_date,
         Goal.parent_id.isnot(None)
     ).order_by(Goal.due_date).all()
@@ -300,7 +296,6 @@ def day_page(year, month, day):
     prev_date = day_date - timedelta(days=1)
     next_date = day_date + timedelta(days=1)
 
-    # GROUP GOALS
     daily_goals_grouped = group_goals_by_status(daily_goals)
 
     return render_template(
@@ -379,20 +374,19 @@ def delete_goal(goal_id):
     return jsonify({'status': 'success'})
 
 
-# EDIT GOAL
+# app/routes.py
 @bp.route('/api/goal/<int:goal_id>', methods=['PUT'])
 def edit_goal(goal_id):
     goal = Goal.query.get_or_404(goal_id)
     data = request.json
     goal.title = data.get('title', goal.title)
+    goal.type = data.get('type', goal.type)  # ← ACCEPT TYPE
     goal.description = data.get('description', goal.description)
     goal.motivation = data.get('motivation', goal.motivation)
-    if data.get('due_date'):
+    if 'due_date' in data:
         try:
-            goal.due_date = datetime.strptime(data['due_date'], '%Y-%m-%d').date()
+            goal.due_date = datetime.strptime(data['due_date'], '%Y-%m-%d').date() if data['due_date'] else None
         except:
             goal.due_date = None
-    else:
-        goal.due_date = None
     db.session.commit()
     return jsonify({'status': 'success'})

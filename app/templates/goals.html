@@ -1,52 +1,74 @@
 <!-- app/templates/goals.html -->
 {% extends "base.html" %}
 {% block content %}
-<div class="container mt-5">
-    <h1 class="display-3 text-center text-warning mb-5 fw-bold" style="text-shadow: 3px 3px 0 #f00;">
-        GOALS
-    </h1>
+<div class="container mt-4">
+    <h1 class="display-5 fw-bold text-center mb-4">Create New Goal</h1>
 
-    <!-- Add Goal Form -->
-<!-- app/templates/goals.html — REPLACE the <form> block -->
-<div class="card bg-dark border-warning mb-4">
-    <div class="card-body">
-        <!-- In the "Create Annual Goal" form -->
-        <form method="POST" class="mt-4">
-            {{ form.hidden_tag() }}
-            <div class="row g-3">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card border-light">
+                <div class="card-body">
+                    <form method="POST">
+                        {{ form.hidden_tag() }}
+
+                        <!-- TITLE -->
+                        <div class="mb-3">
+                            {{ form.title.label(class="form-label") }}
+                            {{ form.title(class="form-control", placeholder="Enter goal title", required=True) }}
+                        </div>
+
+                        <!-- TYPE (REQUIRED) -->
+                        <div class="mb-3">
+                            {{ form.type.label(class="form-label") }}
+                            <select name="type" class="form-select" required>
+                                <option value="annual">Annual</option>
+                                <option value="quarterly">Quarterly</option>
+                                <option value="monthly">Monthly</option>
+                                <option value="weekly">Weekly</option>
+                                <option value="daily">Daily</option>
+                            </select>
+                        </div>
+
+                        <!-- DESCRIPTION -->
+                        <div class="mb-3">
+                            {{ form.description.label(class="form-label") }}
+                            {{ form.description(class="form-control", rows=3, placeholder="Describe the goal") }}
+                        </div>
+
+                        <!-- MOTIVATION -->
+                        <div class="mb-3">
+                            {{ form.motivation.label(class="form-label") }}
+                            {{ form.motivation(class="form-control", rows=3, placeholder="Why does this matter?") }}
+                        </div>
+
+                        <!-- DUE DATE -->
+                        <div class="mb-3">
+                            {{ form.due_date.label(class="form-label") }}
+                            {{ form.due_date(class="form-control", type="date") }}
+                        </div>
+
+                        <!-- SUBMIT -->
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary btn-lg">Create Goal</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- EXISTING GOALS -->
+    {% if goals %}
+        <h2 class="mt-5 mb-3">All Goals</h2>
+        <div class="row g-3">
+            {% for goal in goals %}
                 <div class="col-md-6">
-                    {{ form.title(class="form-control", placeholder="Goal Title") }}
+                    {% with goal=goal %}
+                        {% include 'goal_card_simple.html' %}
+                    {% endwith %}
                 </div>
-                <div class="col-md-3">
-                    {{ form.type(class="form-select") }}
-                </div>
-                <div class="col-md-3">
-                    {{ form.submit(class="btn btn-dark w-100") }}
-                </div>
-            </div>
-            <div class="mt-3">
-                {{ form.description(class="form-control", rows=3, placeholder="Goal description...") }}
-            </div>
-            <div class="mt-2">
-                {{ form.motivation(class="form-control", rows=2, placeholder="Why this goal?") }}
-            </div>
-            <div class="mt-2">
-                {{ form.due_date(class="form-control", placeholder="Due Date (YYYY-MM-DD)") }}
-                <small class="text-muted">Optional: Set a target completion date</small>
-            </div>
-        </form>
-        </form>
-    </div>
-</div>
-
-    <!-- Goal Cards -->
-    <!-- Inside goals.html, replace the goals container -->
-    <div id="goalsContainer" class="row">
-        {% for goal in goals %}
-            {% with goal=goal %}
-                {% include 'goal_card.html' %}
-            {% endwith %}
-        {% endfor %}
-    </div>
+            {% endfor %}
+        </div>
+    {% endif %}
 </div>
 {% endblock %}
