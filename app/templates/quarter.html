@@ -9,6 +9,35 @@
         <a href="{{ next_url }}" class="btn btn-outline-dark">Next Quarter</a>
     </div>
 
+<!-- app/templates/quarter.html — MONTH CALENDAR SECTION -->
+
+<!-- MONTH CALENDAR GRID -->
+<div class="card border-light mb-5">
+    <div class="card-header bg-light">
+        <h5 class="mb-0">Month Navigation</h5>
+    </div>
+    <div class="card-body">
+        <!-- YEAR — LEFT-ALIGNED, CLICKABLE, ABOVE MONTHS -->
+        <div class="mb-3">
+            <a href="{{ url_for('main.year_page', year=year) }}" 
+               class="text-dark fw-bold text-decoration-none d-block">
+                {{ year }}
+            </a>
+        </div>
+
+        <!-- MONTHS GRID -->
+        <div class="row g-3 text-center">
+            {% for m in months %}
+                <div class="col-4">
+                    <a href="{{ m.url }}" class="btn btn-lg btn-outline-dark w-100 p-4 d-block text-decoration-none">
+                        <div class="fw-bold">{{ m.name }}</div>
+                    </a>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
     <!-- PREP FOR THE QUARTER -->
     <div class="card border-light mb-4">
         <div class="card-header bg-light">

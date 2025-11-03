@@ -99,7 +99,18 @@ def quarter_page(year, q_num):
     prev_q = 4 if q_num == 1 else q_num - 1
     next_year = year + 1 if q_num == 4 else year
     next_q = 1 if q_num == 4 else q_num + 1
-
+    
+    # Build months for calendar
+    months = []
+    for m in range(start_month, start_month + 3):
+        m_date = datetime(year, m, 1).date()
+        m_end = m_date + relativedelta(months=1) - timedelta(days=1)
+        months.append({
+            'num': m,
+            'name': m_date.strftime('%B'),
+            'url': f"/month/{year}/{m}"
+        })
+    
     return render_template(
         'quarter.html',
         year=year,
@@ -110,6 +121,7 @@ def quarter_page(year, q_num):
         quarterly_goals=quarterly_goals,
         prev_url=f"/quarter/{prev_year}/Q{prev_q}",
         next_url=f"/quarter/{next_year}/Q{next_q}",
+        months=months,
         today=today,
         today_quarter=today_quarter
     )
