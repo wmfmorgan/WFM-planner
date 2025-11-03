@@ -217,38 +217,43 @@ def week_page(year, week):
     if week < 1 or week > 53:
         abort(404)
 
+    # Get Monday of the ISO week
     try:
         w_start = datetime.strptime(f'{year}-W{week}-1', '%Y-W%W-%w').date()
     except ValueError:
         abort(404)
     w_end = w_start + timedelta(days=6)
 
+    # Weekly goals
     weekly_goals = Goal.query.filter(
         Goal.due_date >= w_start,
         Goal.due_date <= w_end,
         Goal.parent_id.isnot(None)
     ).order_by(Goal.due_date).all()
 
-    # Build 7-day calendar (Sun-Sat)
+    # Build 7-day calendar (Sun-Sat) — CORRECT WEEK
     days = []
-    current = w_start - timedelta(days=w_start.weekday() + 1)  # Sunday
-    for _ in range(7):
+    current = w_start
+    for i in range(7):
+        day_date = current + timedelta(days=i)
         days.append({
-            'day': current.day,
-            'date': current,
-            'url': f"/day/{current.year}/{current.month}/{current.day:02d}"
+            'day': day_date.day,
+            'date': day_date,
+            'url': f"/day/{day_date.year}/{day_date.month}/{day_date.day:02d}"
         })
-        current += timedelta(days=1)
 
+    # Calendar structure
     weeks = [{
         'week_num': week,
         'week_url': url_for('main.week_page', year=year, week=week),
         'days': days
     }]
 
+    # Breadcrumb
     sample_month = w_start.month
     month_name = w_start.strftime('%B')
 
+    # Navigation
     prev_week = week - 1
     prev_year = year
     if prev_week == 0:
@@ -260,7 +265,6 @@ def week_page(year, week):
         next_week = 1
         next_year += 1
 
-    # GROUP GOALS
     weekly_goals_grouped = group_goals_by_status(weekly_goals)
 
     return render_template(
