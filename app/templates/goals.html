@@ -62,8 +62,9 @@
         <h2 class="mt-5 mb-3">All Goals</h2>
         <div class="row g-3">
             {% for goal in goals %}
-                <div class="col-md-6">
-                    <div class="card goal-card" data-goal-id="{{ goal.id }}">
+                <div class="col-12">
+                <div class="card goal-card" data-goal-id="{{ goal.id }}">
+                    <!-- VIEW MODE -->
                         <!-- VIEW MODE -->
                         <div class="view-mode p-3">
                             <h6 class="card-title mb-1 goal-title-text">{{ goal.title }}</h6>
