@@ -5,7 +5,7 @@ from . import db
 class Goal(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(100), nullable=False)
-    type = db.Column(db.String(20), nullable=False)  # e.g., Annual, Q1, Jan, etc.
+    type = db.Column(db.String(20), default='annual')  # e.g., Annual, Q1, Jan, etc.
     description = db.Column(db.Text, nullable=False)
     motivation = db.Column(db.Text)
     due_date = db.Column(db.Date)

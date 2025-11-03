@@ -34,6 +34,7 @@ def group_goals_by_status(goals):
 def index():
     return render_template('index.html', title="WFM Planner", today=today, today_quarter=today_quarter)
 
+
 @bp.route('/goals', methods=['GET', 'POST'])
 def goals():
     form = GoalForm()
@@ -47,8 +48,8 @@ def goals():
         )
         db.session.add(goal)
         db.session.commit()
-        flash('Goal created successfully!', 'success')  # ← FLASH MESSAGE
-        return redirect(url_for('main.goals'))  # ← REDIRECT TO SELF
+        flash('Goal created successfully!', 'success')
+        return redirect(url_for('main.goals'))
 
     goals = Goal.query.filter_by(parent_id=None).all()
     return render_template('goals.html', goals=goals, form=form, today=today, today_quarter=today_quarter)
@@ -63,9 +64,12 @@ def year_page(year):
     y_end = datetime(year, 12, 31).date()
 
     annual_goals = Goal.query.filter(
-        Goal.type == 'annual',
         db.or_(
-            db.and_(Goal.due_date >= y_start, Goal.due_date <= y_end),
+            Goal.type == 'annual',
+            db.and_(
+                Goal.due_date >= y_start,
+                Goal.due_date <= y_end
+            ),
             Goal.due_date.is_(None)
         ),
         Goal.parent_id.is_(None)
@@ -374,13 +378,13 @@ def delete_goal(goal_id):
     return jsonify({'status': 'success'})
 
 
-# app/routes.py
+# EDIT GOAL
 @bp.route('/api/goal/<int:goal_id>', methods=['PUT'])
 def edit_goal(goal_id):
     goal = Goal.query.get_or_404(goal_id)
     data = request.json
     goal.title = data.get('title', goal.title)
-    goal.type = data.get('type', goal.type)  # ← ACCEPT TYPE
+    goal.type = data.get('type', goal.type)
     goal.description = data.get('description', goal.description)
     goal.motivation = data.get('motivation', goal.motivation)
     if 'due_date' in data:
