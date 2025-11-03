@@ -329,21 +329,25 @@ def update_goal_status(goal_id):
 
 
 # ADD SUB-GOAL
+# app/routes.py — add_subgoal
 @bp.route('/api/goal/<int:parent_id>/subgoal', methods=['POST'])
 def add_subgoal(parent_id):
     parent = Goal.query.get_or_404(parent_id)
     data = request.json
 
+    # Use provided type (from JS)
+    goal_type = data.get('type', 'daily')
+
     due_date = None
     if data.get('due_date'):
         try:
             due_date = datetime.strptime(data['due_date'], '%Y-%m-%d').date()
-        except ValueError:
-            return jsonify({'status': 'error', 'message': 'Invalid date'}), 400
+        except:
+            pass
 
     subgoal = Goal(
         title=data['title'],
-        type=data.get('type', 'task'),
+        type=goal_type,
         description=data.get('description', ''),
         motivation=data.get('motivation', ''),
         due_date=due_date,
@@ -351,12 +355,7 @@ def add_subgoal(parent_id):
     )
     db.session.add(subgoal)
     db.session.commit()
-
-    return jsonify({
-        'status': 'success',
-        'goal_id': subgoal.id,
-        'level': subgoal.level()
-    })
+    return jsonify({'status': 'success'})
 
 
 # TOGGLE COMPLETION
