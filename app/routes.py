@@ -5,6 +5,8 @@ from .models import Goal
 from .forms import GoalForm
 from datetime import datetime, timedelta
 from dateutil.relativedelta import relativedelta
+from calendar import monthcalendar
+from calendar import Calendar, SUNDAY
 
 bp = Blueprint('main', __name__)
 
@@ -224,6 +226,29 @@ def month_page(year, month):
     next_year = year + 1 if month == 12 else year
     next_month = 1 if month == 12 else month + 1
 
+    # SUNDAY-FIRST CALENDAR
+    cal = Calendar(firstweekday=SUNDAY)
+    weeks = []
+    for week in cal.monthdayscalendar(year, month):
+        week_data = []
+        for day in week:
+            if day == 0:
+                week_data.append(None)
+            else:
+                day_date = datetime(year, month, day).date()
+                week_data.append({
+                    'day': day,
+                    'url': f"/day/{year}/{month}/{day:02d}"
+                })
+        # Get ISO week number (still Monday-based, but display is Sunday-first)
+        sample_day = next((d for d in week if d != 0), 1)
+        iso_week = datetime(year, month, sample_day).isocalendar()[1]
+        weeks.append({
+            'week_num': iso_week,
+            'week_url': f"/week/{year}/{iso_week}",
+            'days': week_data
+        })
+
     return render_template(
         'month.html',
         year=year,
@@ -234,6 +259,7 @@ def month_page(year, month):
         monthly_goals=monthly_goals,
         prev_url=f"/month/{prev_year}/{prev_month}",
         next_url=f"/month/{next_year}/{next_month}",
+        weeks=weeks,
         today=today,
         today_quarter=today_quarter
     )

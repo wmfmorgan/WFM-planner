@@ -9,6 +9,70 @@
         <a href="{{ next_url }}" class="btn btn-outline-dark">Next Month</a>
     </div>
 
+<!-- app/templates/month.html — REPLACE CALENDAR CARD -->
+
+<!-- CALENDAR GRID WITH BREADCRUMBS -->
+<div class="card border-light mb-5">
+    <div class="card-header bg-light">
+        <h5 class="mb-0">Day Navigation</h5>
+    </div>
+    <div class="card-body">
+        <!-- BREADCRUMBS — YEAR → QUARTER ONLY (NO CURRENT MONTH) -->
+        <nav aria-label="breadcrumb" class="mb-3">
+            <ol class="breadcrumb p-0 bg-transparent">
+                <li class="breadcrumb-item">
+                    <a href="{{ url_for('main.year_page', year=year) }}" 
+                    class="text-dark fw-bold text-decoration-none">
+                        {{ year }}
+                    </a>
+                </li>
+                <li class="breadcrumb-item">
+                    <a href="{{ url_for('main.quarter_page', year=year, q_num=((month-1)//3)+1) }}" 
+                    class="text-dark fw-bold text-decoration-none">
+                        Q{{ ((month-1)//3)+1 }}
+                    </a>
+                </li>
+            </ol>
+        </nav>
+
+        <!-- 7×6 CALENDAR -->
+        <table class="table table-bordered table-sm mb-0 text-center">
+            <thead class="bg-light">
+                <tr>
+                    <th style="width: 50px;">Wk</th>
+                    <th>Sun</th>
+                    <th>Mon</th>
+                    <th>Tue</th>
+                    <th>Wed</th>
+                    <th>Thu</th>
+                    <th>Fri</th>
+                    <th>Sat</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for week in weeks %}
+                    <tr>
+                        <td class="align-middle">
+                            <a href="{{ week.week_url }}" class="text-decoration-none text-dark fw-bold">
+                                {{ week.week_num }}
+                            </a>
+                        </td>
+                        {% for day in week.days %}
+                            <td class="{% if day %}bg-white{% else %}bg-light{% endif %} align-middle" style="height: 60px;">
+                                {% if day %}
+                                    <a href="{{ day.url }}" class="d-block h-100 p-2 text-decoration-none text-dark">
+                                        <div class="fw-bold">{{ day.day }}</div>
+                                    </a>
+                                {% endif %}
+                            </td>
+                        {% endfor %}
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
     <!-- PREP FOR THE MONTH -->
     <div class="card border-light mb-4">
         <div class="card-header bg-light">
