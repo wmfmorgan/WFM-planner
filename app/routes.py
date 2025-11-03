@@ -1,5 +1,5 @@
 # app/routes.py
-from flask import Blueprint, render_template, request, jsonify, abort, url_for
+from flask import Blueprint, render_template, request, jsonify, abort, url_for, flash, redirect
 from . import db
 from .models import Goal
 from .forms import GoalForm
@@ -34,7 +34,6 @@ def group_goals_by_status(goals):
 def index():
     return render_template('index.html', title="WFM Planner", today=today, today_quarter=today_quarter)
 
-
 @bp.route('/goals', methods=['GET', 'POST'])
 def goals():
     form = GoalForm()
@@ -48,7 +47,8 @@ def goals():
         )
         db.session.add(goal)
         db.session.commit()
-        return jsonify({'status': 'success', 'goal_id': goal.id})
+        flash('Goal created successfully!', 'success')  # ← FLASH MESSAGE
+        return redirect(url_for('main.goals'))  # ← REDIRECT TO SELF
 
     goals = Goal.query.filter_by(parent_id=None).all()
     return render_template('goals.html', goals=goals, form=form, today=today, today_quarter=today_quarter)
