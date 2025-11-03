@@ -1,6 +1,3 @@
-<!-- app/templates/goal_card.html -->
-{% macro render_goal(goal, depth=0) %}
-    <div class="goal-node mb-3" style="margin-left: {{ depth * 25 }}px;" data-goal-id="{{ goal.id }}">
 <!-- app/templates/goal_card_simple.html -->
 <div class="card goal-card h-100" data-goal-id="{{ goal.id }}">
     <!-- VIEW MODE -->
@@ -10,7 +7,7 @@
                 <h6 class="card-title fw-bold mb-1">
                     {{ goal.title }}
                     {% if goal.due_date %}
-                        <small class="text-muted">({{ goal.due_date.strftime('%b %d, %Y') }})</small>
+                        <small class="text-muted">({{ goal.due_date.strftime('%b %d') }})</small>
                     {% endif %}
                 </h6>
                 <p class="small text-muted mb-2">{{ goal.description }}</p>
@@ -51,28 +48,4 @@
             </form>
         </div>
     </div>
-</div>
-        <!-- CHILDREN -->
-        {% for child in goal.children|sort(attribute='due_date') %}
-            {{ render_goal(child, depth + 1) }}
-        {% endfor %}
-    </div>
-{% endmacro %}
-
-<!-- MAIN RENDER LOOP -->
-<div class="goals-container">
-    {% for goal in goals if not goal.parent %}
-        {{ render_goal(goal) }}
-    {% else %}
-        <p class="text-center text-muted mt-5">
-            No goals yet. Create your first annual goal to begin!
-        </p>
-    {% endfor %}
-</div>
-
-<!-- Add Root Goal Button -->
-<div class="text-center mt-4">
-    <button class="btn btn-lg btn-dark add-root-goal">
-        + Create Annual Goal
-    </button>
 </div>

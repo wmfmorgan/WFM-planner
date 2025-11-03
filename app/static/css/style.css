@@ -1,100 +1,126 @@
-/* app/static/css/style.css — BLACK & WHITE HULK DOWN! */
+/* app/static/css/style.css — PURE WHITE, NO GREY, NO MERCY */
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 
 * {
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif !important;
+}
+
+/* FORCE WHITE BACKGROUND EVERYWHERE */
+html, body, .container, .card, .card-body, .card-header, .navbar, .progress {
+    background-color: #ffffff !important;
+    background: #ffffff !important;
 }
 
 body {
-    background: #ffffff !important; /* Pure white */
-    color: #000000 !important; /* Pure black */
-    min-height: 100vh;
+    color: #1a1a1a !important;
+    line-height: 1.6;
+}
+
+h1, h2, h3, h4, h5, h6 {
+    font-weight: 600;
+    color: #1a1a1a;
+    margin-bottom: 0.75rem;
 }
 
 .navbar {
-    background: #000000 !important; /* Black nav */
-    border-bottom: 3px solid #000 !important;
+    border-bottom: 1px solid #e2e8f0 !important;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.03);
 }
 
 .navbar-brand {
-    color: #ffffff !important; /* White text */
     font-weight: 700;
-    font-size: 1.5rem;
+    color: #1a1a1a !important;
+    font-size: 1.4rem;
 }
 
-.btn-warning {
-    background: #000 !important; /* Black buttons */
-    border: 2px solid #000 !important;
-    color: #fff !important;
+.nav-link {
+    color: #4a5568 !important;
+    font-weight: 500;
+    padding: 0.5rem 1rem !important;
 }
 
-.btn-warning:hover {
-    background: #fff !important;
-    color: #000 !important;
+.nav-link:hover {
+    color: #3182ce !important;
 }
 
 .card {
-    background: #ffffff !important; /* White cards */
-    border: 2px solid #000 !important;
-    color: #000000 !important;
-    box-shadow: 0 4px 8px rgba(0,0,0,0.1) !important;
+    border: 1px solid #e2e8f0 !important;
+    border-radius: 0.5rem !important;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04) !important;
+    transition: box-shadow 0.2s ease;
+}
+
+.card:hover {
+    box-shadow: 0 4px 12px rgba(0,0,0,0.06) !important;
 }
 
 .card-header {
-    background: #000000 !important; /* Black headers */
-    color: #ffffff !important;
-    border-bottom: 2px solid #000 !important;
-}
-
-.progress-bar {
-    background: #000000 !important; /* Black progress */
+    border-bottom: 1px solid #e2e8f0 !important;
+    font-weight: 600;
+    color: #2d3748;
+    font-size: 0.95rem;
 }
 
 .form-control, .form-select {
-    background: #f8f9fa !important;
-    border: 1px solid #000 !important;
-    color: #000 !important;
+    border: 1px solid #cbd5e0 !important;
+    border-radius: 0.4rem !important;
+    font-size: 0.95rem;
+    padding: 0.5rem 0.75rem;
 }
 
 .form-control:focus, .form-select:focus {
-    border-color: #000 !important;
-    box-shadow: 0 0 0 0.2rem rgba(0,0,0,0.1) !important;
+    border-color: #3182ce !important;
+    box-shadow: 0 0 0 0.2rem rgba(49,130,206,0.15) !important;
+}
+
+.btn {
+    font-weight: 500;
+    border-radius: 0.4rem !important;
+    padding: 0.35rem 0.75rem;
+    font-size: 0.9rem;
+}
+
+.btn-outline-dark {
+    color: #4a5568;
+    border-color: #cbd5e0;
+}
+
+.btn-outline-dark:hover {
+    background: #f7fafc;
+    color: #2d3748;
+}
+
+.btn-success {
+    background: #3182ce;
+    border-color: #3182ce;
+}
+
+.progress {
+    height: 6px !important;
+    border-radius: 3px;
+}
+
+.progress-bar {
+    background: #3182ce !important;
 }
 
 .text-muted {
-    color: #666 !important;
+    color: #718096 !important;
+    font-size: 0.9rem;
 }
 
-h1, h2, h3, h5, h6 {
-    font-weight: 600;
-    color: #000 !important;
+small {
+    font-size: 0.85rem;
 }
 
-.display-3 {
-    font-weight: 700;
-    color: #000 !important;
+/* FULL WIDTH CARDS */
+.goal-card, .card {
+    width: 100% !important;
+    max-width: none !important;
 }
 
-/* Goal badges */
-.badge {
-    background: #000 !important;
-    color: #fff !important;
+/* TOASTS */
+.toast {
+    border-radius: 0.5rem;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
 }
-
-/* BLOCK BAD EXTENSIONS FROM INJECTING SVGs */
-.no-svg-inject,
-.no-svg-inject * {
-    -webkit-user-modify: read-only !important;
-    pointer-events: none !important;
-}
-
-/* OR HARD BLOCK */
-.progress-bar {
-    background-image: none !important;
-}
-
-/* Borders for nesting */
-.border-info { border-color: #000 !important; }
-.border-success { border-color: #000 !important; }
-.border-warning { border-color: #000 !important; }
-.border-danger { border-color: #000 !important; }
