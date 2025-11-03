@@ -185,3 +185,43 @@ def edit_goal(goal_id):
         goal.due_date = None
     db.session.commit()
     return jsonify({'status': 'success'})
+
+# app/routes.py — ADD THIS ROUTE
+@bp.route('/month/<int:year>/<int:month>')
+def month_page(year, month):
+    if month < 1 or month > 12:
+        abort(404)
+
+    # Month start/end
+    m_start = datetime(year, month, 1).date()
+    if month == 12:
+        m_end = datetime(year + 1, 1, 1).date() - timedelta(days=1)
+    else:
+        m_end = datetime(year, month + 1, 1).date() - timedelta(days=1)
+
+    # Monthly goals
+    monthly_goals = Goal.query.filter(
+        Goal.due_date >= m_start,
+        Goal.due_date <= m_end,
+        Goal.parent_id.isnot(None)
+    ).order_by(Goal.due_date).all()
+
+    # Navigation
+    prev_year = year - 1 if month == 1 else year
+    prev_month = 12 if month == 1 else month - 1
+    next_year = year + 1 if month == 12 else year
+    next_month = 1 if month == 12 else month + 1
+
+    return render_template(
+        'month.html',
+        year=year,
+        month=month,
+        title=f"{m_start.strftime('%B %Y')}",
+        m_start=m_start,
+        m_end=m_end,
+        monthly_goals=monthly_goals,
+        prev_url=f"/month/{prev_year}/{prev_month}",
+        next_url=f"/month/{next_year}/{next_month}",
+        today=today,
+        today_quarter=today_quarter
+    )
