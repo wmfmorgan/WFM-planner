@@ -60,8 +60,7 @@
                             {% for day in week.days %}
                                 <td class="align-middle" style="height: 60px;">
                                     <a href="{{ day.url }}" class="d-block h-100 p-2 text-decoration-none text-dark">
-                                        <div class="fw-bold">{{ day.date.strftime('%a') }}</div>
-                                        <div>{{ day.day }}</div>
+                                         <div>{{ day.day }}</div>
                                     </a>
                                 </td>
                             {% endfor %}
