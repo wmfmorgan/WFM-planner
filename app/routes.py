@@ -1,5 +1,5 @@
 # app/routes.py
-from flask import Blueprint, render_template, request, jsonify, abort
+from flask import Blueprint, render_template, request, jsonify, abort, url_for
 from . import db
 from .models import Goal
 from .forms import GoalForm
@@ -267,6 +267,8 @@ def month_page(year, month):
 # app/routes.py — ADD THIS ROUTE
 from datetime import datetime, timedelta
 
+# app/routes.py — UPDATE week_page WITH CALENDAR DATA
+# app/routes.py — week_page (WITH url_for)
 @bp.route('/week/<int:year>/<int:week>')
 def week_page(year, week):
     if week < 1 or week > 53:
@@ -285,6 +287,28 @@ def week_page(year, week):
         Goal.due_date <= w_end,
         Goal.parent_id.isnot(None)
     ).order_by(Goal.due_date).all()
+
+    # Build 7-day calendar (Sun-Sat)
+    days = []
+    current = w_start - timedelta(days=w_start.weekday() + 1)  # Sunday
+    for _ in range(7):
+        days.append({
+            'day': current.day,
+            'date': current,
+            'url': f"/day/{current.year}/{current.month}/{current.day:02d}"
+        })
+        current += timedelta(days=1)
+
+    # Calendar structure
+    weeks = [{
+        'week_num': week,
+        'week_url': url_for('main.week_page', year=year, week=week),  # ← NOW WORKS
+        'days': days
+    }]
+
+    # Breadcrumb data
+    sample_month = w_start.month
+    month_name = w_start.strftime('%B')
 
     # Navigation
     prev_week = week - 1
@@ -306,6 +330,9 @@ def week_page(year, week):
         w_start=w_start,
         w_end=w_end,
         weekly_goals=weekly_goals,
+        weeks=weeks,
+        sample_month=sample_month,
+        month_name=month_name,
         prev_url=f"/week/{prev_year}/{prev_week}",
         next_url=f"/week/{next_year}/{next_week}",
         today=today,
