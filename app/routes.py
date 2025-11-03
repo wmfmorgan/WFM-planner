@@ -376,7 +376,14 @@ def toggle_goal(goal_id):
 @bp.route('/api/goal/<int:goal_id>', methods=['DELETE'])
 def delete_goal(goal_id):
     goal = Goal.query.get_or_404(goal_id)
-    db.session.delete(goal)
+    # Delete all children recursively
+    def delete_children(g):
+        for child in g.children:
+            delete_children(child)
+            db.session.delete(child)
+        db.session.delete(g)
+    
+    delete_children(goal)
     db.session.commit()
     return jsonify({'status': 'success'})
 
