@@ -10,8 +10,8 @@
     </div>
 
     <!-- QUARTER CALENDAR GRID -->
-    <div class="card border-dark mb-5">
-        <div class="card-header bg-dark text-white">
+    <div class="card border-light mb-5">
+        <div class="card-header bg-light">
             <h5 class="mb-0">Quarter Navigation</h5>
         </div>
         <div class="card-body">
@@ -31,12 +31,15 @@
     </div>
 
     <!-- PREP FOR THE YEAR -->
-    <div class="card border-dark mb-4">
-        <div class="card-header bg-dark text-white">
+    <div class="card border-light mb-4">
+        <div class="card-header bg-light">
             <h5 class="mb-0">Prep for the Year</h5>
         </div>
         <div class="card-body">
-            <textarea class="form-control" rows="5" placeholder="At the end of {{ year }}, what will my world look like? How will I get there?"></textarea>
+            <textarea class="form-control autosave-textarea" 
+                      data-key="prep-{{ year }}" 
+                      rows="5" 
+                      placeholder="At the end of {{ year }}, what will my world look like? How will I get there?"></textarea>
         </div>
     </div>
 
@@ -45,7 +48,7 @@
     {% if annual_goals %}
         <div class="row g-3">
             {% for goal in annual_goals %}
-                <div class="col-12">  <!-- FULL WIDTH -->
+                <div class="col-12">
                     {% with goal=goal %}
                         {% include 'goal_card_simple.html' %}
                     {% endwith %}
@@ -57,12 +60,15 @@
     {% endif %}
 
     <!-- NOTES -->
-    <div class="card border-dark mt-5">
-        <div class="card-header bg-dark text-white">
+    <div class="card border-light mt-5">
+        <div class="card-header bg-light">
             <h5 class="mb-0">Yearly Notes</h5>
         </div>
         <div class="card-body">
-            <textarea class="form-control" rows="4" placeholder="Themes, blockers, ideas..."></textarea>
+            <textarea class="form-control autosave-textarea" 
+                      data-key="notes-{{ year }}" 
+                      rows="4" 
+                      placeholder="Themes, blockers, ideas..."></textarea>
         </div>
     </div>
 
@@ -74,7 +80,10 @@
                     <h5 class="mb-0">Wins, Successes, Accomplishments</h5>
                 </div>
                 <div class="card-body">
-                    <textarea class="form-control" rows="4" placeholder="What crushed it this year?"></textarea>
+                    <textarea class="form-control autosave-textarea" 
+                              data-key="wins-{{ year }}" 
+                              rows="4" 
+                              placeholder="What crushed it this year?"></textarea>
                 </div>
             </div>
         </div>
@@ -84,7 +93,10 @@
                     <h5 class="mb-0">Areas to Improve</h5>
                 </div>
                 <div class="card-body">
-                    <textarea class="form-control" rows="4" placeholder="What to level up next year?"></textarea>
+                    <textarea class="form-control autosave-textarea" 
+                              data-key="improve-{{ year }}" 
+                              rows="4" 
+                              placeholder="What to level up next year?"></textarea>
                 </div>
             </div>
         </div>

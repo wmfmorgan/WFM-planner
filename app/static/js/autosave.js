@@ -1,9 +1,9 @@
-// app/static/js/autosave.js — HIERARCHY EDITION
+// app/static/js/autosave.js — HIERARCHY + TEXT AUTOSAVE
 document.addEventListener('DOMContentLoaded', function () {
     const goalsContainer = document.querySelector('.goals-container') || document.body;
 
     // ========================================
-    // 1. ADD SUB-GOAL (ANY LEVEL)
+    // 1. ADD SUB-GOAL
     // ========================================
     goalsContainer.addEventListener('click', function (e) {
         if (e.target.classList.contains('add-subgoal')) {
@@ -40,7 +40,7 @@ document.addEventListener('DOMContentLoaded', function () {
     goalsContainer.addEventListener('change', function (e) {
         if (e.target.classList.contains('complete-goal')) {
             const goalId = e.target.dataset.goalId;
-            const card = e.target.closest('.goal-node');
+            const card = e.target.closest('.goal-node') || e.target.closest('.goal-card');
             const progressBar = card.querySelector('.progress-bar');
 
             fetch(`/api/goal/${goalId}/toggle`, { method: 'POST' })
@@ -57,73 +57,7 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 
     // ========================================
-    // 3. EDIT GOAL
-    // ========================================
-    goalsContainer.addEventListener('click', function (e) {
-        if (e.target.classList.contains('edit-goal')) {
-            const goalId = e.target.dataset.goalId;
-            const card = e.target.closest('.goal-node');
-            const titleEl = card.querySelector('h6 .goal-title') || card.querySelector('h6');
-            if (!titleEl) return;
-
-            const currentTitle = titleEl.textContent.trim();
-            const newTitle = prompt('Edit goal title:', currentTitle);
-            if (!newTitle || newTitle === currentTitle) return;
-
-            fetch(`/api/goal/${goalId}`, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ title: newTitle })
-            })
-            .then(() => {
-                titleEl.textContent = newTitle;
-                showToast('Goal updated!', 'success');
-            })
-            .catch(() => showToast('Failed to update.', 'danger'));
-        }
-    });
-
-    // ========================================
-    // 4. DELETE GOAL
-    // ========================================
-    goalsContainer.addEventListener('click', function (e) {
-        if (e.target.classList.contains('delete-goal')) {
-            const goalId = e.target.dataset.goalId;
-            const card = e.target.closest('.goal-node');
-            if (!confirm('Delete this goal and all sub-goals?')) return;
-
-            fetch(`/api/goal/${goalId}`, { method: 'DELETE' })
-                .then(() => {
-                    showToast('Goal deleted!', 'danger');
-                    card.remove();
-                })
-                .catch(() => showToast('Failed to delete.', 'danger'));
-        }
-    });
-
-    // ========================================
-    // 5. TOAST NOTIFICATIONS
-    // ========================================
-    function showToast(message, type = 'info') {
-        const toast = document.createElement('div');
-        toast.className = `toast align-items-center text-white bg-${type} border-0 position-fixed`;
-        toast.style.top = '1rem';
-        toast.style.right = '1rem';
-        toast.style.zIndex = '9999';
-        toast.innerHTML = `
-            <div class="d-flex">
-                <div class="toast-body">${message}</div>
-                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
-            </div>
-        `;
-        document.body.appendChild(toast);
-        const bsToast = new bootstrap.Toast(toast, { delay: 3000 });
-        bsToast.show();
-        toast.addEventListener('hidden.bs.toast', () => toast.remove());
-    }
-
-    // ========================================
-    // 6. EDIT GOAL — EXPAND + INLINE FORM
+    // 3. EDIT GOAL — EXPAND + INLINE FORM
     // ========================================
     goalsContainer.addEventListener('click', function (e) {
         if (e.target.classList.contains('edit-goal-btn')) {
@@ -173,6 +107,71 @@ document.addEventListener('DOMContentLoaded', function () {
             });
         }
     });
+
+    // ========================================
+    // 4. DELETE GOAL
+    // ========================================
+    goalsContainer.addEventListener('click', function (e) {
+        if (e.target.classList.contains('delete-goal')) {
+            const goalId = e.target.dataset.goalId;
+            const card = e.target.closest('.goal-node') || e.target.closest('.goal-card');
+            if (!confirm('Delete this goal and all sub-goals?')) return;
+
+            fetch(`/api/goal/${goalId}`, { method: 'DELETE' })
+                .then(() => {
+                    showToast('Goal deleted!', 'danger');
+                    card.remove();
+                })
+                .catch(() => showToast('Failed to delete.', 'danger'));
+        }
+    });
+
+    // ========================================
+    // 5. AUTOSAVE TEXTAREAS (PREP/NOTES/REVIEW)
+    // ========================================
+    document.addEventListener('input', function (e) {
+        if (e.target.classList.contains('autosave-textarea')) {
+            const key = e.target.dataset.key;
+            if (key) {
+                localStorage.setItem(key, e.target.value);
+                console.log('Autosaved:', key);
+            }
+        }
+    });
+
+    // LOAD SAVED TEXT ON PAGE LOAD
+    const textareas = document.querySelectorAll('.autosave-textarea');
+    textareas.forEach(ta => {
+        const key = ta.dataset.key;
+        if (key) {
+            const saved = localStorage.getItem(key);
+            if (saved) {
+                ta.value = saved;
+                console.log('Loaded:', key);
+            }
+        }
+    });
+
+    // ========================================
+    // 6. TOAST NOTIFICATIONS
+    // ========================================
+    function showToast(message, type = 'info') {
+        const toast = document.createElement('div');
+        toast.className = `toast align-items-center text-white bg-${type} border-0 position-fixed`;
+        toast.style.top = '1rem';
+        toast.style.right = '1rem';
+        toast.style.zIndex = '9999';
+        toast.innerHTML = `
+            <div class="d-flex">
+                <div class="toast-body">${message}</div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+            </div>
+        `;
+        document.body.appendChild(toast);
+        const bsToast = new bootstrap.Toast(toast, { delay: 3000 });
+        bsToast.show();
+        toast.addEventListener('hidden.bs.toast', () => toast.remove());
+    }
 
     console.log('AUTOSAVE.JS LOADED — READY TO DOMINATE!');
 });

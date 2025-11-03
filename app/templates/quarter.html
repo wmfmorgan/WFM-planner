@@ -10,12 +10,15 @@
     </div>
 
     <!-- PREP FOR THE QUARTER -->
-    <div class="card border-dark mb-4">
-        <div class="card-header bg-dark text-white">
+    <div class="card border-light mb-4">
+        <div class="card-header bg-light">
             <h5 class="mb-0">Prep for the Quarter</h5>
         </div>
         <div class="card-body">
-            <textarea class="form-control" rows="5" placeholder="At the end of this quarter, what will my world look like? How will I get to this state?"></textarea>
+            <textarea class="form-control autosave-textarea" 
+                      data-key="prep-{{ year }}-{{ q_num }}" 
+                      rows="5" 
+                      placeholder="At the end of this quarter, what will my world look like? How will I get to this state?"></textarea>
         </div>
     </div>
 
@@ -24,7 +27,7 @@
     {% if quarterly_goals %}
         <div class="row g-3">
             {% for goal in quarterly_goals %}
-                <div class="col-12">  <!-- FULL WIDTH -->
+                <div class="col-12">
                     {% with goal=goal %}
                         {% include 'goal_card_simple.html' %}
                     {% endwith %}
@@ -36,12 +39,15 @@
     {% endif %}
 
     <!-- NOTES -->
-    <div class="card border-dark mt-5">
-        <div class="card-header bg-dark text-white">
+    <div class="card border-light mt-5">
+        <div class="card-header bg-light">
             <h5 class="mb-0">Notes</h5>
         </div>
         <div class="card-body">
-            <textarea class="form-control" rows="4" placeholder="Jot down thoughts, ideas, blockers..."></textarea>
+            <textarea class="form-control autosave-textarea" 
+                      data-key="notes-{{ year }}-{{ q_num }}" 
+                      rows="4" 
+                      placeholder="Jot down thoughts, ideas, blockers..."></textarea>
         </div>
     </div>
 
@@ -53,7 +59,10 @@
                     <h5 class="mb-0">Wins, Successes, Accomplishments</h5>
                 </div>
                 <div class="card-body">
-                    <textarea class="form-control" rows="4" placeholder="What went well?"></textarea>
+                    <textarea class="form-control autosave-textarea" 
+                              data-key="wins-{{ year }}-{{ q_num }}" 
+                              rows="4" 
+                              placeholder="What went well?"></textarea>
                 </div>
             </div>
         </div>
@@ -63,7 +72,10 @@
                     <h5 class="mb-0">Areas to Improve</h5>
                 </div>
                 <div class="card-body">
-                    <textarea class="form-control" rows="4" placeholder="What could be better?"></textarea>
+                    <textarea class="form-control autosave-textarea" 
+                              data-key="improve-{{ year }}-{{ q_num }}" 
+                              rows="4" 
+                              placeholder="What could be better?"></textarea>
                 </div>
             </div>
         </div>
