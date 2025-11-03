@@ -1,4 +1,4 @@
-// app/static/js/autosave.js — HIERARCHY + TEXT AUTOSAVE
+// app/static/js/autosave.js — FULL HIERARCHY + DAILY + PERSISTENCE
 document.addEventListener('DOMContentLoaded', function () {
     const goalsContainer = document.querySelector('.goals-container') || document.body;
 
@@ -127,33 +127,50 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 
     // ========================================
-    // 5. AUTOSAVE TEXTAREAS (PREP/NOTES/REVIEW)
+    // 5. AUTOSAVE ALL INPUTS (TEXT, CHECKBOX)
     // ========================================
     document.addEventListener('input', function (e) {
-        if (e.target.classList.contains('autosave-textarea')) {
-            const key = e.target.dataset.key;
-            if (key) {
-                localStorage.setItem(key, e.target.value);
-                console.log('Autosaved:', key);
-            }
+        if (e.target.dataset.key) {
+            localStorage.setItem(e.target.dataset.key, e.target.value);
+            console.log('Saved:', e.target.dataset.key, e.target.value);
         }
     });
 
-    // LOAD SAVED TEXT ON PAGE LOAD
-    const textareas = document.querySelectorAll('.autosave-textarea');
-    textareas.forEach(ta => {
-        const key = ta.dataset.key;
-        if (key) {
-            const saved = localStorage.getItem(key);
-            if (saved) {
-                ta.value = saved;
-                console.log('Loaded:', key);
-            }
+    document.addEventListener('change', function (e) {
+        if (e.target.type === 'checkbox' && e.target.dataset.key) {
+            localStorage.setItem(e.target.dataset.key, e.target.checked);
+            console.log('Saved checkbox:', e.target.dataset.key, e.target.checked);
         }
     });
 
     // ========================================
-    // 6. TOAST NOTIFICATIONS
+    // 6. LOAD ALL SAVED DATA ON EVERY PAGE LOAD
+    // ========================================
+    function loadAllSavedData() {
+        document.querySelectorAll('[data-key]').forEach(el => {
+            const key = el.dataset.key;
+            if (key) {
+                const saved = localStorage.getItem(key);
+                if (saved !== null) {
+                    if (el.type === 'checkbox') {
+                        el.checked = saved === 'true';
+                    } else {
+                        el.value = saved;
+                    }
+                    console.log('Loaded:', key, saved);
+                }
+            }
+        });
+    }
+
+    // RUN ON EVERY PAGE LOAD
+    loadAllSavedData();
+
+    // ALSO RUN ON DOMCONTENTLOADED (FOR SPAs)
+    document.addEventListener('DOMContentLoaded', loadAllSavedData);
+
+    // ========================================
+    // 7. TOAST NOTIFICATIONS
     // ========================================
     function showToast(message, type = 'info') {
         const toast = document.createElement('div');

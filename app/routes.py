@@ -273,3 +273,32 @@ def week_page(year, week):
         today=today,
         today_quarter=today_quarter
     )
+
+# app/routes.py — ADD THIS ROUTE
+@bp.route('/day/<int:year>/<int:month>/<int:day>')
+def day_page(year, month, day):
+    try:
+        day_date = datetime(year, month, day).date()
+    except ValueError:
+        abort(404)
+
+    # Daily goals
+    daily_goals = Goal.query.filter(
+        Goal.due_date == day_date,
+        Goal.parent_id.isnot(None)
+    ).order_by(Goal.due_date).all()
+
+    # Navigation
+    prev_date = day_date - timedelta(days=1)
+    next_date = day_date + timedelta(days=1)
+
+    return render_template(
+        'day.html',
+        day_date=day_date,
+        title=day_date.strftime('%A, %B %d, %Y'),
+        daily_goals=daily_goals,
+        prev_url=f"/day/{prev_date.year}/{prev_date.month}/{prev_date.day}",
+        next_url=f"/day/{next_date.year}/{next_date.month}/{next_date.day}",
+        today=today,
+        today_quarter=today_quarter
+    )

@@ -1,0 +1,144 @@
+<!-- app/templates/day.html -->
+{% extends "base.html" %}
+{% block content %}
+<div class="container mt-4">
+    <!-- NAVIGATION -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <a href="{{ prev_url }}" class="btn btn-outline-dark">Previous Day</a>
+        <h1 class="display-5 fw-bold text-center">{{ title }}</h1>
+        <a href="{{ next_url }}" class="btn btn-outline-dark">Next Day</a>
+    </div>
+
+    <!-- PREP FOR THE DAY -->
+    <div class="card border-light mb-4">
+        <div class="card-header bg-light">
+            <h5 class="mb-0">Prep for the Day</h5>
+        </div>
+        <div class="card-body">
+            <textarea class="form-control autosave-textarea" 
+                      data-key="prep-{{ day_date.strftime('%Y-%m-%d') }}" 
+                      rows="3" 
+                      placeholder="What must I accomplish today?"></textarea>
+        </div>
+    </div>
+
+    <!-- DAILY GOAL CARDS -->
+    <h5 class="mb-3">Daily Goals</h5>
+    {% if daily_goals %}
+        <div class="row g-3 mb-4">
+            {% for goal in daily_goals %}
+                <div class="col-12">
+                    {% with goal=goal %}
+                        {% include 'goal_card_simple.html' %}
+                    {% endwith %}
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <p class="text-muted">No goals for today.</p>
+    {% endif %}
+
+<!-- app/templates/day.html — SCHEDULE SECTION ONLY -->
+<!-- REPLACE THE ENTIRE 24-HOUR GRID SECTION -->
+
+<!-- 24-HOUR GRID: SCHEDULE + TASKS -->
+<div class="row mb-4">
+    <!-- LEFT: 24-HOUR SCHEDULE (12-HOUR FORMAT) -->
+<!-- REPLACE THE SCHEDULE SECTION IN day.html -->
+
+<!-- LEFT: 24-HOUR SCHEDULE (12-HOUR, EVERY ROW LABELED) -->
+<div class="col-md-6">
+    <div class="card border-light h-100">
+        <div class="card-header bg-light">
+            <h5 class="mb-0">Schedule</h5>
+        </div>
+        <div class="card-body p-0" style="height: 720px; overflow-y: auto;">
+            <div class="d-flex flex-column h-100">
+                {% for hour in range(24) %}
+                    {% set ampm = 'AM' if hour < 12 else 'PM' %}
+                    {% set display_hour = 12 if hour % 12 == 0 else hour % 12 %}
+                    {% for half in ['00', '30'] %}
+                        <div class="border-bottom d-flex align-items-center px-2" style="height: 30px; font-size: 0.85rem;">
+                            <div class="text-muted me-2" style="width: 70px; font-weight: 500;">
+                                {{ display_hour }}:{{ half }} {{ ampm }}
+                            </div>
+                            <div class="flex-grow-1">
+                                <input type="text" class="form-control form-control-sm border-0 p-0" 
+                                       style="height: 100%; background: transparent;" 
+                                       placeholder="Event..."
+                                       data-key="event-{{ day_date.strftime('%Y-%m-%d') }}-{{ '%02d' % hour }}:{{ half }}">
+                            </div>
+                        </div>
+                    {% endfor %}
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+    <!-- RIGHT: TASK CHECKLIST -->
+    <div class="col-md-6">
+        <div class="card border-light h-100">
+            <div class="card-header bg-light">
+                <h5 class="mb-0">Tasks</h5>
+            </div>
+            <div class="card-body p-0" style="height: 720px; overflow-y: auto;">
+                <div class="d-flex flex-column h-100">
+                    {% for i in range(48) %}
+                        <div class="border-bottom d-flex align-items-center px-2" style="height: 30px;">
+                            <input type="checkbox" class="me-2">
+                            <input type="text" class="form-control form-control-sm border-0 p-0 flex-grow-1" 
+                                   style="height: 100%; background: transparent;" 
+                                   placeholder="Task..."
+                                   data-key="task-{{ day_date.strftime('%Y-%m-%d') }}-{{ i }}">
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+    <!-- NOTES — FULL WIDTH -->
+    <div class="card border-light mb-4">
+        <div class="card-header bg-light">
+            <h5 class="mb-0">Notes</h5>
+        </div>
+        <div class="card-body">
+            <textarea class="form-control autosave-textarea" 
+                      data-key="notes-{{ day_date.strftime('%Y-%m-%d') }}" 
+                      rows="3" 
+                      placeholder="Quick thoughts, reflections, blockers..."></textarea>
+        </div>
+    </div>
+
+    <!-- REVIEW — TWO COLUMNS -->
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card border-success h-100">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0">Wins, Successes, Accomplishments</h5>
+                </div>
+                <div class="card-body">
+                    <textarea class="form-control autosave-textarea" 
+                              data-key="wins-{{ day_date.strftime('%Y-%m-%d') }}" 
+                              rows="3" 
+                              placeholder="What went well today?"></textarea>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card border-warning h-100">
+                <div class="card-header bg-warning text-dark">
+                    <h5 class="mb-0">Areas to Improve</h5>
+                </div>
+                <div class="card-body">
+                    <textarea class="form-control autosave-textarea" 
+                              data-key="improve-{{ day_date.strftime('%Y-%m-%d') }}" 
+                              rows="3" 
+                              placeholder="What could be better tomorrow?"></textarea>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
