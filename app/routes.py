@@ -225,3 +225,51 @@ def month_page(year, month):
         today=today,
         today_quarter=today_quarter
     )
+
+# app/routes.py — ADD THIS ROUTE
+from datetime import datetime, timedelta
+
+@bp.route('/week/<int:year>/<int:week>')
+def week_page(year, week):
+    if week < 1 or week > 53:
+        abort(404)
+
+    # Get Monday of the week (ISO week)
+    try:
+        w_start = datetime.strptime(f'{year}-W{week}-1', '%Y-W%W-%w').date()
+    except ValueError:
+        abort(404)
+    w_end = w_start + timedelta(days=6)
+
+    # Weekly goals
+    weekly_goals = Goal.query.filter(
+        Goal.due_date >= w_start,
+        Goal.due_date <= w_end,
+        Goal.parent_id.isnot(None)
+    ).order_by(Goal.due_date).all()
+
+    # Navigation
+    prev_week = week - 1
+    prev_year = year
+    if prev_week == 0:
+        prev_week = 52
+        prev_year -= 1
+    next_week = week + 1
+    next_year = year
+    if next_week > 52:
+        next_week = 1
+        next_year += 1
+
+    return render_template(
+        'week.html',
+        year=year,
+        week=week,
+        title=f"Week {week}: {w_start.strftime('%b %d')} - {w_end.strftime('%b %d, %Y')}",
+        w_start=w_start,
+        w_end=w_end,
+        weekly_goals=weekly_goals,
+        prev_url=f"/week/{prev_year}/{prev_week}",
+        next_url=f"/week/{next_year}/{next_week}",
+        today=today,
+        today_quarter=today_quarter
+    )

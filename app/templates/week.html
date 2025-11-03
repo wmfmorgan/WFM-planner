@@ -1,0 +1,84 @@
+<!-- app/templates/week.html -->
+{% extends "base.html" %}
+{% block content %}
+<div class="container mt-4">
+    <!-- NAVIGATION -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <a href="{{ prev_url }}" class="btn btn-outline-dark">Previous Week</a>
+        <h1 class="display-5 fw-bold text-center">{{ title }}</h1>
+        <a href="{{ next_url }}" class="btn btn-outline-dark">Next Week</a>
+    </div>
+
+    <!-- PREP FOR THE WEEK -->
+    <div class="card border-light mb-4">
+        <div class="card-header bg-light">
+            <h5 class="mb-0">Prep for the Week</h5>
+        </div>
+        <div class="card-body">
+            <textarea class="form-control autosave-textarea" 
+                      data-key="prep-{{ year }}-{{ week }}" 
+                      rows="5" 
+                      placeholder="At the end of this week, what will my world look like? How will I get there?"></textarea>
+        </div>
+    </div>
+
+    <!-- WEEKLY GOAL CARDS — FULL WIDTH -->
+    <h5 class="mb-3">Weekly Goals</h5>
+    {% if weekly_goals %}
+        <div class="row g-3">
+            {% for goal in weekly_goals %}
+                <div class="col-12">
+                    {% with goal=goal %}
+                        {% include 'goal_card_simple.html' %}
+                    {% endwith %}
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <p class="text-muted">No weekly goals set.</p>
+    {% endif %}
+
+    <!-- NOTES -->
+    <div class="card border-light mt-5">
+        <div class="card-header bg-light">
+            <h5 class="mb-0">Notes</h5>
+        </div>
+        <div class="card-body">
+            <textarea class="form-control autosave-textarea" 
+                      data-key="notes-{{ year }}-{{ week }}" 
+                      rows="4" 
+                      placeholder="Jot down thoughts, ideas, blockers..."></textarea>
+        </div>
+    </div>
+
+    <!-- REVIEW -->
+    <div class="row mt-5">
+        <div class="col-md-6">
+            <div class="card border-success h-100">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0">Wins, Successes, Accomplishments</h5>
+                </div>
+                <div class="card-body">
+                    <textarea class="form-control autosave-textarea" 
+                              data-key="wins-{{ year }}-{{ week }}" 
+                              rows="4" 
+                              placeholder="What went well?"></textarea>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card border-warning h-100">
+                <div class="card-header bg-warning text-dark">
+                    <h5 class="mb-0">Areas to Improve</h5>
+                </div>
+                <div class="card-body">
+                    <textarea class="form-control autosave-textarea" 
+                              data-key="improve-{{ year }}-{{ week }}" 
+                              rows="4" 
+                              placeholder="What could be better?"></textarea>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
