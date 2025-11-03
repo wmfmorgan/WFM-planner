@@ -85,6 +85,7 @@ def year_page(year):
     prev_year = year - 1
     next_year = year + 1
 
+    # GROUP GOALS
     annual_goals_grouped = group_goals_by_status(annual_goals)
 
     return render_template(
@@ -129,6 +130,7 @@ def quarter_page(year, q_num):
             'url': f"/month/{year}/{m}"
         })
     
+    # GROUP GOALS
     quarterly_goals_grouped = group_goals_by_status(quarterly_goals)
 
     return render_template(
@@ -191,6 +193,7 @@ def month_page(year, month):
             'days': week_data
         })
 
+    # GROUP GOALS
     monthly_goals_grouped = group_goals_by_status(monthly_goals)
 
     return render_template(
@@ -257,6 +260,7 @@ def week_page(year, week):
         next_week = 1
         next_year += 1
 
+    # GROUP GOALS
     weekly_goals_grouped = group_goals_by_status(weekly_goals)
 
     return render_template(
@@ -292,6 +296,7 @@ def day_page(year, month, day):
     prev_date = day_date - timedelta(days=1)
     next_date = day_date + timedelta(days=1)
 
+    # GROUP GOALS
     daily_goals_grouped = group_goals_by_status(daily_goals)
 
     return render_template(

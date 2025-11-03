@@ -86,15 +86,16 @@
 
     <!-- WEEKLY GOAL CARDS — FULL WIDTH -->
 <h5 class="mb-3">Weekly Goals</h5>
-{% set columns = [
-    {'id': 'todo', 'label': 'To Do'},
-    {'id': 'in_progress', 'label': 'In Progress'},
-    {'id': 'blocked', 'label': 'Blocked'},
-    {'id': 'done', 'label': 'Done'}
-] %}
-{% with goals=weekly_goals_grouped, columns=columns %}
-    {% include 'kanban_board.html' %}
-{% endwith %}
+    {% set columns = [
+        {'id': 'todo', 'label': 'To Do'},
+        {'id': 'in_progress', 'label': 'In Progress'},
+        {'id': 'blocked', 'label': 'Blocked'},
+        {'id': 'done', 'label': 'Done'}
+    ] %}
+
+    {% with goals=weekly_goals_grouped, columns=columns %}
+        {% include 'kanban_board.html' %}
+    {% endwith %}
 
     <!-- NOTES -->
     <div class="card border-light mt-5">

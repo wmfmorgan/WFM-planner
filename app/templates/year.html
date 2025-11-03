@@ -58,9 +58,10 @@
     {% set columns = [
         {'id': 'todo', 'label': 'To Do'},
         {'id': 'in_progress', 'label': 'In Progress'},
-        {'id': 'blocked', 'label': 'Blocked'},  
+        {'id': 'blocked', 'label': 'Blocked'},
         {'id': 'done', 'label': 'Done'}
     ] %}
+
     {% with goals=annual_goals_grouped, columns=columns %}
         {% include 'kanban_board.html' %}
     {% endwith %}
