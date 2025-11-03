@@ -51,7 +51,10 @@ def goals():
         flash('Goal created successfully!', 'success')
         return redirect(url_for('main.goals'))
 
-    goals = Goal.query.filter_by(parent_id=None).all()
+    goals = Goal.query.filter_by(parent_id=None).options(
+    db.joinedload(Goal.children)
+    ).all()
+    
     return render_template('goals.html', goals=goals, form=form, today=today, today_quarter=today_quarter)
 
 
@@ -392,5 +395,13 @@ def edit_goal(goal_id):
             goal.due_date = datetime.strptime(data['due_date'], '%Y-%m-%d').date() if data['due_date'] else None
         except:
             goal.due_date = None
+    db.session.commit()
+    return jsonify({'status': 'success'})
+
+@bp.route('/api/goal/<int:goal_id>/reparent', methods=['POST'])
+def reparent_goal(goal_id):
+    goal = Goal.query.get_or_404(goal_id)
+    data = request.json
+    goal.parent_id = data.get('parent_id')
     db.session.commit()
     return jsonify({'status': 'success'})

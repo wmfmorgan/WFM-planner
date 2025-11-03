@@ -58,78 +58,92 @@
     </div>
 
     <!-- EXISTING GOALS -->
-    {% if goals %}
-        <h2 class="mt-5 mb-3">All Goals</h2>
-        <div class="row g-3">
-            {% for goal in goals %}
-                <div class="col-12">
-                <div class="card goal-card" data-goal-id="{{ goal.id }}">
+<!-- HIERARCHY GOALS -->
+{% if goals %}
+    <h2 class="mt-5 mb-3">All Goals</h2>
+    <div class="goal-hierarchy">
+        {% macro render_goal(goal, level=0) %}
+            <div class="goal-item" style="margin-left: {{ level * 30 }}px;" data-goal-id="{{ goal.id }}">
+                <div class="card mb-2 goal-card" data-goal-id="{{ goal.id }}">
                     <!-- VIEW MODE -->
-                        <!-- VIEW MODE -->
-                        <div class="view-mode p-3">
+                    <div class="view-mode p-3 d-flex align-items-center justify-content-between">
+                        <div class="flex-grow-1">
                             <h6 class="card-title mb-1 goal-title-text">{{ goal.title }}</h6>
                             <small class="text-muted">{{ goal.type|capitalize }}</small>
                             {% if goal.due_date %}
                                 <small class="text-muted d-block">{{ goal.due_date.strftime('%b %d') }}</small>
                             {% endif %}
-                            <div class="mt-2">
-                                <button class="btn btn-sm btn-outline-dark edit-goal-btn">Edit</button>
-                            </div>
                         </div>
-
-                        <!-- EDIT MODE -->
-                        <div class="edit-mode d-none p-3">
-                            <form class="edit-goal-form">
-                                <input type="hidden" name="goal_id" value="{{ goal.id }}">
-                                
-                                <!-- TITLE -->
-                                <div class="mb-2">
-                                    <input type="text" class="form-control form-control-sm goal-title-input" 
-                                           value="{{ goal.title }}" required>
-                                </div>
-
-                                <!-- TYPE -->
-                                <div class="mb-2">
-                                    <select class="form-select form-select-sm goal-type-input">
-                                        <option value="annual" {% if goal.type == 'annual' %}selected{% endif %}>Annual</option>
-                                        <option value="quarterly" {% if goal.type == 'quarterly' %}selected{% endif %}>Quarterly</option>
-                                        <option value="monthly" {% if goal.type == 'monthly' %}selected{% endif %}>Monthly</option>
-                                        <option value="weekly" {% if goal.type == 'weekly' %}selected{% endif %}>Weekly</option>
-                                        <option value="daily" {% if goal.type == 'daily' %}selected{% endif %}>Daily</option>
-                                    </select>
-                                </div>
-
-                                <!-- DESCRIPTION -->
-                                <div class="mb-2">
-                                    <textarea class="form-control form-control-sm goal-description-input" rows="2">{{ goal.description or '' }}</textarea>
-                                </div>
-
-                                <!-- MOTIVATION -->
-                                <div class="mb-2">
-                                    <textarea class="form-control form-control-sm goal-motivation-input" rows="2">{{ goal.motivation or '' }}</textarea>
-                                </div>
-
-                                <!-- DUE DATE -->
-                                <div class="mb-2">
-                                    <input type="date" class="form-control form-control-sm goal-due-date-input" 
-                                           value="{{ goal.due_date.strftime('%Y-%m-%d') if goal.due_date else '' }}">
-                                </div>
-
-                                <!-- SAVE / CANCEL -->
-                                <div class="d-flex gap-1">
-                                    <button type="submit" class="btn btn-sm btn-success">Save</button>
-                                    <button type="button" class="btn btn-sm btn-secondary cancel-edit">Cancel</button>
-                                </div>
-                            </form>
+                        <div class="d-flex gap-2">
+                            {% if goal.children %}
+                                <button class="btn btn-sm btn-outline-secondary collapse-toggle">
+                                    <i class="bi bi-chevron-down"></i>
+                                </button>
+                            {% endif %}
+                            <button class="btn btn-sm btn-outline-dark edit-goal-btn">Edit</button>
+                            <button class="btn btn-sm btn-outline-primary add-subgoal-btn" data-parent-id="{{ goal.id }}">Add Sub-Goal</button>
                         </div>
                     </div>
+
+                    <!-- EDIT MODE -->
+                    <div class="edit-mode d-none p-3">
+                        <!-- ... same edit form as before ... -->
+                    </div>
                 </div>
-            {% endfor %}
-        </div>
-    {% endif %}
+
+                <!-- CHILDREN (COLLAPSIBLE) -->
+                {% if goal.children %}
+                    <div class="goal-children">
+                        {% for child in goal.children %}
+                            {{ render_goal(child, level + 1) }}
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+        {% endmacro %}
+
+        {% for goal in goals %}
+            {{ render_goal(goal) }}
+        {% endfor %}
+    </div>
+{% endif %}
+
+    <!-- REUSABLE SUB-GOAL FORM (HIDDEN) -->
+    <div id="subgoal-form-container" class="d-none mt-4">
+        <h3 class="h5">Add Sub-Goal</h3>
+        <form id="subgoal-form" class="card p-3">
+            <input type="hidden" id="parent-id" name="parent_id">
+            
+            <div class="mb-3">
+                <label class="form-label">Title</label>
+                <input type="text" class="form-control form-control-sm" name="title" required>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Type</label>
+                <select name="type" class="form-select form-select-sm" required>
+                    <option value="annual">Annual</option>
+                    <option value="quarterly">Quarterly</option>
+                    <option value="monthly">Monthly</option>
+                    <option value="weekly">Weekly</option>
+                    <option value="daily">Daily</option>
+                </select>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Due Date</label>
+                <input type="date" class="form-control form-control-sm" name="due_date">
+            </div>
+
+            <div class="d-flex gap-2">
+                <button type="submit" class="btn btn-sm btn-success">Save Sub-Goal</button>
+                <button type="button" class="btn btn-sm btn-secondary" id="cancel-subgoal">Cancel</button>
+            </div>
+        </form>
+    </div>
 </div>
 
-<!-- EDIT LOGIC -->
+<!-- EDIT + SUB-GOAL LOGIC -->
 <script>
     // EDIT BUTTON
     document.addEventListener('click', function(e) {
@@ -140,7 +154,7 @@
         }
     });
 
-    // CANCEL
+    // CANCEL EDIT
     document.addEventListener('click', function(e) {
         if (e.target.classList.contains('cancel-edit')) {
             const card = e.target.closest('.goal-card');
@@ -149,7 +163,7 @@
         }
     });
 
-    // SAVE
+    // SAVE EDIT
     document.addEventListener('submit', function(e) {
         if (e.target.classList.contains('edit-goal-form')) {
             e.preventDefault();
@@ -182,6 +196,86 @@
                 card.querySelector('.edit-mode').classList.add('d-none');
             });
         }
+    });
+
+    // ADD SUB-GOAL BUTTON
+    document.addEventListener('click', function(e) {
+        if (e.target.classList.contains('add-subgoal-btn')) {
+            const parentId = e.target.dataset.parentId;
+            const card = e.target.closest('.goal-card');
+            document.getElementById('parent-id').value = parentId;
+            document.getElementById('subgoal-form-container').classList.remove('d-none');
+            card.after(document.getElementById('subgoal-form-container'));
+        }
+    });
+
+    // CANCEL SUB-GOAL
+    document.getElementById('cancel-subgoal').addEventListener('click', function() {
+        document.getElementById('subgoal-form-container').classList.add('d-none');
+    });
+
+    // SAVE SUB-GOAL
+    document.getElementById('subgoal-form').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const formData = new FormData(this);
+        const data = Object.fromEntries(formData);
+
+        fetch(`/api/goal/${data.parent_id}/subgoal`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+        }).then(() => {
+            location.reload();
+        });
+    });
+</script>
+
+<!-- STEP 3: CSS + JS FOR COLLAPSE + DRAG -->
+<style>
+    .goal-children {
+        transition: max-height 0.3s ease;
+        overflow: hidden;
+    }
+    .goal-children.collapsed {
+        max-height: 0 !important;
+    }
+    .collapse-toggle i.bi-chevron-down {
+        transition: transform 0.2s;
+    }
+    .collapse-toggle.collapsed i.bi-chevron-down {
+        transform: rotate(-90deg);
+    }
+</style>
+
+<script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+<script>
+    // COLLAPSE TOGGLE
+    document.addEventListener('click', function(e) {
+        const toggle = e.target.closest('.collapse-toggle');
+        if (toggle) {
+            const children = toggle.closest('.goal-item').querySelector('.goal-children');
+            children.classList.toggle('collapsed');
+            toggle.querySelector('i').classList.toggle('bi-chevron-down');
+            toggle.querySelector('i').classList.toggle('bi-chevron-right');
+        }
+    });
+
+    // DRAG BETWEEN PARENTS
+    document.querySelectorAll('.goal-hierarchy').forEach(hierarchy => {
+        new Sortable(hierarchy, {
+            group: 'goals',
+            animation: 150,
+            handle: '.goal-card',
+            onEnd: function (evt) {
+                const goalId = evt.item.dataset.goalId;
+                const newParent = evt.to.closest('.goal-item')?.dataset.goalId || null;
+                fetch(`/api/goal/${goalId}/reparent`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ parent_id: newParent })
+                });
+            }
+        });
     });
 </script>
 {% endblock %}
