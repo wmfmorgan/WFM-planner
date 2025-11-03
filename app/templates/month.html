@@ -88,19 +88,15 @@
 
     <!-- MONTHLY GOAL CARDS — FULL WIDTH -->
     <h5 class="mb-3">Monthly Goals</h5>
-    {% if monthly_goals %}
-        <div class="row g-3">
-            {% for goal in monthly_goals %}
-                <div class="col-12">
-                    {% with goal=goal %}
-                        {% include 'goal_card_simple.html' %}
-                    {% endwith %}
-                </div>
-            {% endfor %}
-        </div>
-    {% else %}
-        <p class="text-muted">No monthly goals set.</p>
-    {% endif %}
+    {% set columns = [
+        {'id': 'todo', 'label': 'To Do'},
+        {'id': 'in_progress', 'label': 'In Progress'},
+        {'id': 'blocked', 'label': 'Blocked'},  
+        {'id': 'done', 'label': 'Done'}
+    ] %}
+    {% with goals=monthly_goals_grouped, columns=columns %}
+        {% include 'kanban_board.html' %}
+    {% endwith %}
 
     <!-- NOTES -->
     <div class="card border-light mt-5">

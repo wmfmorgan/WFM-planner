@@ -5,7 +5,6 @@ from .models import Goal
 from .forms import GoalForm
 from datetime import datetime, timedelta
 from dateutil.relativedelta import relativedelta
-from calendar import monthcalendar
 from calendar import Calendar, SUNDAY
 
 bp = Blueprint('main', __name__)
@@ -13,6 +12,22 @@ bp = Blueprint('main', __name__)
 # GLOBAL TODAY FOR NAVBAR
 today = datetime.now().date()
 today_quarter = ((today.month - 1) // 3) + 1
+
+
+# REUSABLE: GROUP GOALS BY STATUS
+def group_goals_by_status(goals):
+    grouped = {
+        'todo': [],
+        'in_progress': [],
+        'blocked': [],
+        'done': []
+    }
+    for goal in goals:
+        status = getattr(goal, 'status', 'todo')
+        if status not in grouped:
+            status = 'todo'
+        grouped[status].append(goal)
+    return grouped
 
 
 @bp.route('/')
@@ -70,10 +85,12 @@ def year_page(year):
     prev_year = year - 1
     next_year = year + 1
 
+    annual_goals_grouped = group_goals_by_status(annual_goals)
+
     return render_template(
         'year.html',
         year=year,
-        annual_goals=annual_goals,
+        annual_goals_grouped=annual_goals_grouped,
         quarters=quarters,
         prev_url=f"/year/{prev_year}",
         next_url=f"/year/{next_year}",
@@ -106,13 +123,14 @@ def quarter_page(year, q_num):
     months = []
     for m in range(start_month, start_month + 3):
         m_date = datetime(year, m, 1).date()
-        m_end = m_date + relativedelta(months=1) - timedelta(days=1)
         months.append({
             'num': m,
             'name': m_date.strftime('%B'),
             'url': f"/month/{year}/{m}"
         })
     
+    quarterly_goals_grouped = group_goals_by_status(quarterly_goals)
+
     return render_template(
         'quarter.html',
         year=year,
@@ -120,13 +138,183 @@ def quarter_page(year, q_num):
         title=f"{year} Q{q_num}",
         q_start=q_start,
         q_end=q_end,
-        quarterly_goals=quarterly_goals,
+        quarterly_goals_grouped=quarterly_goals_grouped,
         prev_url=f"/quarter/{prev_year}/Q{prev_q}",
         next_url=f"/quarter/{next_year}/Q{next_q}",
         months=months,
         today=today,
         today_quarter=today_quarter
     )
+
+
+@bp.route('/month/<int:year>/<int:month>')
+def month_page(year, month):
+    if month < 1 or month > 12:
+        abort(404)
+
+    m_start = datetime(year, month, 1).date()
+    if month == 12:
+        m_end = datetime(year + 1, 1, 1).date() - timedelta(days=1)
+    else:
+        m_end = datetime(year, month + 1, 1).date() - timedelta(days=1)
+
+    monthly_goals = Goal.query.filter(
+        Goal.due_date >= m_start,
+        Goal.due_date <= m_end,
+        Goal.parent_id.isnot(None)
+    ).order_by(Goal.due_date).all()
+
+    prev_year = year - 1 if month == 1 else year
+    prev_month = 12 if month == 1 else month - 1
+    next_year = year + 1 if month == 12 else year
+    next_month = 1 if month == 12 else month + 1
+
+    # SUNDAY-FIRST CALENDAR
+    cal = Calendar(firstweekday=SUNDAY)
+    weeks = []
+    for week in cal.monthdayscalendar(year, month):
+        week_data = []
+        for day in week:
+            if day == 0:
+                week_data.append(None)
+            else:
+                day_date = datetime(year, month, day).date()
+                week_data.append({
+                    'day': day,
+                    'url': f"/day/{year}/{month}/{day:02d}"
+                })
+        sample_day = next((d for d in week if d != 0), 1)
+        iso_week = datetime(year, month, sample_day).isocalendar()[1]
+        weeks.append({
+            'week_num': iso_week,
+            'week_url': f"/week/{year}/{iso_week}",
+            'days': week_data
+        })
+
+    monthly_goals_grouped = group_goals_by_status(monthly_goals)
+
+    return render_template(
+        'month.html',
+        year=year,
+        month=month,
+        title=f"{m_start.strftime('%B %Y')}",
+        m_start=m_start,
+        m_end=m_end,
+        monthly_goals_grouped=monthly_goals_grouped,
+        prev_url=f"/month/{prev_year}/{prev_month}",
+        next_url=f"/month/{next_year}/{next_month}",
+        weeks=weeks,
+        today=today,
+        today_quarter=today_quarter
+    )
+
+
+@bp.route('/week/<int:year>/<int:week>')
+def week_page(year, week):
+    if week < 1 or week > 53:
+        abort(404)
+
+    try:
+        w_start = datetime.strptime(f'{year}-W{week}-1', '%Y-W%W-%w').date()
+    except ValueError:
+        abort(404)
+    w_end = w_start + timedelta(days=6)
+
+    weekly_goals = Goal.query.filter(
+        Goal.due_date >= w_start,
+        Goal.due_date <= w_end,
+        Goal.parent_id.isnot(None)
+    ).order_by(Goal.due_date).all()
+
+    # Build 7-day calendar (Sun-Sat)
+    days = []
+    current = w_start - timedelta(days=w_start.weekday() + 1)  # Sunday
+    for _ in range(7):
+        days.append({
+            'day': current.day,
+            'date': current,
+            'url': f"/day/{current.year}/{current.month}/{current.day:02d}"
+        })
+        current += timedelta(days=1)
+
+    weeks = [{
+        'week_num': week,
+        'week_url': url_for('main.week_page', year=year, week=week),
+        'days': days
+    }]
+
+    sample_month = w_start.month
+    month_name = w_start.strftime('%B')
+
+    prev_week = week - 1
+    prev_year = year
+    if prev_week == 0:
+        prev_week = 52
+        prev_year -= 1
+    next_week = week + 1
+    next_year = year
+    if next_week > 52:
+        next_week = 1
+        next_year += 1
+
+    weekly_goals_grouped = group_goals_by_status(weekly_goals)
+
+    return render_template(
+        'week.html',
+        year=year,
+        week=week,
+        title=f"Week {week}: {w_start.strftime('%b %d')} - {w_end.strftime('%b %d, %Y')}",
+        w_start=w_start,
+        w_end=w_end,
+        weekly_goals_grouped=weekly_goals_grouped,
+        weeks=weeks,
+        sample_month=sample_month,
+        month_name=month_name,
+        prev_url=f"/week/{prev_year}/{prev_week}",
+        next_url=f"/week/{next_year}/{next_week}",
+        today=today,
+        today_quarter=today_quarter
+    )
+
+
+@bp.route('/day/<int:year>/<int:month>/<int:day>')
+def day_page(year, month, day):
+    try:
+        day_date = datetime(year, month, day).date()
+    except ValueError:
+        abort(404)
+
+    daily_goals = Goal.query.filter(
+        Goal.due_date == day_date,
+        Goal.parent_id.isnot(None)
+    ).order_by(Goal.due_date).all()
+
+    prev_date = day_date - timedelta(days=1)
+    next_date = day_date + timedelta(days=1)
+
+    daily_goals_grouped = group_goals_by_status(daily_goals)
+
+    return render_template(
+        'day.html',
+        day_date=day_date,
+        title=day_date.strftime('%A, %B %d, %Y'),
+        daily_goals_grouped=daily_goals_grouped,
+        prev_url=f"/day/{prev_date.year}/{prev_date.month}/{prev_date.day}",
+        next_url=f"/day/{next_date.year}/{next_date.month}/{next_date.day}",
+        today=today,
+        today_quarter=today_quarter
+    )
+
+
+# API: UPDATE GOAL STATUS
+@bp.route('/api/goal/<int:goal_id>/status', methods=['POST'])
+def update_goal_status(goal_id):
+    goal = Goal.query.get_or_404(goal_id)
+    data = request.json
+    if data.get('status') in ['todo', 'in_progress', 'blocked', 'done']:
+        goal.status = data['status']
+        db.session.commit()
+    return jsonify({'status': 'success'})
 
 
 # ADD SUB-GOAL
@@ -199,171 +387,3 @@ def edit_goal(goal_id):
         goal.due_date = None
     db.session.commit()
     return jsonify({'status': 'success'})
-
-# app/routes.py — ADD THIS ROUTE
-@bp.route('/month/<int:year>/<int:month>')
-def month_page(year, month):
-    if month < 1 or month > 12:
-        abort(404)
-
-    # Month start/end
-    m_start = datetime(year, month, 1).date()
-    if month == 12:
-        m_end = datetime(year + 1, 1, 1).date() - timedelta(days=1)
-    else:
-        m_end = datetime(year, month + 1, 1).date() - timedelta(days=1)
-
-    # Monthly goals
-    monthly_goals = Goal.query.filter(
-        Goal.due_date >= m_start,
-        Goal.due_date <= m_end,
-        Goal.parent_id.isnot(None)
-    ).order_by(Goal.due_date).all()
-
-    # Navigation
-    prev_year = year - 1 if month == 1 else year
-    prev_month = 12 if month == 1 else month - 1
-    next_year = year + 1 if month == 12 else year
-    next_month = 1 if month == 12 else month + 1
-
-    # SUNDAY-FIRST CALENDAR
-    cal = Calendar(firstweekday=SUNDAY)
-    weeks = []
-    for week in cal.monthdayscalendar(year, month):
-        week_data = []
-        for day in week:
-            if day == 0:
-                week_data.append(None)
-            else:
-                day_date = datetime(year, month, day).date()
-                week_data.append({
-                    'day': day,
-                    'url': f"/day/{year}/{month}/{day:02d}"
-                })
-        # Get ISO week number (still Monday-based, but display is Sunday-first)
-        sample_day = next((d for d in week if d != 0), 1)
-        iso_week = datetime(year, month, sample_day).isocalendar()[1]
-        weeks.append({
-            'week_num': iso_week,
-            'week_url': f"/week/{year}/{iso_week}",
-            'days': week_data
-        })
-
-    return render_template(
-        'month.html',
-        year=year,
-        month=month,
-        title=f"{m_start.strftime('%B %Y')}",
-        m_start=m_start,
-        m_end=m_end,
-        monthly_goals=monthly_goals,
-        prev_url=f"/month/{prev_year}/{prev_month}",
-        next_url=f"/month/{next_year}/{next_month}",
-        weeks=weeks,
-        today=today,
-        today_quarter=today_quarter
-    )
-
-# app/routes.py — ADD THIS ROUTE
-from datetime import datetime, timedelta
-
-# app/routes.py — UPDATE week_page WITH CALENDAR DATA
-# app/routes.py — week_page (WITH url_for)
-@bp.route('/week/<int:year>/<int:week>')
-def week_page(year, week):
-    if week < 1 or week > 53:
-        abort(404)
-
-    # Get Monday of the week (ISO week)
-    try:
-        w_start = datetime.strptime(f'{year}-W{week}-1', '%Y-W%W-%w').date()
-    except ValueError:
-        abort(404)
-    w_end = w_start + timedelta(days=6)
-
-    # Weekly goals
-    weekly_goals = Goal.query.filter(
-        Goal.due_date >= w_start,
-        Goal.due_date <= w_end,
-        Goal.parent_id.isnot(None)
-    ).order_by(Goal.due_date).all()
-
-    # Build 7-day calendar (Sun-Sat)
-    days = []
-    current = w_start - timedelta(days=w_start.weekday() + 1)  # Sunday
-    for _ in range(7):
-        days.append({
-            'day': current.day,
-            'date': current,
-            'url': f"/day/{current.year}/{current.month}/{current.day:02d}"
-        })
-        current += timedelta(days=1)
-
-    # Calendar structure
-    weeks = [{
-        'week_num': week,
-        'week_url': url_for('main.week_page', year=year, week=week),  # ← NOW WORKS
-        'days': days
-    }]
-
-    # Breadcrumb data
-    sample_month = w_start.month
-    month_name = w_start.strftime('%B')
-
-    # Navigation
-    prev_week = week - 1
-    prev_year = year
-    if prev_week == 0:
-        prev_week = 52
-        prev_year -= 1
-    next_week = week + 1
-    next_year = year
-    if next_week > 52:
-        next_week = 1
-        next_year += 1
-
-    return render_template(
-        'week.html',
-        year=year,
-        week=week,
-        title=f"Week {week}: {w_start.strftime('%b %d')} - {w_end.strftime('%b %d, %Y')}",
-        w_start=w_start,
-        w_end=w_end,
-        weekly_goals=weekly_goals,
-        weeks=weeks,
-        sample_month=sample_month,
-        month_name=month_name,
-        prev_url=f"/week/{prev_year}/{prev_week}",
-        next_url=f"/week/{next_year}/{next_week}",
-        today=today,
-        today_quarter=today_quarter
-    )
-
-# app/routes.py — ADD THIS ROUTE
-@bp.route('/day/<int:year>/<int:month>/<int:day>')
-def day_page(year, month, day):
-    try:
-        day_date = datetime(year, month, day).date()
-    except ValueError:
-        abort(404)
-
-    # Daily goals
-    daily_goals = Goal.query.filter(
-        Goal.due_date == day_date,
-        Goal.parent_id.isnot(None)
-    ).order_by(Goal.due_date).all()
-
-    # Navigation
-    prev_date = day_date - timedelta(days=1)
-    next_date = day_date + timedelta(days=1)
-
-    return render_template(
-        'day.html',
-        day_date=day_date,
-        title=day_date.strftime('%A, %B %d, %Y'),
-        daily_goals=daily_goals,
-        prev_url=f"/day/{prev_date.year}/{prev_date.month}/{prev_date.day}",
-        next_url=f"/day/{next_date.year}/{next_date.month}/{next_date.day}",
-        today=today,
-        today_quarter=today_quarter
-    )

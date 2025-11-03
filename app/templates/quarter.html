@@ -64,19 +64,15 @@
 
     <!-- QUARTERLY GOAL CARDS — FULL WIDTH -->
     <h5 class="mb-3">Quarterly Goals</h5>
-    {% if quarterly_goals %}
-        <div class="row g-3">
-            {% for goal in quarterly_goals %}
-                <div class="col-12">
-                    {% with goal=goal %}
-                        {% include 'goal_card_simple.html' %}
-                    {% endwith %}
-                </div>
-            {% endfor %}
-        </div>
-    {% else %}
-        <p class="text-muted">No quarterly goals set.</p>
-    {% endif %}
+    {% set columns = [
+        {'id': 'todo', 'label': 'To Do'},
+        {'id': 'in_progress', 'label': 'In Progress'},
+        {'id': 'blocked', 'label': 'Blocked'},  
+        {'id': 'done', 'label': 'Done'}
+    ] %}
+    {% with goals=quarterly_goals_grouped, columns=columns %}
+        {% include 'kanban_board.html' %}
+    {% endwith %}
 
     <!-- NOTES -->
     <div class="card border-light mt-5">

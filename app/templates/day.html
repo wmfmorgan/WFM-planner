@@ -53,19 +53,15 @@
 
     <!-- DAILY GOAL CARDS -->
     <h5 class="mb-3">Daily Goals</h5>
-    {% if daily_goals %}
-        <div class="row g-3 mb-4">
-            {% for goal in daily_goals %}
-                <div class="col-12">
-                    {% with goal=goal %}
-                        {% include 'goal_card_simple.html' %}
-                    {% endwith %}
-                </div>
-            {% endfor %}
-        </div>
-    {% else %}
-        <p class="text-muted">No goals for today.</p>
-    {% endif %}
+    {% set columns = [
+        {'id': 'todo', 'label': 'To Do'},
+        {'id': 'in_progress', 'label': 'In Progress'},
+        {'id': 'blocked', 'label': 'Blocked'},  
+        {'id': 'done', 'label': 'Done'}
+    ] %}
+    {% with goals=daily_goals_grouped, columns=columns %}
+        {% include 'kanban_board.html' %}
+    {% endwith %}
 
 
 <!-- 24-HOUR GRID: SCHEDULE + TASKS -->

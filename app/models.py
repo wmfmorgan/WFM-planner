@@ -12,6 +12,7 @@ class Goal(db.Model):
     completed = db.Column(db.Boolean, default=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     parent_id = db.Column(db.Integer, db.ForeignKey('goal.id'), nullable=True)
+    status = db.Column(db.String(20), default='todo', nullable=False, server_default='todo')  # 'todo', 'in_progress', 'blocked', 'done'
 
     # Self-referencing relationship
     children = db.relationship(

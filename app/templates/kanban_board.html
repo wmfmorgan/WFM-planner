@@ -1,0 +1,57 @@
+<!-- app/templates/kanban_board.html -->
+<div class="kanban-board mt-4">
+    <div class="row g-3">
+        {% for col in columns %}
+            <div class="col">
+                <div class="card h-100 border-light">
+                    <div class="card-header bg-light text-center">
+                        <h6 class="mb-0 text-uppercase fw-bold">
+                            {{ col.label }}
+                            <span class="badge bg-primary ms-2">{{ goals[col.id]|length }}</span>
+                        </h6>
+                    </div>
+                    <div class="card-body p-2 kanban-column" data-status="{{ col.id }}">
+                        {% for goal in goals[col.id] %}
+                            <div class="card mb-2 goal-card draggable" data-goal-id="{{ goal.id }}">
+                                <div class="card-body p-2">
+                                    <h6 class="card-title mb-1">{{ goal.title }}</h6>
+                                    {% if goal.due_date %}
+                                        <small class="text-muted">{{ goal.due_date.strftime('%b %d') }}</small>
+                                    {% endif %}
+                                    <div class="mt-1">
+                                        <button class="btn btn-sm btn-outline-dark edit-goal">Edit</button>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+<script>
+    document.querySelectorAll('.kanban-column').forEach(col => {
+        new Sortable(col, {
+            group: 'kanban',
+            animation: 150,
+            onEnd: function (evt) {
+                const goalId = evt.item.dataset.goalId;
+                const newStatus = evt.to.dataset.status;
+                fetch(`/api/goal/${goalId}/status`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ status: newStatus })
+                }).then(() => {
+                    // Update badge count
+                    document.querySelectorAll('.kanban-column').forEach(c => {
+                        const badge = c.closest('.card').querySelector('.badge');
+                        badge.textContent = c.children.length;
+                    });
+                });
+            }
+        });
+    });
+</script>
