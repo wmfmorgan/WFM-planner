@@ -41,53 +41,53 @@
 <!-- app/templates/day.html — SCHEDULE SECTION ONLY -->
 <!-- REPLACE THE ENTIRE 24-HOUR GRID SECTION -->
 
+<!-- REPLACE THE ENTIRE 24-HOUR GRID SECTION -->
+
 <!-- 24-HOUR GRID: SCHEDULE + TASKS -->
 <div class="row mb-4">
-    <!-- LEFT: 24-HOUR SCHEDULE (12-HOUR FORMAT) -->
-<!-- REPLACE THE SCHEDULE SECTION IN day.html -->
-
-<!-- LEFT: 24-HOUR SCHEDULE (12-HOUR, EVERY ROW LABELED) -->
-<div class="col-md-6">
-    <div class="card border-light h-100">
-        <div class="card-header bg-light">
-            <h5 class="mb-0">Schedule</h5>
-        </div>
-        <div class="card-body p-0" style="height: 720px; overflow-y: auto;">
-            <div class="d-flex flex-column h-100">
-                {% for hour in range(24) %}
-                    {% set ampm = 'AM' if hour < 12 else 'PM' %}
-                    {% set display_hour = 12 if hour % 12 == 0 else hour % 12 %}
-                    {% for half in ['00', '30'] %}
-                        <div class="border-bottom d-flex align-items-center px-2" style="height: 30px; font-size: 0.85rem;">
-                            <div class="text-muted me-2" style="width: 70px; font-weight: 500;">
-                                {{ display_hour }}:{{ half }} {{ ampm }}
+    <!-- LEFT: 24-HOUR SCHEDULE (SPACED OUT) -->
+    <div class="col-md-6">
+        <div class="card border-light h-100">
+            <div class="card-header bg-light">
+                <h5 class="mb-0">Schedule</h5>
+            </div>
+            <div class="card-body p-0" style="height: 840px; overflow-y: auto;"> <!-- TALLER -->
+                <div class="d-flex flex-column h-100">
+                    {% for hour in range(24) %}
+                        {% set ampm = 'AM' if hour < 12 else 'PM' %}
+                        {% set display_hour = 12 if hour % 12 == 0 else hour % 12 %}
+                        {% for half in ['00', '30'] %}
+                            <div class="border-bottom d-flex align-items-center px-3 py-1" style="height: 35px; font-size: 0.9rem;">
+                                <div class="text-muted me-3" style="width: 75px; font-weight: 500;">
+                                    {{ display_hour }}:{{ half }} {{ ampm }}
+                                </div>
+                                <div class="flex-grow-1">
+                                    <input type="text" class="form-control form-control-sm border-0 p-1" 
+                                           style="height: 100%; background: transparent; font-size: 0.9rem;" 
+                                           placeholder="Event..."
+                                           data-key="event-{{ day_date.strftime('%Y-%m-%d') }}-{{ '%02d' % hour }}:{{ half }}">
+                                </div>
                             </div>
-                            <div class="flex-grow-1">
-                                <input type="text" class="form-control form-control-sm border-0 p-0" 
-                                       style="height: 100%; background: transparent;" 
-                                       placeholder="Event..."
-                                       data-key="event-{{ day_date.strftime('%Y-%m-%d') }}-{{ '%02d' % hour }}:{{ half }}">
-                            </div>
-                        </div>
+                        {% endfor %}
                     {% endfor %}
-                {% endfor %}
+                </div>
             </div>
         </div>
     </div>
-</div>
-    <!-- RIGHT: TASK CHECKLIST -->
+
+    <!-- RIGHT: TASK CHECKLIST (SPACED OUT) -->
     <div class="col-md-6">
         <div class="card border-light h-100">
             <div class="card-header bg-light">
                 <h5 class="mb-0">Tasks</h5>
             </div>
-            <div class="card-body p-0" style="height: 720px; overflow-y: auto;">
+            <div class="card-body p-0" style="height: 840px; overflow-y: auto;">
                 <div class="d-flex flex-column h-100">
                     {% for i in range(48) %}
-                        <div class="border-bottom d-flex align-items-center px-2" style="height: 30px;">
-                            <input type="checkbox" class="me-2">
-                            <input type="text" class="form-control form-control-sm border-0 p-0 flex-grow-1" 
-                                   style="height: 100%; background: transparent;" 
+                        <div class="border-bottom d-flex align-items-center px-3 py-1" style="height: 35px;">
+                            <input type="checkbox" class="me-3">
+                            <input type="text" class="form-control form-control-sm border-0 p-1 flex-grow-1" 
+                                   style="height: 100%; background: transparent; font-size: 0.9rem;" 
                                    placeholder="Task..."
                                    data-key="task-{{ day_date.strftime('%Y-%m-%d') }}-{{ i }}">
                         </div>
@@ -97,7 +97,6 @@
         </div>
     </div>
 </div>
-
     <!-- NOTES — FULL WIDTH -->
     <div class="card border-light mb-4">
         <div class="card-header bg-light">
