@@ -37,7 +37,8 @@
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('main.week_page', year=today.isocalendar()[0], week=today.isocalendar()[1]) }}">
+                        {% set current_year, current_week = get_current_sunday_week() %}
+                        <a class="nav-link" href="{{ url_for('main.week_page', year=current_year, week=current_week) }}">
                             Weekly
                         </a>
                     </li>
