@@ -47,13 +47,10 @@ def goals():
         if form.validate_on_submit():
             # === HANDLE parent_id: '' → None ===
             parent_id = request.form.get('parent_id')
-            if parent_id == '' or parent_id is None:
+            if parent_id == '':
                 parent_id = None
             else:
-                try:
-                    parent_id = int(parent_id)
-                except (ValueError, TypeError):
-                    parent_id = None
+                parent_id = int(parent_id) if parent_id else None
 
             # === HANDLE due_date: string → date ===
             due_date = None
