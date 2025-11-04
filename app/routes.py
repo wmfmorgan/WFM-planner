@@ -38,7 +38,7 @@ def index():
 # app/routes.py — UPDATE goals() route
 @bp.route('/goals', methods=['GET', 'POST'])
 def goals():
-    form = UnifiedGoalForm()
+    form = GoalForm()
     if form.validate_on_submit():
         goal = Goal(
             title=form.title.data,
