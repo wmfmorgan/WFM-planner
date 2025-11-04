@@ -6,8 +6,8 @@ from .forms import GoalForm
 from datetime import datetime, timedelta
 from dateutil.relativedelta import relativedelta
 from calendar import Calendar, SUNDAY
-from sqlalchemy import case as db_case, or_ as db_or
-from sqlalchemy import and_, or_, case
+from sqlalchemy import case
+from sqlalchemy import and_, or_
 
 bp = Blueprint('main', __name__)
 
@@ -349,11 +349,11 @@ def week_page(year, week):
     # GET WEEKLY GOALS
     weekly_goals = Goal.query.filter(
         Goal.type == 'weekly',
-        db_or_(
-            db_and_(Goal.due_date >= w_start, Goal.due_date <= w_end),
+        or_(
+            and_(Goal.due_date >= w_start, Goal.due_date <= w_end),
             Goal.due_date.is_(None)
         ),
-        db_or_(Goal.parent_id.is_(None), Goal.parent_id == '')
+        or_(Goal.parent_id.is_(None), Goal.parent_id == '')
     ).order_by(
         db_case((Goal.due_date.is_(None), 0), else_=1),
         Goal.due_date.asc(),
