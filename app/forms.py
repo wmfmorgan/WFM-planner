@@ -1,6 +1,6 @@
 # app/forms.py
 from flask_wtf import FlaskForm
-from wtforms import StringField, SelectField, TextAreaField, DateField, SubmitField  # ← ADDED DateField!
+from wtforms import StringField, SelectField, TextAreaField, DateField, BooleanField, SubmitField  # ← ADDED DateField!
 from wtforms.validators import DataRequired
 
 GOAL_CATEGORY = [
