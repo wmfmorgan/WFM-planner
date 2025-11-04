@@ -35,39 +35,56 @@ def index():
     return render_template('index.html', title="WFM Planner", today=today, today_quarter=today_quarter)
 
 
-# app/routes.py — UPDATE goals() route
 @bp.route('/goals', methods=['GET', 'POST'])
 def goals():
     form = GoalForm()
     if request.method == 'POST':
         if form.validate_on_submit():
+            # CONVERT parent_id: '' → None, else int
+            parent_id = request.form.get('parent_id')
+            if parent_id == '':
+                parent_id = None
+            else:
+                try:
+                    parent_id = int(parent_id)
+                except:
+                    parent_id = None
+
+            # CONVERT due_date: string → date
+            due_date = None
+            if form.due_date.data:
+                try:
+                    due_date = datetime.strptime(form.due_date.data, '%Y-%m-%d').date()
+                except:
+                    flash('Invalid due date format.', 'danger')
+                    return redirect(url_for('main.goals'))
+
             goal = Goal(
                 title=form.title.data,
                 type=form.type.data,
                 category=form.category.data,
                 description=form.description.data,
                 motivation=form.motivation.data,
-                due_date=form.due_date.data,
+                due_date=due_date,
                 status=form.status.data,
                 completed=form.completed.data,
-                parent_id=request.form.get('parent_id')
+                parent_id=parent_id
             )
             db.session.add(goal)
             db.session.commit()
             flash('Goal saved!', 'success')
         else:
-            flash('Form validation failed. Please check your input.', 'danger')
+            flash('Form validation failed.', 'danger')
             for field, errors in form.errors.items():
                 for error in errors:
                     flash(f"{field}: {error}", 'danger')
         return redirect(url_for('main.goals'))
 
-    # FETCH + SORT: oldest to newest, with children
-    # app/routes.py — goals() route
+    # GET request
     goals = Goal.query.filter_by(parent_id=None).options(
         db.joinedload(Goal.children)
     ).order_by(
-        db.case((Goal.due_date.is_(None), 0), else_=1),  # NULLs first
+        db.case((Goal.due_date.is_(None), 0), else_=1),
         Goal.due_date.asc(),
         Goal.id
     ).all()
@@ -82,7 +99,13 @@ def goals():
     for goal in goals:
         sort_children(goal)
 
-    return render_template('goals.html', goals=goals, form=form, today=today, today_quarter=today_quarter)
+    return render_template(
+        'goals.html',
+        goals=goals,
+        form=form,
+        today=today,
+        today_quarter=today_quarter
+    )
 
 
 @bp.route('/year/<int:year>')
