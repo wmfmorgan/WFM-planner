@@ -44,6 +44,9 @@ from sqlalchemy import case as db_case
 def goals():
     form = GoalForm()
     if request.method == 'POST':
+        print("=== /goals POST DEBUG ===")
+        print("Form data:", dict(request.form))
+        print("Parent ID:", request.form.get('parent_id'))
         if form.validate_on_submit():
             # === HANDLE parent_id: '' → None ===
             parent_id = request.form.get('parent_id')
@@ -481,6 +484,9 @@ def update_goal_status(goal_id):
 # app/routes.py — add_subgoal
 @bp.route('/api/goal/<int:parent_id>/subgoal', methods=['POST'])
 def add_subgoal(parent_id):
+    print("=== /api/goal/{parent_id}/subgoal DEBUG ===")
+    print("Parent ID:", parent_id)
+    print("JSON data:", request.json)
     data = request.json
 
     # ENSURE parent_id IS VALID

@@ -149,6 +149,17 @@
                         </div>
                     </div>
 
+                                       <!-- IN KANBAN MODAL, AFTER TYPE -->
+                    <div class="mb-3" id="kanban-parent-section">
+                        <label class="form-label">Link to Parent Goal</label>
+                        <select class="form-select" name="parent_id">
+                            <option value="">-- None (Top-Level) --</option>
+                            {% for parent in possible_parents %}
+                                <option value="{{ parent.id }}">{{ parent.id }}{{ parent.title }} ({{ parent.type|capitalize }})</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
                     <div class="mb-3">
                         {{ form.description.label(class="form-label") }}
                         {{ form.description(class="form-control", rows=3) }}
@@ -183,16 +194,7 @@
                         {{ form.submit(class="btn btn-primary") }}
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
                     </div>
-                    <!-- IN KANBAN MODAL, AFTER TYPE -->
-                    <div class="mb-3" id="kanban-parent-section">
-                        <label class="form-label">Link to Parent Goal</label>
-                        <select class="form-select" name="parent_id">
-                            <option value="">-- None (Top-Level) --</option>
-                            {% for parent in possible_parents %}
-                                <option value="{{ parent.id }}">{{ parent.title }} ({{ parent.type|capitalize }})</option>
-                            {% endfor %}
-                        </select>
-                    </div>
+ 
                 </form>
             </div>
         </div>
@@ -326,28 +328,40 @@
         }
     });
  
-    document.getElementById('unified-goal-form').addEventListener('submit', function(e) {
-        e.preventDefault();
-        const formData = new FormData(this);
-        const parentId = formData.get('parent_id');
+// FORM SUBMIT (KANBAN MODAL) — WITH DEBUG
+document.getElementById('unified-goal-form').addEventListener('submit', function(e) {
+    e.preventDefault();
+    const formData = new FormData(this);
+    const parentId = formData.get('parent_id');
 
-        let url = '/goals';
-        if (parentId && parentId !== '') {
-            url = `/api/goal/${parentId}/subgoal`;
+    // BUILD DEBUG MESSAGE
+    let debugMsg = `=== KANBAN GOAL SUBMIT DEBUG ===\n`;
+    debugMsg += `Parent ID: ${parentId || '(none)'}\n`;
+    debugMsg += `Title: ${formData.get('title')}\n`;
+    debugMsg += `Type: ${formData.get('type')}\n`;
+    debugMsg += `URL: ${parentId && parentId !== '' ? `/api/goal/${parentId}/subgoal` : '/goals'}`;
+
+    // SHOW IN ALERT (WON'T BE CLEARED)
+    alert(debugMsg);
+
+    let url = '/goals';
+    if (parentId && parentId !== '') {
+        url = `/api/goal/${parentId}/subgoal`;
+    }
+
+    fetch(url, {
+        method: 'POST',
+        body: formData
+    }).then(response => {
+        if (response.ok) {
+            location.reload();
+        } else {
+            response.text().then(text => {
+                alert(`Error: ${text}`);
+            });
         }
-
-        fetch(url, {
-            method: 'POST',
-            body: formData
-        }).then(response => {
-            if (response.ok) {
-                location.reload();
-            } else {
-                alert('Error saving goal');
-            }
-        });
     });
-
+});
  /*   // HIDE PARENT SELECTOR ON ANNUAL PAGE
     if ('{{ page_type }}' === 'year') {
         document.getElementById('parent-goal-section').style.display = 'none';
