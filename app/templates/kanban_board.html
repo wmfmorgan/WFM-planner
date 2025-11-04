@@ -125,7 +125,7 @@
             <div class="modal-body">
                 <form id="unified-goal-form" action="/goals" method="POST">
                     {{ form.hidden_tag() }}
-                    <input type="hidden" name="parent_id" value="">
+                    <!-- <input type="hidden" name="parent_id" value=""> -->
                     <!-- IN MODAL, AFTER parent_id -->
                     <input type="hidden" name="type" id="kanban-hidden-type">
 
@@ -351,7 +351,8 @@ document.getElementById('unified-goal-form').addEventListener('submit', function
 
     fetch(url, {
         method: 'POST',
-        body: formData
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
     }).then(response => {
         if (response.ok) {
             location.reload();
