@@ -149,17 +149,6 @@
                         </div>
                     </div>
 
-                                       <!-- IN KANBAN MODAL, AFTER TYPE -->
-                    <div class="mb-3" id="kanban-parent-section">
-                        <label class="form-label">Link to Parent Goal</label>
-                        <select class="form-select" name="parent_id">
-                            <option value="">-- None (Top-Level) --</option>
-                            {% for parent in possible_parents %}
-                                <option value="{{ parent.id }}">{{ parent.id }}{{ parent.title }} ({{ parent.type|capitalize }})</option>
-                            {% endfor %}
-                        </select>
-                    </div>
-                    
                     <div class="mb-3">
                         {{ form.description.label(class="form-label") }}
                         {{ form.description(class="form-control", rows=3) }}
@@ -188,6 +177,17 @@
                     <div class="form-check mb-3">
                         {{ form.completed(class="form-check-input") }}
                         {{ form.completed.label(class="form-check-label") }}
+                    </div>
+
+                    <!-- IN KANBAN MODAL, AFTER TYPE -->
+                    <div class="mb-3" id="kanban-parent-section">
+                        <label class="form-label">Link to Parent Goal</label>
+                        <select class="form-select" name="parent_id">
+                            <option value="">-- None (Top-Level) --</option>
+                            {% for parent in possible_parents %}
+                                <option value="{{ parent.id }}">{{ parent.id }}{{ parent.title }} ({{ parent.type|capitalize }})</option>
+                            {% endfor %}
+                        </select>
                     </div>
 
                     <div class="d-flex gap-2">
