@@ -35,30 +35,34 @@ def index():
     return render_template('index.html', title="WFM Planner", today=today, today_quarter=today_quarter)
 
 
+from datetime import datetime
+from sqlalchemy import case as db_case
+
 @bp.route('/goals', methods=['GET', 'POST'])
 def goals():
     form = GoalForm()
     if request.method == 'POST':
         if form.validate_on_submit():
-            # CONVERT parent_id: '' → None, else int
+            # === HANDLE parent_id: '' → None ===
             parent_id = request.form.get('parent_id')
-            if parent_id == '':
+            if parent_id == '' or parent_id is None:
                 parent_id = None
             else:
                 try:
                     parent_id = int(parent_id)
-                except:
+                except (ValueError, TypeError):
                     parent_id = None
 
-            # CONVERT due_date: string → date
+            # === HANDLE due_date: string → date ===
             due_date = None
             if form.due_date.data:
                 try:
                     due_date = datetime.strptime(form.due_date.data, '%Y-%m-%d').date()
-                except:
-                    flash('Invalid due date format.', 'danger')
+                except ValueError:
+                    flash('Invalid due date format. Use YYYY-MM-DD.', 'danger')
                     return redirect(url_for('main.goals'))
 
+            # === CREATE GOAL ===
             goal = Goal(
                 title=form.title.data,
                 type=form.type.data,
@@ -77,19 +81,24 @@ def goals():
             flash('Form validation failed.', 'danger')
             for field, errors in form.errors.items():
                 for error in errors:
-                    flash(f"{field}: {error}", 'danger')
+                    flash(f"{getattr(form, field).label.text}: {error}", 'danger')
         return redirect(url_for('main.goals'))
 
-    # GET request
-    goals = Goal.query.filter_by(parent_id=None).options(
+    # === GET: LOAD TOP-LEVEL GOALS ===
+    goals = Goal.query.filter(
+        db.or_(
+            Goal.parent_id.is_(None),
+            Goal.parent_id == ''
+        )
+    ).options(
         db.joinedload(Goal.children)
     ).order_by(
-        db.case((Goal.due_date.is_(None), 0), else_=1),
+        db_case((Goal.due_date.is_(None), 0), else_=1),
         Goal.due_date.asc(),
         Goal.id
     ).all()
 
-    # SORT CHILDREN RECURSIVELY
+    # === SORT CHILDREN RECURSIVELY ===
     def sort_children(goal):
         if goal.children:
             goal.children.sort(key=lambda x: (x.due_date or datetime.max.date(), x.id))
@@ -385,32 +394,29 @@ def update_goal_status(goal_id):
 
 # ADD SUB-GOAL
 # app/routes.py — add_subgoal
+# app/routes.py — add_subgoal
 @bp.route('/api/goal/<int:parent_id>/subgoal', methods=['POST'])
 def add_subgoal(parent_id):
-    parent = Goal.query.get_or_404(parent_id)
     data = request.json
 
-    # Use provided type (from JS)
-    goal_type = data.get('type', 'daily')
+    # ENSURE parent_id IS VALID
+    if not Goal.query.get(parent_id):
+        return jsonify({'error': 'Parent not found'}), 404
 
-    due_date = None
-    if data.get('due_date'):
-        try:
-            due_date = datetime.strptime(data['due_date'], '%Y-%m-%d').date()
-        except:
-            pass
-
-    subgoal = Goal(
+    goal = Goal(
         title=data['title'],
-        type=goal_type,
-        description=data.get('description', ''),
-        motivation=data.get('motivation', ''),
-        due_date=due_date,
-        parent_id=parent_id
+        type=data['type'],
+        category=data.get('category'),
+        description=data.get('description'),
+        motivation=data.get('motivation'),
+        due_date=datetime.strptime(data['due_date'], '%Y-%m-%d').date() if data.get('due_date') else None,
+        status=data.get('status', 'todo'),
+        completed=data.get('completed', False),
+        parent_id=parent_id  # ← ALREADY INT FROM URL
     )
-    db.session.add(subgoal)
+    db.session.add(goal)
     db.session.commit()
-    return jsonify({'status': 'success'})
+    return jsonify({'status': 'success', 'goal_id': goal.id})
 
 
 # TOGGLE COMPLETION
