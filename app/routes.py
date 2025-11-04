@@ -38,7 +38,7 @@ def index():
 # app/routes.py — UPDATE goals() route
 @bp.route('/goals', methods=['GET', 'POST'])
 def goals():
-    form = GoalForm()
+    form = UnifiedGoalForm()
     if form.validate_on_submit():
         goal = Goal(
             title=form.title.data,
@@ -46,11 +46,14 @@ def goals():
             category=form.category.data,
             description=form.description.data,
             motivation=form.motivation.data,
-            due_date=form.due_date.data
+            due_date=form.due_date.data,
+            status=form.status.data,
+            completed=form.completed.data,
+            parent_id=request.form.get('parent_id')
         )
         db.session.add(goal)
         db.session.commit()
-        flash('Goal created successfully!', 'success')
+        flash('Goal saved!', 'success')
         return redirect(url_for('main.goals'))
 
     # FETCH + SORT: oldest to newest, with children
