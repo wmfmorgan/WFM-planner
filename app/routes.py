@@ -120,22 +120,26 @@ def goals():
 @bp.route('/year/<int:year>')
 def year_page(year):
     if year < 2000 or year > 2100:
-        abort(404)
+            abort(404)
 
     y_start = datetime(year, 1, 1).date()
     y_end = datetime(year, 12, 31).date()
 
     annual_goals = Goal.query.filter(
+        Goal.type == 'annual',
         db.or_(
-            Goal.type == 'annual',
-            db.and_(
-                Goal.due_date >= y_start,
-                Goal.due_date <= y_end
-            ),
+            db.and_(Goal.due_date >= y_start, Goal.due_date <= y_end),
             Goal.due_date.is_(None)
         ),
-        Goal.parent_id.is_(None)
-    ).order_by(Goal.due_date.asc(), Goal.id).all()
+        db.or_(  # ← ADD THIS
+            Goal.parent_id.is_(None),
+            Goal.parent_id == ''
+        )
+    ).order_by(
+        db.case((Goal.due_date.is_(None), 0), else_=1),
+        Goal.due_date.asc(),
+        Goal.id
+    ).all()
 
     quarters = []
     for q in range(1, 5):
