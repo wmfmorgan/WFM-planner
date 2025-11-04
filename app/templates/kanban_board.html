@@ -128,16 +128,7 @@
                     <input type="hidden" name="parent_id" value="">
                     <!-- IN MODAL, AFTER parent_id -->
                     <input type="hidden" name="type" id="kanban-hidden-type">
-                    <!-- IN MODAL, AFTER TYPE -->
-                    <div class="mb-3" id="kanban-parent-section">
-                        <label class="form-label">Link to Parent Goal</label>
-                        <select class="form-select" name="parent_id">
-                            <option value="">-- None (Top-Level) --</option>
-                            {% for parent in possible_parents %}
-                                <option value="{{ parent.id }}">{{ parent.title }} ({{ parent.type|capitalize }})</option>
-                            {% endfor %}
-                        </select>
-                    </div>
+
                     <div class="mb-3">
                         {{ form.title.label(class="form-label") }}
                         {{ form.title(class="form-control") }}
@@ -192,8 +183,8 @@
                         {{ form.submit(class="btn btn-primary") }}
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
                     </div>
-                    <!-- IN MODAL -->
-                    <div class="mb-3" id="parent-goal-section">
+                    <!-- IN KANBAN MODAL, AFTER TYPE -->
+                    <div class="mb-3" id="kanban-parent-section">
                         <label class="form-label">Link to Parent Goal</label>
                         <select class="form-select" name="parent_id">
                             <option value="">-- None (Top-Level) --</option>
