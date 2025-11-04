@@ -352,8 +352,8 @@ def week_page(year, week):
         or_(
             and_(Goal.due_date >= w_start, Goal.due_date <= w_end),
             Goal.due_date.is_(None)
-        ),
-        or_(Goal.parent_id.is_(None), Goal.parent_id == '')
+        )
+        #or_(Goal.parent_id.is_(None), Goal.parent_id == '')
     ).order_by(
         db_case((Goal.due_date.is_(None), 0), else_=1),
         Goal.due_date.asc(),
@@ -409,7 +409,7 @@ def week_page(year, week):
         month_name=month_name,
         prev_url=f"/week/{prev_year}/{prev_week}",
         next_url=f"/week/{next_year}/{next_week}",
-        parent_type='weekly',
+        parent_type='monthly',
         page_type='week',
         form=form,
         possible_parents=possible_parents,
