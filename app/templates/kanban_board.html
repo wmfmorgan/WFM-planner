@@ -181,6 +181,16 @@
                         {{ form.submit(class="btn btn-primary") }}
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
                     </div>
+                    <!-- IN MODAL -->
+                    <div class="mb-3" id="parent-goal-section">
+                        <label class="form-label">Link to Parent Goal</label>
+                        <select class="form-select" name="parent_id">
+                            <option value="">-- None (Top-Level) --</option>
+                            {% for parent in possible_parents %}
+                                <option value="{{ parent.id }}">{{ parent.title }} ({{ parent.type|capitalize }})</option>
+                            {% endfor %}
+                        </select>
+                    </div>
                 </form>
             </div>
         </div>
@@ -307,4 +317,9 @@
             }
         }
     });
+    
+    // HIDE PARENT SELECTOR ON ANNUAL PAGE
+    if ('{{ page_type }}' === 'year') {
+        document.getElementById('parent-goal-section').style.display = 'none';
+    }
 </script>

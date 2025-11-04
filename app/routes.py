@@ -6,6 +6,7 @@ from .forms import GoalForm
 from datetime import datetime, timedelta
 from dateutil.relativedelta import relativedelta
 from calendar import Calendar, SUNDAY
+from sqlalchemy import case as db_case, or_ as db_or
 
 bp = Blueprint('main', __name__)
 
@@ -205,6 +206,18 @@ def quarter_page(year, q_num):
         })
     
     quarterly_goals_grouped = group_goals_by_status(quarterly_goals)
+  
+    # GET POSSIBLE PARENTS (weekly goals in same week, NOT completed)
+    day_date = datetime(year, month, day).date()
+    w_start = day_date - timedelta(days=day_date.weekday())
+    w_end = w_start + timedelta(days=6)
+    possible_parents = Goal.query.filter(
+        Goal.type == 'annual',
+        Goal.due_date >= w_start,
+        Goal.due_date <= w_end,
+        Goal.completed == False  # ← EXCLUDE COMPLETED
+    ).all() 
+
     form = GoalForm()
     return render_template(
         'quarter.html',
@@ -221,6 +234,7 @@ def quarter_page(year, q_num):
         page_type='quarter',
         parent_type='quarterly',
         form=form,
+        possible_parents=possible_parents,
         today_quarter=today_quarter
     )
 
@@ -271,6 +285,17 @@ def month_page(year, month):
         })
 
     monthly_goals_grouped = group_goals_by_status(monthly_goals)
+    # GET POSSIBLE PARENTS (weekly goals in same week, NOT completed)
+    day_date = datetime(year, month, day).date()
+    w_start = day_date - timedelta(days=day_date.weekday())
+    w_end = w_start + timedelta(days=6)
+    possible_parents = Goal.query.filter(
+        Goal.type == 'quarterly',
+        Goal.due_date >= w_start,
+        Goal.due_date <= w_end,
+        Goal.completed == False  # ← EXCLUDE COMPLETED
+    ).all()
+
     form = GoalForm()
     return render_template(
         'month.html',
@@ -287,6 +312,7 @@ def month_page(year, month):
         page_type='month',
         parent_type='monthly',
         form=form,
+        possible_parents=possible_parents,
         today_quarter=today_quarter
     )
 
@@ -297,19 +323,44 @@ def week_page(year, week):
         abort(404)
 
     try:
+        # Monday of the week (ISO)
         w_start = datetime.strptime(f'{year}-W{week}-1', '%Y-W%W-%w').date()
     except ValueError:
         abort(404)
     w_end = w_start + timedelta(days=6)
 
+    # PICK MONDAY FOR PARENT FILTER
+    day_date = w_start
+
+    # GET POSSIBLE PARENTS (monthly goals overlapping week, NOT completed)
+    m_start = datetime(w_start.year, w_start.month, 1).date()
+    m_end = (m_start + relativedelta(months=1) - timedelta(days=1)).date()
+    possible_parents = Goal.query.filter(
+        Goal.type == 'monthly',
+        db_or_(
+            db_and_(Goal.due_date >= m_start, Goal.due_date <= m_end),
+            Goal.due_date.is_(None)
+        ),
+        Goal.completed == False
+    ).order_by(Goal.due_date.asc(), Goal.id).all()
+
+    # GET WEEKLY GOALS
     weekly_goals = Goal.query.filter(
         Goal.type == 'weekly',
-        Goal.due_date >= w_start,
-        Goal.due_date <= w_end,
-        Goal.parent_id.isnot(None)
-    ).order_by(Goal.due_date).all()
+        db_or_(
+            db_and_(Goal.due_date >= w_start, Goal.due_date <= w_end),
+            Goal.due_date.is_(None)
+        ),
+        db_or_(Goal.parent_id.is_(None), Goal.parent_id == '')
+    ).order_by(
+        db_case((Goal.due_date.is_(None), 0), else_=1),
+        Goal.due_date.asc(),
+        Goal.id
+    ).all()
 
-    # Build 7-day calendar (Sun-Sat)
+    weekly_goals_grouped = group_goals_by_status(weekly_goals)
+
+    # BUILD 7-DAY GRID (Sun-Sat)
     days = []
     current = w_start
     for i in range(7):
@@ -329,6 +380,7 @@ def week_page(year, week):
     sample_month = w_start.month
     month_name = w_start.strftime('%B')
 
+    # NAVIGATION
     prev_week = week - 1
     prev_year = year
     if prev_week == 0:
@@ -340,8 +392,8 @@ def week_page(year, week):
         next_week = 1
         next_year += 1
 
-    weekly_goals_grouped = group_goals_by_status(weekly_goals)
     form = GoalForm()
+
     return render_template(
         'week.html',
         year=year,
@@ -355,10 +407,11 @@ def week_page(year, week):
         month_name=month_name,
         prev_url=f"/week/{prev_year}/{prev_week}",
         next_url=f"/week/{next_year}/{next_week}",
-        today=today,
-        page_type='week',
         parent_type='weekly',
+        page_type='week',
         form=form,
+        possible_parents=possible_parents,
+        today=today,
         today_quarter=today_quarter
     )
 
@@ -380,6 +433,18 @@ def day_page(year, month, day):
     next_date = day_date + timedelta(days=1)
 
     daily_goals_grouped = group_goals_by_status(daily_goals)
+    
+    # GET POSSIBLE PARENTS (weekly goals in same week, NOT completed)
+    day_date = datetime(year, month, day).date()
+    w_start = day_date - timedelta(days=day_date.weekday())
+    w_end = w_start + timedelta(days=6)
+    possible_parents = Goal.query.filter(
+        Goal.type == 'weekly',
+        Goal.due_date >= w_start,
+        Goal.due_date <= w_end,
+        Goal.completed == False  # ← EXCLUDE COMPLETED
+    ).all()
+
     form = GoalForm()
     return render_template(
         'day.html',
@@ -392,6 +457,7 @@ def day_page(year, month, day):
         page_type='day',
         parent_type='daily',
         form=form,
+        possible_parents=possible_parents,
         today_quarter=today_quarter
     )
 
