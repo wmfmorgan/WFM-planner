@@ -58,11 +58,15 @@ def goals():
             # === HANDLE due_date: string → date ===
             due_date = None
             if form.due_date.data:
-                try:
-                    due_date = datetime.strptime(form.due_date.data, '%Y-%m-%d').date()
-                except ValueError:
-                    flash('Invalid due date format. Use YYYY-MM-DD.', 'danger')
-                    return redirect(url_for('main.goals'))
+                if isinstance(form.due_date.data, str):
+                    try:
+                        due_date = datetime.strptime(form.due_date.data, '%Y-%m-%d').date()
+                    except ValueError:
+                        flash('Invalid due date format.', 'danger')
+                        return redirect(url_for('main.goals'))
+                else:
+                    # Already a date object (from DB)
+                    due_date = form.due_date.data
 
             # === CREATE GOAL ===
             goal = Goal(
