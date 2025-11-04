@@ -148,7 +148,8 @@
                 <form id="unified-goal-form" action="/goals" method="POST">
                     {{ form.hidden_tag() }}
                     <input type="hidden" name="parent_id" value="">
-
+                    <!-- IN MODAL, AFTER parent_id -->
+                    <input type="hidden" name="type" id="hidden-type-field">
                     <div class="mb-3">
                         {{ form.title.label(class="form-label") }}
                         {{ form.title(class="form-control") }}
@@ -225,14 +226,20 @@
             const parentId = e.target.dataset.parentId;
             const parentType = e.target.closest('.goal-card').querySelector('small.text-muted').textContent.toLowerCase();
             
-            const  typeMap = { 'annual': 'quarterly', 'quarterly': 'monthly', 'monthly': 'weekly', 'weekly': 'daily', 'daily': 'daily' };
+            const typeMap = { 'annual': 'quarterly', 'quarterly': 'monthly', 'monthly': 'weekly', 'weekly': 'daily', 'daily': 'daily' };
             const childType = typeMap[parentType] || 'daily';
 
             document.getElementById('modalTitle').textContent = 'Add Sub-Goal';
             document.getElementById('unified-goal-form').reset();
             document.querySelector('[name="parent_id"]').value = parentId;
-            document.querySelector('[name="type"]').value = childType;
-            document.querySelector('[name="type"]').disabled = true;
+            
+            // SET VISIBLE SELECT (DISABLED)
+            const typeSelect = document.querySelector('[name="type"]');
+            typeSelect.value = childType;
+            typeSelect.disabled = true;
+
+            // COPY TO HIDDEN FIELD (SENT TO SERVER)
+            document.getElementById('hidden-type-field').value = childType;
 
             const modal = new bootstrap.Modal(document.getElementById('goalModal'));
             modal.show();
