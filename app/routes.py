@@ -114,6 +114,7 @@ def year_page(year):
         prev_url=f"/year/{prev_year}",
         next_url=f"/year/{next_year}",
         today=today,
+        parent_type='annual',
         today_quarter=today_quarter
     )
 
@@ -163,6 +164,7 @@ def quarter_page(year, q_num):
         next_url=f"/quarter/{next_year}/Q{next_q}",
         months=months,
         today=today,
+        parent_type='quarterly',
         today_quarter=today_quarter
     )
 
@@ -226,6 +228,7 @@ def month_page(year, month):
         next_url=f"/month/{next_year}/{next_month}",
         weeks=weeks,
         today=today,
+        parent_type='monthly',
         today_quarter=today_quarter
     )
 
@@ -295,6 +298,7 @@ def week_page(year, week):
         prev_url=f"/week/{prev_year}/{prev_week}",
         next_url=f"/week/{next_year}/{next_week}",
         today=today,
+        parent_type='weekly',
         today_quarter=today_quarter
     )
 
@@ -325,6 +329,7 @@ def day_page(year, month, day):
         prev_url=f"/day/{prev_date.year}/{prev_date.month}/{prev_date.day}",
         next_url=f"/day/{next_date.year}/{next_date.month}/{next_date.day}",
         today=today,
+        parent_type='daily',
         today_quarter=today_quarter
     )
 
@@ -423,3 +428,15 @@ def reparent_goal(goal_id):
     goal.parent_id = data.get('parent_id')
     db.session.commit()
     return jsonify({'status': 'success'})
+
+@bp.route('/api/goal/create', methods=['POST'])
+def create_goal():
+    data = request.json
+    goal = Goal(
+        title=data['title'],
+        type=data['type'],
+        due_date=datetime.strptime(data['due_date'], '%Y-%m-%d').date() if data['due_date'] else None
+    )
+    db.session.add(goal)
+    db.session.commit()
+    return jsonify({'status': 'success', 'goal_id': goal.id})

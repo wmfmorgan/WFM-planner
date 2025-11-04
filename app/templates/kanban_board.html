@@ -4,11 +4,16 @@
         {% for col in columns %}
             <div class="col">
                 <div class="card h-100 border-light">
-                    <div class="card-header bg-light text-center">
+                    <div class="card-header bg-light text-center d-flex justify-content-between align-items-center">
                         <h6 class="mb-0 text-uppercase fw-bold">
                             {{ col.label }}
                             <span class="badge bg-primary ms-2">{{ goals[col.id]|length }}</span>
                         </h6>
+                        <button class="btn btn-sm btn-outline-success add-goal-btn" 
+                                data-column="{{ col.id }}" 
+                                data-parent-type="{{ parent_type }}">
+                            <i class="bi bi-plus"></i>
+                        </button>
                     </div>
                     <div class="card-body p-2 kanban-column" data-status="{{ col.id }}">
                         {% for goal in goals[col.id] %}
@@ -19,8 +24,9 @@
                                     {% if goal.due_date %}
                                         <small class="text-muted">{{ goal.due_date.strftime('%b %d') }}</small>
                                     {% endif %}
-                                    <div class="mt-2">
+                                    <div class="mt-2 d-flex gap-1">
                                         <button class="btn btn-sm btn-outline-dark edit-goal-btn">Edit</button>
+                                        <button class="btn btn-sm btn-outline-danger delete-goal-btn" data-goal-id="{{ goal.id }}">Delete</button>
                                     </div>
                                 </div>
 
@@ -37,7 +43,6 @@
 
                                         <!-- TYPE -->
                                         <div class="mb-2">
-                                            <label class="form-label small mb-1">Type</label>
                                             <select class="form-select form-select-sm goal-type-input">
                                                 <option value="annual" {% if goal.type == 'annual' %}selected{% endif %}>Annual</option>
                                                 <option value="quarterly" {% if goal.type == 'quarterly' %}selected{% endif %}>Quarterly</option>
@@ -81,7 +86,7 @@
     </div>
 </div>
 
-<!-- SORTABLE.JS + DRAG & DROP + EDIT LOGIC -->
+<!-- SORTABLE.JS + DRAG & DROP + EDIT + ADD + DELETE LOGIC -->
 <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
 <script>
     // DRAG & DROP
@@ -132,7 +137,7 @@
             const goalId = form.querySelector('[name="goal_id"]').value;
             const data = {
                 title: form.querySelector('.goal-title-input').value,
-                type: form.querySelector('.goal-type-input').value,  // ← ADDED
+                type: form.querySelector('.goal-type-input').value,
                 description: form.querySelector('.goal-description-input').value,
                 motivation: form.querySelector('.goal-motivation-input').value,
                 due_date: form.querySelector('.goal-due-date-input').value || null
@@ -151,10 +156,61 @@
                 } else {
                     dueEl.textContent = '';
                 }
-                // Optional: Show type badge
                 card.querySelector('.view-mode').classList.remove('d-none');
                 card.querySelector('.edit-mode').classList.add('d-none');
             });
+        }
+    });
+
+    // ADD GOAL IN COLUMN
+    document.addEventListener('click', function(e) {
+        if (e.target.closest('.add-goal-btn')) {
+            const btn = e.target.closest('.add-goal-btn');
+            const parentType = btn.dataset.parentType;
+
+            // Map parent to child type
+            const typeMap = {
+                'annual': 'quarterly',
+                'quarterly': 'monthly',
+                'monthly': 'weekly',
+                'weekly': 'daily',
+                'daily': 'daily'
+            };
+            const childType = typeMap[parentType] || 'daily';
+
+            const title = prompt(`New ${childType} goal:`);
+            if (!title) return;
+
+            const dueDate = prompt(`Due date (YYYY-MM-DD):`) || null;
+
+            fetch('/api/goal/create', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    title: title,
+                    type: childType,
+                    due_date: dueDate
+                })
+            }).then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    location.reload();
+                }
+            });
+        }
+    });
+
+    // DELETE GOAL
+    document.addEventListener('click', function(e) {
+        if (e.target.classList.contains('delete-goal-btn')) {
+            const goalId = e.target.dataset.goalId;
+            if (confirm('Delete this goal and all sub-goals? This cannot be undone.')) {
+                fetch(`/api/goal/${goalId}`, {
+                    method: 'DELETE'
+                }).then(() => {
+                    location.reload();
+                });
+            }
         }
     });
 </script>
