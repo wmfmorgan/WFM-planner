@@ -145,7 +145,7 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
-                <form id="unified-goal-form">
+                <form id="unified-goal-form" action="/goals" method="POST">
                     {{ form.hidden_tag() }}
                     <input type="hidden" name="parent_id" value="">
 
@@ -241,7 +241,7 @@
 
     // FORM SUBMIT (UNIFIED)
     document.getElementById('unified-goal-form').addEventListener('submit', function(e) {
-        e.preventDefault();
+        
         const formData = new FormData(this);
         
         // Add completed as 'y' or null
@@ -250,16 +250,6 @@
         const parentId = formData.get('parent_id');
         const url = parentId ? `/api/goal/${parentId}/subgoal` : '/goals';
 
-        fetch(url, {
-            method: 'POST',
-            body: formData  // ← SEND FORM DATA, NOT JSON
-        }).then(response => {
-            if (response.ok) {
-                location.reload();
-            } else {
-                alert('Error saving goal');
-            }
-        });
     });
 
     // RESET ON CLOSE

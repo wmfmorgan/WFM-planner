@@ -39,27 +39,38 @@ def index():
 @bp.route('/goals', methods=['GET', 'POST'])
 def goals():
     form = GoalForm()
-    if form.validate_on_submit():
-        goal = Goal(
-            title=form.title.data,
-            type=form.type.data,
-            category=form.category.data,
-            description=form.description.data,
-            motivation=form.motivation.data,
-            due_date=form.due_date.data,
-            status=form.status.data,
-            completed=form.completed.data,
-            parent_id=request.form.get('parent_id')
-        )
-        db.session.add(goal)
-        db.session.commit()
-        flash('Goal saved!', 'success')
+    if request.method == 'POST':
+        if form.validate_on_submit():
+            goal = Goal(
+                title=form.title.data,
+                type=form.type.data,
+                category=form.category.data,
+                description=form.description.data,
+                motivation=form.motivation.data,
+                due_date=form.due_date.data,
+                status=form.status.data,
+                completed=form.completed.data,
+                parent_id=request.form.get('parent_id')
+            )
+            db.session.add(goal)
+            db.session.commit()
+            flash('Goal saved!', 'success')
+        else:
+            flash('Form validation failed. Please check your input.', 'danger')
+            for field, errors in form.errors.items():
+                for error in errors:
+                    flash(f"{field}: {error}", 'danger')
         return redirect(url_for('main.goals'))
 
     # FETCH + SORT: oldest to newest, with children
+    # app/routes.py — goals() route
     goals = Goal.query.filter_by(parent_id=None).options(
         db.joinedload(Goal.children)
-    ).order_by(Goal.due_date.asc(), Goal.id).all()
+    ).order_by(
+        db.case((Goal.due_date.is_(None), 0), else_=1),  # NULLs first
+        Goal.due_date.asc(),
+        Goal.id
+    ).all()
 
     # SORT CHILDREN RECURSIVELY
     def sort_children(goal):
