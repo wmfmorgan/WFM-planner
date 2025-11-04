@@ -9,7 +9,7 @@ GOAL_CATEGORY = [
     ('Social', 'Social'), ('Financial', 'Financial')
 ]
 
-class UnifiedGoalForm(FlaskForm):
+class GoalForm(FlaskForm):
     title = StringField('Title', validators=[DataRequired()])
     type = SelectField('Time Level', choices=[
         ('annual', 'Annual'), ('quarterly', 'Quarterly'), 
