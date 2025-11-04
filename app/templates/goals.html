@@ -209,8 +209,63 @@
     </div>
 </div>
 
-<!-- JS LOGIC -->
+<!-- FULL JS LOGIC -->
 <script>
+    // OPEN MODAL FOR NEW GOAL
+    document.querySelector('[data-bs-target="#goalModal"]').addEventListener('click', function() {
+        document.getElementById('modalTitle').textContent = 'Create Goal';
+        document.getElementById('unified-goal-form').reset();
+        document.querySelector('[name="parent_id"]').value = '';
+        document.querySelector('[name="type"]').disabled = false;
+    });
+
+    // OPEN MODAL FOR SUB-GOAL
+    document.addEventListener('click', function(e) {
+        if (e.target.classList.contains('add-subgoal-btn')) {
+            const parentId = e.target.dataset.parentId;
+            const parentType = e.target.closest('.goal-card').querySelector('small.text-muted').textContent.toLowerCase();
+            
+            const  typeMap = { 'annual': 'quarterly', 'quarterly': 'monthly', 'monthly': 'weekly', 'weekly': 'daily', 'daily': 'daily' };
+            const childType = typeMap[parentType] || 'daily';
+
+            document.getElementById('modalTitle').textContent = 'Add Sub-Goal';
+            document.getElementById('unified-goal-form').reset();
+            document.querySelector('[name="parent_id"]').value = parentId;
+            document.querySelector('[name="type"]').value = childType;
+            document.querySelector('[name="type"]').disabled = true;
+
+            const modal = new bootstrap.Modal(document.getElementById('goalModal'));
+            modal.show();
+        }
+    });
+
+    // FORM SUBMIT (UNIFIED)
+    document.getElementById('unified-goal-form').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const formData = new FormData(this);
+        const data = Object.fromEntries(formData);
+        data.completed = formData.get('completed') === 'y';
+
+        const parentId = data.parent_id;
+        const url = parentId ? `/api/goal/${parentId}/subgoal` : '/goals';
+
+        fetch(url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+        }).then(() => {
+            location.reload();
+        });
+    });
+
+    // RESET ON CLOSE
+    document.getElementById('goalModal').addEventListener('hidden.bs.modal', function() {
+        document.getElementById('unified-goal-form').reset();
+        document.querySelector('[name="parent_id"]').value = '';
+        document.querySelector('[name="type"]').disabled = false;
+        document.getElementById('modalTitle').textContent = 'Create Goal';
+    });
+
     // EDIT BUTTON
     document.addEventListener('click', function(e) {
         if (e.target.classList.contains('edit-goal-btn')) {
@@ -267,37 +322,6 @@
         }
     });
 
-    // ADD SUB-GOAL BUTTON
-    document.addEventListener('click', function(e) {
-        if (e.target.classList.contains('add-subgoal-btn')) {
-            const parentId = e.target.dataset.parentId;
-            const card = e.target.closest('.goal-card');
-            document.getElementById('parent-id').value = parentId;
-            document.getElementById('subgoal-form-container').classList.remove('d-none');
-            card.after(document.getElementById('subgoal-form-container'));
-        }
-    });
-
-    // CANCEL SUB-GOAL
-    document.getElementById('cancel-subgoal').addEventListener('click', function() {
-        document.getElementById('subgoal-form-container').classList.add('d-none');
-    });
-
-    // SAVE SUB-GOAL
-    document.getElementById('subgoal-form').addEventListener('submit', function(e) {
-        e.preventDefault();
-        const formData = new FormData(this);
-        const data = Object.fromEntries(formData);
-
-        fetch(`/api/goal/${data.parent_id}/subgoal`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(data)
-        }).then(() => {
-            location.reload();
-        });
-    });
-
     // DELETE GOAL
     document.addEventListener('click', function(e) {
         if (e.target.classList.contains('delete-goal-btn')) {
@@ -324,6 +348,7 @@
     });
 </script>
 
+<!-- STYLE BLOCK -->
 <style>
     .goal-children {
         transition: max-height 0.3s ease;
