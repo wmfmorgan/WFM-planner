@@ -68,6 +68,7 @@
                         <div class="view-mode p-3 d-flex align-items-center justify-content-between">
                             <div class="flex-grow-1">
                                 <h6 class="card-title mb-1 goal-title-text">{{ goal.title }}</h6>
+                                <small class="text-muted">{{ goal.category or 'No category' }}</small>
                                 <small class="text-muted">{{ goal.type|capitalize }}</small>
                                 {% if goal.due_date %}
                                     <small class="text-muted d-block">{{ goal.due_date.strftime('%b %d') }}</small>
@@ -97,7 +98,17 @@
                                     <input type="text" class="form-control form-control-sm goal-title-input" 
                                            value="{{ goal.title }}" required>
                                 </div>
-
+                                <div class="mb-2">
+                                    <select class="form-select form-select-sm goal-category-input">
+                                        {% for value, label in [
+                                            ('Work', 'Work'), ('Marital', 'Marital'), ('Family', 'Family'),
+                                            ('Physical', 'Physical'), ('Mental', 'Mental'), ('Hobby', 'Hobby'),
+                                            ('Social', 'Social'), ('Financial', 'Financial')
+                                        ] %}
+                                            <option value="{{ value }}" {% if goal.category == value %}selected{% endif %}>{{ label }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
                                 <!-- TYPE -->
                                 <div class="mb-2">
                                     <select class="form-select form-select-sm goal-type-input">
@@ -210,6 +221,7 @@
             const data = {
                 title: form.querySelector('.goal-title-input').value,
                 type: form.querySelector('.goal-type-input').value,
+                category: form.querySelector('.goal-category-input').value,
                 description: form.querySelector('.goal-description-input').value,
                 motivation: form.querySelector('.goal-motivation-input').value,
                 due_date: form.querySelector('.goal-due-date-input').value || null

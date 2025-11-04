@@ -43,6 +43,7 @@ def goals():
         goal = Goal(
             title=form.title.data,
             type=form.type.data,
+            category=form.category.data,
             description=form.description.data,
             motivation=form.motivation.data,
             due_date=form.due_date.data
@@ -413,6 +414,7 @@ def edit_goal(goal_id):
     goal.type = data.get('type', goal.type)
     goal.description = data.get('description', goal.description)
     goal.motivation = data.get('motivation', goal.motivation)
+    goal.category = data.get('category', goal.category)
     if 'due_date' in data:
         try:
             goal.due_date = datetime.strptime(data['due_date'], '%Y-%m-%d').date() if data['due_date'] else None

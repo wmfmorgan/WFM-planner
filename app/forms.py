@@ -4,7 +4,7 @@ from wtforms import StringField, SelectField, TextAreaField, SubmitField
 from wtforms import StringField, SelectField, TextAreaField, DateField, SubmitField  # ← ADDED DateField!
 from wtforms.validators import DataRequired
 
-GOAL_TYPES = [
+GOAL_CATEGORY = [
     ('Work', 'Work'), ('Marital', 'Marital'), ('Family', 'Family'),
     ('Physical', 'Physical'), ('Mental', 'Mental'), ('Hobby', 'Hobby'),
     ('Social', 'Social'), ('Financial', 'Financial')
@@ -27,6 +27,7 @@ class GoalForm(FlaskForm):
         ('week', 'Week'),
         ('day', 'Day')
     ], validators=[DataRequired()])
+    category = SelectField('Category', choices=GOAL_CATEGORY)
     description = TextAreaField('Description', validators=[DataRequired()])
     motivation = TextAreaField('Motivation')
     due_date = DateField('Due Date (Optional)', format='%Y-%m-%d')  # ← NOW WORKS!
