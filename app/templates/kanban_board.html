@@ -334,21 +334,15 @@ document.getElementById('unified-goal-form').addEventListener('submit', function
     const formData = new FormData(this);
     const parentId = formData.get('parent_id');
 
-    // BUILD DEBUG MESSAGE
-    let debugMsg = `=== KANBAN GOAL SUBMIT DEBUG ===\n`;
-    debugMsg += `Parent ID: ${parentId || '(none)'}\n`;
-    debugMsg += `Title: ${formData.get('title')}\n`;
-    debugMsg += `Type: ${formData.get('type')}\n`;
-    debugMsg += `URL: ${parentId && parentId !== '' ? `/api/goal/${parentId}/subgoal` : '/goals'}`;
-
-    // SHOW IN ALERT (WON'T BE CLEARED)
-    alert(debugMsg);
+    // CONVERT TO JSON
+    const data = Object.fromEntries(formData);
+    data.completed = formData.get('completed') === 'on';
 
     let url = '/goals';
     if (parentId && parentId !== '') {
         url = `/api/goal/${parentId}/subgoal`;
     }
-
+    
     fetch(url, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
