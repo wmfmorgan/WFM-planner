@@ -211,46 +211,86 @@
 
 <!-- JS LOGIC -->
 <script>
-    // OPEN MODAL FOR NEW GOAL
-    document.querySelector('[data-bs-target="#goalModal"]').addEventListener('click', function() {
-        document.getElementById('modalTitle').textContent = 'Create Goal';
-        document.getElementById('unified-goal-form').reset();
-        document.querySelector('[name="parent_id"]').value = '';
-        document.querySelector('[name="type"]').disabled = false;
-    });
-
-    // OPEN MODAL FOR SUB-GOAL
+    // EDIT BUTTON
     document.addEventListener('click', function(e) {
-        if (e.target.classList.contains('add-subgoal-btn')) {
-            const parentId = e.target.dataset.parentId;
-            const parentType = e.target.closest('.goal-card').querySelector('small.text-muted').textContent.toLowerCase();
-            
-            const typeMap = { 'annual': 'quarterly', 'quarterly': 'monthly', 'monthly': 'weekly', 'weekly': 'daily', 'daily': 'daily' };
-            const childType = typeMap[parentType] || 'daily';
-
-            document.getElementById('modalTitle').textContent = 'Add Sub-Goal';
-            document.getElementById('unified-goal-form').reset();
-            document.querySelector('[name="parent_id"]').value = parentId;
-            document.querySelector('[name="type"]').value = childType;
-            document.querySelector('[name="type"]').disabled = true;
-
-            const modal = new bootstrap.Modal(document.getElementById('goalModal'));
-            modal.show();
+        if (e.target.classList.contains('edit-goal-btn')) {
+            const card = e.target.closest('.goal-card');
+            card.querySelector('.view-mode').classList.add('d-none');
+            card.querySelector('.edit-mode').classList.remove('d-none');
         }
     });
 
-    // FORM SUBMIT (AJAX)
-    document.getElementById('unified-goal-form').addEventListener('submit', function(e) {
+    // CANCEL EDIT
+    document.addEventListener('click', function(e) {
+        if (e.target.classList.contains('cancel-edit')) {
+            const card = e.target.closest('.goal-card');
+            card.querySelector('.view-mode').classList.remove('d-none');
+            card.querySelector('.edit-mode').classList.add('d-none');
+        }
+    });
+
+    // SAVE EDIT
+    document.addEventListener('submit', function(e) {
+        if (e.target.classList.contains('edit-goal-form')) {
+            e.preventDefault();
+            const form = e.target;
+            const goalId = form.querySelector('[name="goal_id"]').value;
+            const data = {
+                title: form.querySelector('.goal-title-input').value,
+                type: form.querySelector('.goal-type-input').value,
+                category: form.querySelector('.goal-category-input').value,
+                description: form.querySelector('.goal-description-input').value,
+                motivation: form.querySelector('.goal-motivation-input').value,
+                due_date: form.querySelector('.goal-due-date-input').value || null,
+                status: form.querySelector('.goal-status-input').value,
+                completed: form.querySelector('.goal-completed-input').checked
+            };
+
+            fetch(`/api/goal/${goalId}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            }).then(() => {
+                const card = form.closest('.goal-card');
+                card.querySelector('.goal-title-text').textContent = data.title;
+                const typeEl = card.querySelector('small.text-muted');
+                typeEl.textContent = data.type.charAt(0).toUpperCase() + data.type.slice(1);
+                const dueEl = card.querySelector('small.d-block');
+                if (data.due_date) {
+                    dueEl.textContent = new Date(data.due_date).toLocaleDateString('en', { month: 'short', day: 'numeric' });
+                } else {
+                    dueEl.textContent = '';
+                }
+                card.querySelector('.view-mode').classList.remove('d-none');
+                card.querySelector('.edit-mode').classList.add('d-none');
+            });
+        }
+    });
+
+    // ADD SUB-GOAL BUTTON
+    document.addEventListener('click', function(e) {
+        if (e.target.classList.contains('add-subgoal-btn')) {
+            const parentId = e.target.dataset.parentId;
+            const card = e.target.closest('.goal-card');
+            document.getElementById('parent-id').value = parentId;
+            document.getElementById('subgoal-form-container').classList.remove('d-none');
+            card.after(document.getElementById('subgoal-form-container'));
+        }
+    });
+
+    // CANCEL SUB-GOAL
+    document.getElementById('cancel-subgoal').addEventListener('click', function() {
+        document.getElementById('subgoal-form-container').classList.add('d-none');
+    });
+
+    // SAVE SUB-GOAL
+    document.getElementById('subgoal-form').addEventListener('submit', function(e) {
         e.preventDefault();
         const formData = new FormData(this);
         const data = Object.fromEntries(formData);
-        data.completed = formData.get('completed') === 'y';
 
-        const url = data.parent_id ? `/api/goal/${data.parent_id}/subgoal` : '/goals';
-        const method = 'POST';
-
-        fetch(url, {
-            method: method,
+        fetch(`/api/goal/${data.parent_id}/subgoal`, {
+            method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(data)
         }).then(() => {
@@ -258,7 +298,39 @@
         });
     });
 
-    // EDIT, DELETE, COLLAPSE (from previous)
-    // ... (keep your existing JS for edit/delete/collapse)
+    // DELETE GOAL
+    document.addEventListener('click', function(e) {
+        if (e.target.classList.contains('delete-goal-btn')) {
+            const goalId = e.target.dataset.goalId;
+            if (confirm('Delete this goal and all sub-goals? This cannot be undone.')) {
+                fetch(`/api/goal/${goalId}`, {
+                    method: 'DELETE'
+                }).then(() => {
+                    location.reload();
+                });
+            }
+        }
+    });
+
+    // COLLAPSE TOGGLE
+    document.addEventListener('click', function(e) {
+        const toggle = e.target.closest('.collapse-toggle');
+        if (toggle) {
+            const children = toggle.closest('.goal-item').querySelector('.goal-children');
+            children.classList.toggle('collapsed');
+            toggle.querySelector('i').classList.toggle('bi-chevron-down');
+            toggle.querySelector('i').classList.toggle('bi-chevron-right');
+        }
+    });
 </script>
+
+<style>
+    .goal-children {
+        transition: max-height 0.3s ease;
+        overflow: hidden;
+    }
+    .goal-children.collapsed {
+        max-height: 0 !important;
+    }
+</style>
 {% endblock %}
