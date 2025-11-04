@@ -7,6 +7,7 @@ from datetime import datetime, timedelta
 from dateutil.relativedelta import relativedelta
 from calendar import Calendar, SUNDAY
 from sqlalchemy import case as db_case, or_ as db_or
+from sqlalchemy import and_, or_, case
 
 bp = Blueprint('main', __name__)
 
@@ -333,12 +334,13 @@ def week_page(year, week):
     day_date = w_start
 
     # GET POSSIBLE PARENTS (monthly goals overlapping week, NOT completed)
-    m_start = datetime(w_start.year, w_start.month, 1).date()
-    m_end = (m_start + relativedelta(months=1) - timedelta(days=1)).date()
+    m_start_dt = datetime(w_start.year, w_start.month, 1)  # datetime
+    m_end_dt = m_start_dt + relativedelta(months=1) - timedelta(days=1)  # datetime
+
     possible_parents = Goal.query.filter(
         Goal.type == 'monthly',
-        db_or_(
-            db_and_(Goal.due_date >= m_start, Goal.due_date <= m_end),
+        or_(
+            and_(Goal.due_date >= m_start_dt.date(), Goal.due_date <= m_end_dt.date()),
             Goal.due_date.is_(None)
         ),
         Goal.completed == False
