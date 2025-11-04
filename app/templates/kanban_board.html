@@ -126,7 +126,8 @@
                 <form id="unified-goal-form" action="/goals" method="POST">
                     {{ form.hidden_tag() }}
                     <input type="hidden" name="parent_id" value="">
-
+                    <!-- IN MODAL, AFTER parent_id -->
+                    <input type="hidden" name="type" id="kanban-hidden-type">
                     <div class="mb-3">
                         {{ form.title.label(class="form-label") }}
                         {{ form.title(class="form-control") }}
@@ -294,8 +295,14 @@
             const form = document.getElementById('unified-goal-form');
             form.reset();
             form.querySelector('[name="parent_id"]').value = '';
-            form.querySelector('[name="type"]').value = childType;
-            form.querySelector('[name="type"]').disabled = true;
+            
+            // SET VISIBLE SELECT (DISABLED)
+            const typeSelect = form.querySelector('[name="type"]');
+            typeSelect.value = childType;
+            typeSelect.disabled = true;
+
+            // COPY TO HIDDEN FIELD (SENT TO SERVER)
+            document.getElementById('kanban-hidden-type').value = childType;
 
             document.getElementById('modalTitle').textContent = `Add ${childType.charAt(0).toUpperCase() + childType.slice(1)} Goal`;
 
