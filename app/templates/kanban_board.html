@@ -9,9 +9,9 @@
                             {{ col.label }}
                             <span class="badge bg-primary ms-2">{{ goals[col.id]|length }}</span>
                         </h6>
-                        <button class="btn btn-sm btn-outline-success add-goal-btn" 
-                                data-column="{{ col.id }}" 
-                                data-parent-type="{{ parent_type }}">
+                        <button class="btn btn-sm btn-outline-success add-kanban-goal-btn" 
+                                data-parent-type="{{ parent_type }}"
+                                data-page-type="{{ page_type }}">
                             <i class="bi bi-plus"></i>
                         </button>
                     </div>
@@ -21,6 +21,9 @@
                                 <!-- VIEW MODE -->
                                 <div class="view-mode p-2">
                                     <h6 class="card-title mb-1 goal-title-text">{{ goal.title }}</h6>
+                                    {% if goal.category %}
+                                        <small class="text-muted d-block">{{ goal.category }}</small>
+                                    {% endif %}
                                     {% if goal.due_date %}
                                         <small class="text-muted">{{ goal.due_date.strftime('%b %d') }}</small>
                                     {% endif %}
@@ -52,6 +55,15 @@
                                             </select>
                                         </div>
 
+                                        <!-- CATEGORY -->
+                                        <div class="mb-2">
+                                            <select class="form-select form-select-sm goal-category-input">
+                                                {% for value, label in [('Work', 'Work'), ('Marital', 'Marital'), ('Family', 'Family'), ('Physical', 'Physical'), ('Mental', 'Mental'), ('Hobby', 'Hobby'), ('Social', 'Social'), ('Financial', 'Financial')] %}
+                                                    <option value="{{ value }}" {% if goal.category == value %}selected{% endif %}>{{ label }}</option>
+                                                {% endfor %}
+                                            </select>
+                                        </div>
+
                                         <!-- DESCRIPTION -->
                                         <div class="mb-2">
                                             <textarea class="form-control form-control-sm goal-description-input" rows="2" 
@@ -68,6 +80,22 @@
                                         <div class="mb-2">
                                             <input type="date" class="form-control form-control-sm goal-due-date-input" 
                                                    value="{{ goal.due_date.strftime('%Y-%m-%d') if goal.due_date else '' }}">
+                                        </div>
+
+                                        <!-- STATUS -->
+                                        <div class="mb-2">
+                                            <select class="form-select form-select-sm goal-status-input">
+                                                <option value="todo" {% if goal.status == 'todo' %}selected{% endif %}>To Do</option>
+                                                <option value="in_progress" {% if goal.status == 'in_progress' %}selected{% endif %}>In Progress</option>
+                                                <option value="blocked" {% if goal.status == 'blocked' %}selected{% endif %}>Blocked</option>
+                                                <option value="done" {% if goal.status == 'done' %}selected{% endif %}>Done</option>
+                                            </select>
+                                        </div>
+
+                                        <!-- COMPLETED -->
+                                        <div class="form-check mb-2">
+                                            <input type="checkbox" class="form-check-input goal-completed-input" {% if goal.completed %}checked{% endif %}>
+                                            <label class="form-check-label">Completed</label>
                                         </div>
 
                                         <!-- SAVE / CANCEL -->
@@ -138,9 +166,12 @@
             const data = {
                 title: form.querySelector('.goal-title-input').value,
                 type: form.querySelector('.goal-type-input').value,
+                category: form.querySelector('.goal-category-input').value,
                 description: form.querySelector('.goal-description-input').value,
                 motivation: form.querySelector('.goal-motivation-input').value,
-                due_date: form.querySelector('.goal-due-date-input').value || null
+                due_date: form.querySelector('.goal-due-date-input').value || null,
+                status: form.querySelector('.goal-status-input').value,
+                completed: form.querySelector('.goal-completed-input').checked
             };
 
             fetch(`/api/goal/${goalId}`, {
@@ -162,13 +193,12 @@
         }
     });
 
-    // ADD GOAL IN COLUMN
+    // ADD GOAL FROM KANBAN
     document.addEventListener('click', function(e) {
-        if (e.target.closest('.add-goal-btn')) {
-            const btn = e.target.closest('.add-goal-btn');
+        if (e.target.closest('.add-kanban-goal-btn')) {
+            const btn = e.target.closest('.add-kanban-goal-btn');
             const parentType = btn.dataset.parentType;
 
-            // Map parent to child type
             const typeMap = {
                 'annual': 'quarterly',
                 'quarterly': 'monthly',
@@ -178,25 +208,16 @@
             };
             const childType = typeMap[parentType] || 'daily';
 
-            const title = prompt(`New ${childType} goal:`);
-            if (!title) return;
+            const form = document.getElementById('unified-goal-form');
+            form.reset();
+            form.querySelector('[name="parent_id"]').value = '';
+            form.querySelector('[name="type"]').value = childType;
+            form.querySelector('[name="type"]').disabled = true;
 
-            const dueDate = prompt(`Due date (YYYY-MM-DD):`) || null;
+            document.getElementById('modalTitle').textContent = `Add ${childType.charAt(0).toUpperCase() + childType.slice(1)} Goal`;
 
-            fetch('/api/goal/create', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    title: title,
-                    type: childType,
-                    due_date: dueDate
-                })
-            }).then(response => response.json())
-            .then(data => {
-                if (data.status === 'success') {
-                    location.reload();
-                }
-            });
+            const modal = new bootstrap.Modal(document.getElementById('goalModal'));
+            modal.show();
         }
     });
 

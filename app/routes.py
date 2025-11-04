@@ -165,6 +165,7 @@ def year_page(year):
         prev_url=f"/year/{prev_year}",
         next_url=f"/year/{next_year}",
         today=today,
+        page_type='year',
         parent_type='annual',
         today_quarter=today_quarter
     )
@@ -215,6 +216,7 @@ def quarter_page(year, q_num):
         next_url=f"/quarter/{next_year}/Q{next_q}",
         months=months,
         today=today,
+        page_type='quarter',
         parent_type='quarterly',
         today_quarter=today_quarter
     )
@@ -279,6 +281,7 @@ def month_page(year, month):
         next_url=f"/month/{next_year}/{next_month}",
         weeks=weeks,
         today=today,
+        page_type='month',
         parent_type='monthly',
         today_quarter=today_quarter
     )
@@ -349,6 +352,7 @@ def week_page(year, week):
         prev_url=f"/week/{prev_year}/{prev_week}",
         next_url=f"/week/{next_year}/{next_week}",
         today=today,
+        page_type='week',
         parent_type='weekly',
         today_quarter=today_quarter
     )
@@ -380,6 +384,7 @@ def day_page(year, month, day):
         prev_url=f"/day/{prev_date.year}/{prev_date.month}/{prev_date.day}",
         next_url=f"/day/{next_date.year}/{next_date.month}/{next_date.day}",
         today=today,
+        page_type='day',
         parent_type='daily',
         today_quarter=today_quarter
     )
