@@ -325,14 +325,36 @@
             }
         }
     });
-    
-    // HIDE PARENT SELECTOR ON ANNUAL PAGE
+ 
+    document.getElementById('unified-goal-form').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const formData = new FormData(this);
+        const parentId = formData.get('parent_id');
+
+        let url = '/goals';
+        if (parentId && parentId !== '') {
+            url = `/api/goal/${parentId}/subgoal`;
+        }
+
+        fetch(url, {
+            method: 'POST',
+            body: formData
+        }).then(response => {
+            if (response.ok) {
+                location.reload();
+            } else {
+                alert('Error saving goal');
+            }
+        });
+    });
+
+ /*   // HIDE PARENT SELECTOR ON ANNUAL PAGE
     if ('{{ page_type }}' === 'year') {
         document.getElementById('parent-goal-section').style.display = 'none';
     }
-</script>
-<script>
+
+
     if ('{{ page_type }}' === 'year') {
         document.getElementById('kanban-parent-section').style.display = 'none';
-    }
+    }*/
 </script>
