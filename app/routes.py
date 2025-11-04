@@ -156,6 +156,7 @@ def year_page(year):
     next_year = year + 1
 
     annual_goals_grouped = group_goals_by_status(annual_goals)
+    form = GoalForm()
 
     return render_template(
         'year.html',
@@ -167,6 +168,7 @@ def year_page(year):
         today=today,
         page_type='year',
         parent_type='annual',
+        form=form,
         today_quarter=today_quarter
     )
 
@@ -203,7 +205,7 @@ def quarter_page(year, q_num):
         })
     
     quarterly_goals_grouped = group_goals_by_status(quarterly_goals)
-
+    form = GoalForm()
     return render_template(
         'quarter.html',
         year=year,
@@ -218,6 +220,7 @@ def quarter_page(year, q_num):
         today=today,
         page_type='quarter',
         parent_type='quarterly',
+        form=form,
         today_quarter=today_quarter
     )
 
@@ -268,7 +271,7 @@ def month_page(year, month):
         })
 
     monthly_goals_grouped = group_goals_by_status(monthly_goals)
-
+    form = GoalForm()
     return render_template(
         'month.html',
         year=year,
@@ -283,6 +286,7 @@ def month_page(year, month):
         today=today,
         page_type='month',
         parent_type='monthly',
+        form=form,
         today_quarter=today_quarter
     )
 
@@ -337,7 +341,7 @@ def week_page(year, week):
         next_year += 1
 
     weekly_goals_grouped = group_goals_by_status(weekly_goals)
-
+    form = GoalForm()
     return render_template(
         'week.html',
         year=year,
@@ -354,6 +358,7 @@ def week_page(year, week):
         today=today,
         page_type='week',
         parent_type='weekly',
+        form=form,
         today_quarter=today_quarter
     )
 
@@ -375,7 +380,7 @@ def day_page(year, month, day):
     next_date = day_date + timedelta(days=1)
 
     daily_goals_grouped = group_goals_by_status(daily_goals)
-
+    form = GoalForm()
     return render_template(
         'day.html',
         day_date=day_date,
@@ -386,6 +391,7 @@ def day_page(year, month, day):
         today=today,
         page_type='day',
         parent_type='daily',
+        form=form,
         today_quarter=today_quarter
     )
 
