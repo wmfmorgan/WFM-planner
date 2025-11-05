@@ -185,7 +185,7 @@
                         <select class="form-select" name="parent_id">
                             <option value="">-- None (Top-Level) --</option>
                             {% for parent in possible_parents %}
-                                <option value="{{ parent.id }}">{{ parent.id }}{{ parent.title }} ({{ parent.type|capitalize }})</option>
+                                <option value="{{ parent.id }}">{{ parent.title }} {{parent.due_date}} ({{ parent.type|capitalize }})</option>
                             {% endfor %}
                         </select>
                     </div>

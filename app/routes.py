@@ -238,7 +238,7 @@ def quarter_page(year, q_num):
         months=months,
         today=today,
         page_type='quarter',
-        parent_type='quarterly',
+        parent_type='annual',
         form=form,
         possible_parents=possible_parents,
         today_quarter=today_quarter
@@ -293,7 +293,7 @@ def month_page(year, month):
     monthly_goals_grouped = group_goals_by_status(monthly_goals)
     # GET POSSIBLE PARENTS (weekly goals in same week, NOT completed)
     # GET POSSIBLE PARENTS (monthly goals overlapping week, NOT completed)
-    m_start_dt = datetime(w_start.year, w_start.month, 1)  # datetime
+    m_start_dt = datetime(m_start.year, m_start.month, 1)  # datetime
     m_end_dt = m_start_dt + relativedelta(months=1) - timedelta(days=1)  # datetime
 
     possible_parents = Goal.query.filter(
@@ -319,7 +319,7 @@ def month_page(year, month):
         weeks=weeks,
         today=today,
         page_type='month',
-        parent_type='monthly',
+        parent_type='quarterly',
         form=form,
         possible_parents=possible_parents,
         today_quarter=today_quarter
