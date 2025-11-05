@@ -173,7 +173,7 @@ def year_page(year):
         next_url=f"/year/{next_year}",
         today=today,
         page_type='year',
-        parent_type='annual',
+        parent_type='year',
         form=form,
         today_quarter=today_quarter
     )
@@ -465,7 +465,7 @@ def day_page(year, month, day):
         next_url=f"/day/{next_date.year}/{next_date.month}/{next_date.day}",
         today=today,
         page_type='day',
-        parent_type='daily',
+        parent_type='weekly',
         form=form,
         possible_parents=possible_parents,
         today_quarter=today_quarter

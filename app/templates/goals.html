@@ -226,7 +226,7 @@
             const parentId = e.target.dataset.parentId;
             const parentType = e.target.closest('.goal-card').querySelector('small.text-muted').textContent.toLowerCase();
             
-            const typeMap = { 'annual': 'quarterly', 'quarterly': 'monthly', 'monthly': 'weekly', 'weekly': 'daily', 'daily': 'daily' };
+            const typeMap = { 'year': 'annual', 'annual': 'quarterly', 'quarterly': 'monthly', 'monthly': 'weekly', 'weekly': 'daily', 'daily': 'daily' };
             const childType = typeMap[parentType] || 'daily';
 
             document.getElementById('modalTitle').textContent = 'Add Sub-Goal';

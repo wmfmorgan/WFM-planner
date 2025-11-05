@@ -287,6 +287,7 @@
             const parentType = btn.dataset.parentType;
 
             const typeMap = {
+                'year' : "annual",
                 'annual': 'quarterly',
                 'quarterly': 'monthly',
                 'monthly': 'weekly',
@@ -301,6 +302,7 @@
             
             // SET VISIBLE SELECT (DISABLED)
             const typeSelect = form.querySelector('[name="type"]');
+            alert (childType)
             typeSelect.value = childType;
             typeSelect.disabled = true;
 
