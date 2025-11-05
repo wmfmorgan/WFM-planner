@@ -21,15 +21,15 @@
                                 <!-- VIEW MODE -->
                                 <div class="view-mode p-2">
                                     <h6 class="card-title mb-1 goal-title-text">{{ goal.title }}</h6>
-                                    {% if goal.category %}
+                                    <!-- {% if goal.category %}
                                         <small class="text-muted d-block">{{ goal.category }}</small>
                                     {% endif %}
                                     {% if goal.due_date %}
                                         <small class="text-muted">{{ goal.due_date.strftime('%b %d') }}</small>
-                                    {% endif %}
+                                    {% endif %} -->
                                     <div class="mt-2 d-flex gap-1">
                                         <button class="btn btn-sm btn-outline-dark edit-goal-btn">Edit</button>
-                                        <button class="btn btn-sm btn-outline-danger delete-goal-btn" data-goal-id="{{ goal.id }}">Delete</button>
+                                        <!-- <button class="btn btn-sm btn-outline-danger delete-goal-btn" data-goal-id="{{ goal.id }}">Delete</button> -->
                                     </div>
                                 </div>
 
@@ -358,13 +358,9 @@ document.getElementById('unified-goal-form').addEventListener('submit', function
         }
     });
 });
- /*   // HIDE PARENT SELECTOR ON ANNUAL PAGE
-    if ('{{ page_type }}' === 'year') {
-        document.getElementById('parent-goal-section').style.display = 'none';
-    }
-
-
+ 
     if ('{{ page_type }}' === 'year') {
         document.getElementById('kanban-parent-section').style.display = 'none';
-    }*/
+    }
+    
 </script>
