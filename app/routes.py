@@ -477,8 +477,12 @@ def day_page(year, month, day):
 def update_goal_status(goal_id):
     goal = Goal.query.get_or_404(goal_id)
     data = request.json
-    if data.get('status') in ['todo', 'in_progress', 'blocked', 'done']:
-        goal.status = data['status']
+    new_status = data.get('status')
+
+    if new_status in ['todo', 'in_progress', 'blocked', 'done']:
+        goal.status = new_status
+        # SYNC completed WITH status
+        goal.completed = (new_status == 'done')
         db.session.commit()
     return jsonify({'status': 'success'})
 
