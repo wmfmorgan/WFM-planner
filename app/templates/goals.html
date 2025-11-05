@@ -2,64 +2,19 @@
 {% extends "base.html" %}
 {% block content %}
 <div class="container mt-4">
-    <h1 class="display-5 fw-bold text-center mb-4">Create New Goal</h1>
-
-    <div class="row justify-content-center">
-        <div class="col-md-8">
-            <div class="card border-light">
-                <div class="card-body">
-                    <form method="POST">
-                        {{ form.hidden_tag() }}
-
-                        <!-- TITLE -->
-                        <div class="mb-3">
-                            {{ form.title.label(class="form-label") }}
-                            {{ form.title(class="form-control", placeholder="Enter goal title", required=True) }}
-                        </div>
-
-                        <!-- TYPE (REQUIRED) -->
-                        <div class="mb-3">
-                            {{ form.type.label(class="form-label") }}
-                            <select name="type" class="form-select" required>
-                                <option value="annual">Annual</option>
-                                <option value="quarterly">Quarterly</option>
-                                <option value="monthly">Monthly</option>
-                                <option value="weekly">Weekly</option>
-                                <option value="daily">Daily</option>
-                            </select>
-                        </div>
-
-                        <!-- DESCRIPTION -->
-                        <div class="mb-3">
-                            {{ form.description.label(class="form-label") }}
-                            {{ form.description(class="form-control", rows=3, placeholder="Describe the goal") }}
-                        </div>
-
-                        <!-- MOTIVATION -->
-                        <div class="mb-3">
-                            {{ form.motivation.label(class="form-label") }}
-                            {{ form.motivation(class="form-control", rows=3, placeholder="Why does this matter?") }}
-                        </div>
-
-                        <!-- DUE DATE -->
-                        <div class="mb-3">
-                            {{ form.due_date.label(class="form-label") }}
-                            {{ form.due_date(class="form-control", type="date") }}
-                        </div>
-
-                        <!-- SUBMIT -->
-                        <div class="d-grid">
-                            <button type="submit" class="btn btn-primary btn-lg">Create Goal</button>
-                        </div>
-                    </form>
-                </div>
-            </div>
-        </div>
+    <!-- HEADER WITH + ICON -->
+    <div class="position-relative mb-4">
+        <h1 class="display-5 fw-bold text-center">Goals</h1>
+        <button class="btn btn-success position-absolute top-0 end-0 rounded-circle p-0 d-flex align-items-center justify-content-center" 
+                style="width: 40px; height: 40px;" 
+                data-bs-toggle="modal" data-bs-target="#goalModal"
+                title="Add New Goal">
+            <i class="bi bi-plus-lg"></i>
+        </button>
     </div>
 
     <!-- HIERARCHY GOALS -->
     {% if goals %}
-        <h2 class="mt-5 mb-3">All Goals</h2>
         <div class="goal-hierarchy">
             {% macro render_goal(goal, level=0) %}
                 <div class="goal-item" style="margin-left: {{ level * 30 }}px;" data-goal-id="{{ goal.id }}">
@@ -68,8 +23,10 @@
                         <div class="view-mode p-3 d-flex align-items-center justify-content-between">
                             <div class="flex-grow-1">
                                 <h6 class="card-title mb-1 goal-title-text">{{ goal.title }}</h6>
-                                <small class="text-muted">{{ goal.category or 'No category' }}</small>
                                 <small class="text-muted">{{ goal.type|capitalize }}</small>
+                                {% if goal.category %}
+                                    <small class="text-muted d-block">{{ goal.category }}</small>
+                                {% endif %}
                                 {% if goal.due_date %}
                                     <small class="text-muted d-block">{{ goal.due_date.strftime('%b %d') }}</small>
                                 {% endif %}
@@ -81,9 +38,7 @@
                                     </button>
                                 {% endif %}
                                 <button class="btn btn-sm btn-outline-dark edit-goal-btn">Edit</button>
-                                {% if goal.type != 'daily' %}
-                                    <button class="btn btn-sm btn-outline-primary add-subgoal-btn" data-parent-id="{{ goal.id }}">Add Sub-Goal</button>
-                                {% endif %}
+                                <button class="btn btn-sm btn-outline-primary add-subgoal-btn" data-parent-id="{{ goal.id }}">Add Sub-Goal</button>
                                 <button class="btn btn-sm btn-outline-danger delete-goal-btn" data-goal-id="{{ goal.id }}">Delete</button>
                             </div>
                         </div>
@@ -93,50 +48,66 @@
                             <form class="edit-goal-form">
                                 <input type="hidden" name="goal_id" value="{{ goal.id }}">
                                 
-                                <!-- TITLE -->
                                 <div class="mb-2">
                                     <input type="text" class="form-control form-control-sm goal-title-input" 
                                            value="{{ goal.title }}" required>
                                 </div>
-                                <div class="mb-2">
-                                    <select class="form-select form-select-sm goal-category-input">
-                                        {% for value, label in [
-                                            ('Work', 'Work'), ('Marital', 'Marital'), ('Family', 'Family'),
-                                            ('Physical', 'Physical'), ('Mental', 'Mental'), ('Hobby', 'Hobby'),
-                                            ('Social', 'Social'), ('Financial', 'Financial')
-                                        ] %}
-                                            <option value="{{ value }}" {% if goal.category == value %}selected{% endif %}>{{ label }}</option>
-                                        {% endfor %}
-                                    </select>
-                                </div>
-                                <!-- TYPE -->
-                                <div class="mb-2">
-                                    <select class="form-select form-select-sm goal-type-input">
-                                        <option value="annual" {% if goal.type == 'annual' %}selected{% endif %}>Annual</option>
-                                        <option value="quarterly" {% if goal.type == 'quarterly' %}selected{% endif %}>Quarterly</option>
-                                        <option value="monthly" {% if goal.type == 'monthly' %}selected{% endif %}>Monthly</option>
-                                        <option value="weekly" {% if goal.type == 'weekly' %}selected{% endif %}>Weekly</option>
-                                        <option value="daily" {% if goal.type == 'daily' %}selected{% endif %}>Daily</option>
-                                    </select>
+
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="mb-2">
+                                            <select class="form-select form-select-sm goal-type-input">
+                                                <option value="annual" {% if goal.type == 'annual' %}selected{% endif %}>Annual</option>
+                                                <option value="quarterly" {% if goal.type == 'quarterly' %}selected{% endif %}>Quarterly</option>
+                                                <option value="monthly" {% if goal.type == 'monthly' %}selected{% endif %}>Monthly</option>
+                                                <option value="weekly" {% if goal.type == 'weekly' %}selected{% endif %}>Weekly</option>
+                                                <option value="daily" {% if goal.type == 'daily' %}selected{% endif %}>Daily</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="mb-2">
+                                            <select class="form-select form-select-sm goal-category-input">
+                                                {% for value, label in [('Work', 'Work'), ('Marital', 'Marital'), ('Family', 'Family'), ('Physical', 'Physical'), ('Mental', 'Mental'), ('Hobby', 'Hobby'), ('Social', 'Social'), ('Financial', 'Financial')] %}
+                                                    <option value="{{ value }}" {% if goal.category == value %}selected{% endif %}>{{ label }}</option>
+                                                {% endfor %}
+                                            </select>
+                                        </div>
+                                    </div>
                                 </div>
 
-                                <!-- DESCRIPTION -->
                                 <div class="mb-2">
                                     <textarea class="form-control form-control-sm goal-description-input" rows="2">{{ goal.description or '' }}</textarea>
                                 </div>
 
-                                <!-- MOTIVATION -->
                                 <div class="mb-2">
                                     <textarea class="form-control form-control-sm goal-motivation-input" rows="2">{{ goal.motivation or '' }}</textarea>
                                 </div>
 
-                                <!-- DUE DATE -->
-                                <div class="mb-2">
-                                    <input type="date" class="form-control form-control-sm goal-due-date-input" 
-                                           value="{{ goal.due_date.strftime('%Y-%m-%d') if goal.due_date else '' }}">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="mb-2">
+                                            <input type="date" class="form-control form-control-sm goal-due-date-input" 
+                                                   value="{{ goal.due_date.strftime('%Y-%m-%d') if goal.due_date else '' }}">
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="mb-2">
+                                            <select class="form-select form-select-sm goal-status-input">
+                                                <option value="todo" {% if goal.status == 'todo' %}selected{% endif %}>To Do</option>
+                                                <option value="in_progress" {% if goal.status == 'in_progress' %}selected{% endif %}>In Progress</option>
+                                                <option value="blocked" {% if goal.status == 'blocked' %}selected{% endif %}>Blocked</option>
+                                                <option value="done" {% if goal.status == 'done' %}selected{% endif %}>Done</option>
+                                            </select>
+                                        </div>
+                                    </div>
                                 </div>
 
-                                <!-- SAVE / CANCEL -->
+                                <div class="form-check mb-2">
+                                    <input type="checkbox" class="form-check-input goal-completed-input" {% if goal.completed %}checked{% endif %}>
+                                    <label class="form-check-label">Completed</label>
+                                </div>
+
                                 <div class="d-flex gap-1">
                                     <button type="submit" class="btn btn-sm btn-success">Save</button>
                                     <button type="button" class="btn btn-sm btn-secondary cancel-edit">Cancel</button>
@@ -145,7 +116,7 @@
                         </div>
                     </div>
 
-                    <!-- CHILDREN (COLLAPSIBLE) -->
+                    <!-- CHILDREN -->
                     {% if goal.children %}
                         <div class="goal-children">
                             {% for child in goal.children %}
@@ -160,40 +131,142 @@
                 {{ render_goal(goal) }}
             {% endfor %}
         </div>
+    {% else %}
+        <p class="text-center text-muted">No goals yet. Click the + to create one!</p>
     {% endif %}
+</div>
 
-    <!-- REUSABLE SUB-GOAL FORM (HIDDEN) -->
-    <div id="subgoal-form-container" class="d-none mt-4">
-        <h3 class="h5">Add Sub-Goal</h3>
-        <form id="subgoal-form" class="card p-3">
-            <input type="hidden" id="parent-id" name="parent_id">
-            <input type="hidden" id="child-type" name="type">
-            
-            <div class="mb-3">
-                <label class="form-label">Title</label>
-                <input type="text" class="form-control form-control-sm" name="title" required>
+<!-- UNIFIED GOAL MODAL -->
+<div class="modal fade" id="goalModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalTitle">Create Goal</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
+            <div class="modal-body">
+                <form id="unified-goal-form" action="/goals" method="POST">
+                    {{ form.hidden_tag() }}
+                    <input type="hidden" name="parent_id" value="">
+                    <!-- IN MODAL, AFTER parent_id -->
+                    <input type="hidden" name="type" id="hidden-type-field">
+                    <div class="mb-3">
+                        {{ form.title.label(class="form-label") }}
+                        {{ form.title(class="form-control") }}
+                    </div>
 
-            <div class="mb-3">
-                <label class="form-label">Type</label>
-                <div class="form-control form-control-sm bg-light" id="child-type-display"></div>
-            </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                {{ form.type.label(class="form-label") }}
+                                {{ form.type(class="form-select") }}
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                {{ form.category.label(class="form-label") }}
+                                {{ form.category(class="form-select") }}
+                            </div>
+                        </div>
+                    </div>
 
-            <div class="mb-3">
-                <label class="form-label">Due Date</label>
-                <input type="date" class="form-control form-control-sm" name="due_date">
-            </div>
+                    <div class="mb-3">
+                        {{ form.description.label(class="form-label") }}
+                        {{ form.description(class="form-control", rows=3) }}
+                    </div>
 
-            <div class="d-flex gap-2">
-                <button type="submit" class="btn btn-sm btn-success">Save Sub-Goal</button>
-                <button type="button" class="btn btn-sm btn-secondary" id="cancel-subgoal">Cancel</button>
+                    <div class="mb-3">
+                        {{ form.motivation.label(class="form-label") }}
+                        {{ form.motivation(class="form-control", rows=3) }}
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                {{ form.due_date.label(class="form-label") }}
+                                {{ form.due_date(class="form-control") }}
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                {{ form.status.label(class="form-label") }}
+                                {{ form.status(class="form-select") }}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-check mb-3">
+                        {{ form.completed(class="form-check-input") }}
+                        {{ form.completed.label(class="form-check-label") }}
+                    </div>
+
+                    <div class="d-flex gap-2">
+                        {{ form.submit(class="btn btn-primary") }}
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    </div>
+                </form>
             </div>
-        </form>
+        </div>
     </div>
 </div>
 
-<!-- EDIT + SUB-GOAL + DELETE + COLLAPSE LOGIC -->
+<!-- FULL JS LOGIC -->
 <script>
+    // OPEN MODAL FOR NEW GOAL
+    document.querySelector('[data-bs-target="#goalModal"]').addEventListener('click', function() {
+        document.getElementById('modalTitle').textContent = 'Create Goal';
+        document.getElementById('unified-goal-form').reset();
+        document.querySelector('[name="parent_id"]').value = '';
+        document.querySelector('[name="type"]').disabled = false;
+    });
+
+    // OPEN MODAL FOR SUB-GOAL
+    document.addEventListener('click', function(e) {
+        if (e.target.classList.contains('add-subgoal-btn')) {
+            const parentId = e.target.dataset.parentId;
+            const parentType = e.target.closest('.goal-card').querySelector('small.text-muted').textContent.toLowerCase();
+            
+            const typeMap = { 'year': 'annual', 'annual': 'quarterly', 'quarterly': 'monthly', 'monthly': 'weekly', 'weekly': 'daily', 'daily': 'daily' };
+            const childType = typeMap[parentType] || 'daily';
+
+            document.getElementById('modalTitle').textContent = 'Add Sub-Goal';
+            document.getElementById('unified-goal-form').reset();
+            document.querySelector('[name="parent_id"]').value = parentId;
+            
+            // SET VISIBLE SELECT (DISABLED)
+            const typeSelect = document.querySelector('[name="type"]');
+            typeSelect.value = childType;
+            typeSelect.disabled = true;
+
+            // COPY TO HIDDEN FIELD (SENT TO SERVER)
+            document.getElementById('hidden-type-field').value = childType;
+
+            const modal = new bootstrap.Modal(document.getElementById('goalModal'));
+            modal.show();
+        }
+    });
+
+    // FORM SUBMIT (UNIFIED)
+    document.getElementById('unified-goal-form').addEventListener('submit', function(e) {
+        
+        const formData = new FormData(this);
+        
+        // Add completed as 'y' or null
+        formData.set('completed', formData.get('completed') === 'on' ? 'y' : '');
+
+        const parentId = formData.get('parent_id');
+        const url = parentId ? `/api/goal/${parentId}/subgoal` : '/goals';
+
+    });
+
+    // RESET ON CLOSE
+    document.getElementById('goalModal').addEventListener('hidden.bs.modal', function() {
+        document.getElementById('unified-goal-form').reset();
+        document.querySelector('[name="parent_id"]').value = '';
+        document.querySelector('[name="type"]').disabled = false;
+        document.getElementById('modalTitle').textContent = 'Create Goal';
+    });
+
     // EDIT BUTTON
     document.addEventListener('click', function(e) {
         if (e.target.classList.contains('edit-goal-btn')) {
@@ -224,7 +297,9 @@
                 category: form.querySelector('.goal-category-input').value,
                 description: form.querySelector('.goal-description-input').value,
                 motivation: form.querySelector('.goal-motivation-input').value,
-                due_date: form.querySelector('.goal-due-date-input').value || null
+                due_date: form.querySelector('.goal-due-date-input').value || null,
+                status: form.querySelector('.goal-status-input').value,
+                completed: form.querySelector('.goal-completed-input').checked
             };
 
             fetch(`/api/goal/${goalId}`, {
@@ -246,52 +321,6 @@
                 card.querySelector('.edit-mode').classList.add('d-none');
             });
         }
-    });
-
-    // ADD SUB-GOAL BUTTON
-    document.addEventListener('click', function(e) {
-        if (e.target.classList.contains('add-subgoal-btn')) {
-            const parentId = e.target.dataset.parentId;
-            const card = e.target.closest('.goal-card');
-            const parentType = card.querySelector('small.text-muted').textContent.toLowerCase();
-            
-            // Map parent type to child type
-            const typeMap = {
-                'annual': 'quarterly',
-                'quarterly': 'monthly',
-                'monthly': 'weekly',
-                'weekly': 'daily',
-                'daily': 'daily'
-            };
-            const childType = typeMap[parentType] || 'daily';
-
-            document.getElementById('parent-id').value = parentId;
-            document.getElementById('child-type').value = childType;
-            document.getElementById('child-type-display').textContent = childType.charAt(0).toUpperCase() + childType.slice(1);
-            
-            document.getElementById('subgoal-form-container').classList.remove('d-none');
-            card.after(document.getElementById('subgoal-form-container'));
-        }
-    });
-
-    // CANCEL SUB-GOAL
-    document.getElementById('cancel-subgoal').addEventListener('click', function() {
-        document.getElementById('subgoal-form-container').classList.add('d-none');
-    });
-
-    // SAVE SUB-GOAL
-    document.getElementById('subgoal-form').addEventListener('submit', function(e) {
-        e.preventDefault();
-        const formData = new FormData(this);
-        const data = Object.fromEntries(formData);
-
-        fetch(`/api/goal/${data.parent_id}/subgoal`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(data)
-        }).then(() => {
-            location.reload();
-        });
     });
 
     // DELETE GOAL
@@ -320,6 +349,7 @@
     });
 </script>
 
+<!-- STYLE BLOCK -->
 <style>
     .goal-children {
         transition: max-height 0.3s ease;

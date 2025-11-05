@@ -9,9 +9,9 @@
                             {{ col.label }}
                             <span class="badge bg-primary ms-2">{{ goals[col.id]|length }}</span>
                         </h6>
-                        <button class="btn btn-sm btn-outline-success add-goal-btn" 
-                                data-column="{{ col.id }}" 
-                                data-parent-type="{{ parent_type }}">
+                        <button class="btn btn-sm btn-outline-success add-kanban-goal-btn" 
+                                data-parent-type="{{ parent_type }}"
+                                data-page-type="{{ page_type }}">
                             <i class="bi bi-plus"></i>
                         </button>
                     </div>
@@ -21,12 +21,15 @@
                                 <!-- VIEW MODE -->
                                 <div class="view-mode p-2">
                                     <h6 class="card-title mb-1 goal-title-text">{{ goal.title }}</h6>
+                                    <!-- {% if goal.category %}
+                                        <small class="text-muted d-block">{{ goal.category }}</small>
+                                    {% endif %}
                                     {% if goal.due_date %}
                                         <small class="text-muted">{{ goal.due_date.strftime('%b %d') }}</small>
-                                    {% endif %}
+                                    {% endif %} -->
                                     <div class="mt-2 d-flex gap-1">
                                         <button class="btn btn-sm btn-outline-dark edit-goal-btn">Edit</button>
-                                        <button class="btn btn-sm btn-outline-danger delete-goal-btn" data-goal-id="{{ goal.id }}">Delete</button>
+                                        <!-- <button class="btn btn-sm btn-outline-danger delete-goal-btn" data-goal-id="{{ goal.id }}">Delete</button> -->
                                     </div>
                                 </div>
 
@@ -52,6 +55,15 @@
                                             </select>
                                         </div>
 
+                                        <!-- CATEGORY -->
+                                        <div class="mb-2">
+                                            <select class="form-select form-select-sm goal-category-input">
+                                                {% for value, label in [('Work', 'Work'), ('Marital', 'Marital'), ('Family', 'Family'), ('Physical', 'Physical'), ('Mental', 'Mental'), ('Hobby', 'Hobby'), ('Social', 'Social'), ('Financial', 'Financial')] %}
+                                                    <option value="{{ value }}" {% if goal.category == value %}selected{% endif %}>{{ label }}</option>
+                                                {% endfor %}
+                                            </select>
+                                        </div>
+
                                         <!-- DESCRIPTION -->
                                         <div class="mb-2">
                                             <textarea class="form-control form-control-sm goal-description-input" rows="2" 
@@ -70,6 +82,22 @@
                                                    value="{{ goal.due_date.strftime('%Y-%m-%d') if goal.due_date else '' }}">
                                         </div>
 
+                                        <!-- STATUS -->
+                                        <div class="mb-2">
+                                            <select class="form-select form-select-sm goal-status-input">
+                                                <option value="todo" {% if goal.status == 'todo' %}selected{% endif %}>To Do</option>
+                                                <option value="in_progress" {% if goal.status == 'in_progress' %}selected{% endif %}>In Progress</option>
+                                                <option value="blocked" {% if goal.status == 'blocked' %}selected{% endif %}>Blocked</option>
+                                                <option value="done" {% if goal.status == 'done' %}selected{% endif %}>Done</option>
+                                            </select>
+                                        </div>
+
+                                        <!-- COMPLETED -->
+                                        <div class="form-check mb-2">
+                                            <input type="checkbox" class="form-check-input goal-completed-input" {% if goal.completed %}checked{% endif %}>
+                                            <label class="form-check-label">Completed</label>
+                                        </div>
+
                                         <!-- SAVE / CANCEL -->
                                         <div class="d-flex gap-1">
                                             <button type="submit" class="btn btn-sm btn-success">Save</button>
@@ -83,6 +111,93 @@
                 </div>
             </div>
         {% endfor %}
+    </div>
+</div>
+
+<!-- UNIFIED GOAL MODAL FOR KANBAN -->
+<div class="modal fade" id="goalModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalTitle">Create Goal</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="unified-goal-form" action="/goals" method="POST">
+                    {{ form.hidden_tag() }}
+                    <!-- <input type="hidden" name="parent_id" value=""> -->
+                    <!-- IN MODAL, AFTER parent_id -->
+                    <input type="hidden" name="type" id="kanban-hidden-type">
+
+                    <div class="mb-3">
+                        {{ form.title.label(class="form-label") }}
+                        {{ form.title(class="form-control") }}
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                {{ form.type.label(class="form-label") }}
+                                {{ form.type(class="form-select") }}
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                {{ form.category.label(class="form-label") }}
+                                {{ form.category(class="form-select") }}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        {{ form.description.label(class="form-label") }}
+                        {{ form.description(class="form-control", rows=3) }}
+                    </div>
+
+                    <div class="mb-3">
+                        {{ form.motivation.label(class="form-label") }}
+                        {{ form.motivation(class="form-control", rows=3) }}
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                {{ form.due_date.label(class="form-label") }}
+                                {{ form.due_date(class="form-control") }}
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                {{ form.status.label(class="form-label") }}
+                                {{ form.status(class="form-select") }}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-check mb-3">
+                        {{ form.completed(class="form-check-input") }}
+                        {{ form.completed.label(class="form-check-label") }}
+                    </div>
+
+                    <!-- IN KANBAN MODAL, AFTER TYPE -->
+                    <div class="mb-3" id="kanban-parent-section">
+                        <label class="form-label">Link to Parent Goal</label>
+                        <select class="form-select" name="parent_id">
+                            <option value="">-- None (Top-Level) --</option>
+                            {% for parent in possible_parents %}
+                                <option value="{{ parent.id }}">{{ parent.title }} {{parent.due_date}} ({{ parent.type|capitalize }})</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="d-flex gap-2">
+                        {{ form.submit(class="btn btn-primary") }}
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    </div>
+ 
+                </form>
+            </div>
+        </div>
     </div>
 </div>
 
@@ -138,9 +253,12 @@
             const data = {
                 title: form.querySelector('.goal-title-input').value,
                 type: form.querySelector('.goal-type-input').value,
+                category: form.querySelector('.goal-category-input').value,
                 description: form.querySelector('.goal-description-input').value,
                 motivation: form.querySelector('.goal-motivation-input').value,
-                due_date: form.querySelector('.goal-due-date-input').value || null
+                due_date: form.querySelector('.goal-due-date-input').value || null,
+                status: form.querySelector('.goal-status-input').value,
+                completed: form.querySelector('.goal-completed-input').checked
             };
 
             fetch(`/api/goal/${goalId}`, {
@@ -162,14 +280,14 @@
         }
     });
 
-    // ADD GOAL IN COLUMN
+    // ADD GOAL FROM KANBAN
     document.addEventListener('click', function(e) {
-        if (e.target.closest('.add-goal-btn')) {
-            const btn = e.target.closest('.add-goal-btn');
+        if (e.target.closest('.add-kanban-goal-btn')) {
+            const btn = e.target.closest('.add-kanban-goal-btn');
             const parentType = btn.dataset.parentType;
 
-            // Map parent to child type
             const typeMap = {
+                'year' : "annual ",
                 'annual': 'quarterly',
                 'quarterly': 'monthly',
                 'monthly': 'weekly',
@@ -178,25 +296,22 @@
             };
             const childType = typeMap[parentType] || 'daily';
 
-            const title = prompt(`New ${childType} goal:`);
-            if (!title) return;
+            const form = document.getElementById('unified-goal-form');
+            form.reset();
+            form.querySelector('[name="parent_id"]').value = '';
+            
+            // SET VISIBLE SELECT (DISABLED)
+            const typeSelect = form.querySelector('[name="type"]');
+            typeSelect.value = childType;
+            typeSelect.disabled = true;
 
-            const dueDate = prompt(`Due date (YYYY-MM-DD):`) || null;
+            // COPY TO HIDDEN FIELD (SENT TO SERVER)
+            document.getElementById('kanban-hidden-type').value = childType;
 
-            fetch('/api/goal/create', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    title: title,
-                    type: childType,
-                    due_date: dueDate
-                })
-            }).then(response => response.json())
-            .then(data => {
-                if (data.status === 'success') {
-                    location.reload();
-                }
-            });
+            document.getElementById('modalTitle').textContent = `Add ${childType.charAt(0).toUpperCase() + childType.slice(1)} Goal`;
+
+            const modal = new bootstrap.Modal(document.getElementById('goalModal'));
+            modal.show();
         }
     });
 
@@ -213,4 +328,39 @@
             }
         }
     });
+ 
+// FORM SUBMIT (KANBAN MODAL) — WITH DEBUG
+document.getElementById('unified-goal-form').addEventListener('submit', function(e) {
+    e.preventDefault();
+    const formData = new FormData(this);
+    const parentId = formData.get('parent_id');
+
+    // CONVERT TO JSON
+    const data = Object.fromEntries(formData);
+    data.completed = formData.get('completed') === 'on';
+
+    let url = '/goals';
+    if (parentId && parentId !== '') {
+        url = `/api/goal/${parentId}/subgoal`;
+    }
+    
+    fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+    }).then(response => {
+        if (response.ok) {
+            location.reload();
+        } else {
+            response.text().then(text => {
+                alert(`Error: ${text}`);
+            });
+        }
+    });
+});
+ 
+    if ('{{ page_type }}' === 'year') {
+        document.getElementById('kanban-parent-section').style.display = 'none';
+    }
+    
 </script>

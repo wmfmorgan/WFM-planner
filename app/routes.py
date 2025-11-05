@@ -6,6 +6,8 @@ from .forms import GoalForm
 from datetime import datetime, timedelta
 from dateutil.relativedelta import relativedelta
 from calendar import Calendar, SUNDAY
+from sqlalchemy import case
+from sqlalchemy import and_, or_
 
 bp = Blueprint('main', __name__)
 
@@ -35,30 +37,74 @@ def index():
     return render_template('index.html', title="WFM Planner", today=today, today_quarter=today_quarter)
 
 
-# app/routes.py — UPDATE goals() route
+from datetime import datetime
+from sqlalchemy import case as db_case
+
 @bp.route('/goals', methods=['GET', 'POST'])
 def goals():
     form = GoalForm()
-    if form.validate_on_submit():
-        goal = Goal(
-            title=form.title.data,
-            type=form.type.data,
-            category=form.category.data,
-            description=form.description.data,
-            motivation=form.motivation.data,
-            due_date=form.due_date.data
-        )
-        db.session.add(goal)
-        db.session.commit()
-        flash('Goal created successfully!', 'success')
+    if request.method == 'POST':
+        print("=== /goals POST DEBUG ===")
+        print("Form data:", dict(request.form))
+        print("Parent ID:", request.form.get('parent_id'))
+        if form.validate_on_submit():
+            # === HANDLE parent_id: '' → None ===
+            parent_id = request.form.get('parent_id')
+            if parent_id == '':
+                parent_id = None
+            else:
+                parent_id = int(parent_id) if parent_id else None
+
+            # === HANDLE due_date: string → date ===
+            due_date = None
+            if form.due_date.data:
+                if isinstance(form.due_date.data, str):
+                    try:
+                        due_date = datetime.strptime(form.due_date.data, '%Y-%m-%d').date()
+                    except ValueError:
+                        flash('Invalid due date format.', 'danger')
+                        return redirect(url_for('main.goals'))
+                else:
+                    # Already a date object (from DB)
+                    due_date = form.due_date.data
+
+            # === CREATE GOAL ===
+            goal = Goal(
+                title=form.title.data,
+                type=form.type.data,
+                category=form.category.data,
+                description=form.description.data,
+                motivation=form.motivation.data,
+                due_date=due_date,
+                status=form.status.data,
+                completed=form.completed.data,
+                parent_id=parent_id
+            )
+            db.session.add(goal)
+            db.session.commit()
+            flash('Goal saved!', 'success')
+        else:
+            flash('Form validation failed.', 'danger')
+            for field, errors in form.errors.items():
+                for error in errors:
+                    flash(f"{getattr(form, field).label.text}: {error}", 'danger')
         return redirect(url_for('main.goals'))
 
-    # FETCH + SORT: oldest to newest, with children
-    goals = Goal.query.filter_by(parent_id=None).options(
+    # === GET: LOAD TOP-LEVEL GOALS ===
+    goals = Goal.query.filter(
+        db.or_(
+            Goal.parent_id.is_(None),
+            Goal.parent_id == ''
+        )
+    ).options(
         db.joinedload(Goal.children)
-    ).order_by(Goal.due_date.asc(), Goal.id).all()
+    ).order_by(
+        db_case((Goal.due_date.is_(None), 0), else_=1),
+        Goal.due_date.asc(),
+        Goal.id
+    ).all()
 
-    # SORT CHILDREN RECURSIVELY
+    # === SORT CHILDREN RECURSIVELY ===
     def sort_children(goal):
         if goal.children:
             goal.children.sort(key=lambda x: (x.due_date or datetime.max.date(), x.id))
@@ -68,28 +114,38 @@ def goals():
     for goal in goals:
         sort_children(goal)
 
-    return render_template('goals.html', goals=goals, form=form, today=today, today_quarter=today_quarter)
+    return render_template(
+        'goals.html',
+        goals=goals,
+        form=form,
+        today=today,
+        today_quarter=today_quarter
+    )
 
 
 @bp.route('/year/<int:year>')
 def year_page(year):
     if year < 2000 or year > 2100:
-        abort(404)
+            abort(404)
 
     y_start = datetime(year, 1, 1).date()
     y_end = datetime(year, 12, 31).date()
 
     annual_goals = Goal.query.filter(
+        Goal.type == 'annual',
         db.or_(
-            Goal.type == 'annual',
-            db.and_(
-                Goal.due_date >= y_start,
-                Goal.due_date <= y_end
-            ),
+            db.and_(Goal.due_date >= y_start, Goal.due_date <= y_end),
             Goal.due_date.is_(None)
         ),
-        Goal.parent_id.is_(None)
-    ).order_by(Goal.due_date.asc(), Goal.id).all()
+        db.or_(  # ← ADD THIS
+            Goal.parent_id.is_(None),
+            Goal.parent_id == ''
+        )
+    ).order_by(
+        db.case((Goal.due_date.is_(None), 0), else_=1),
+        Goal.due_date.asc(),
+        Goal.id
+    ).all()
 
     quarters = []
     for q in range(1, 5):
@@ -106,6 +162,7 @@ def year_page(year):
     next_year = year + 1
 
     annual_goals_grouped = group_goals_by_status(annual_goals)
+    form = GoalForm()
 
     return render_template(
         'year.html',
@@ -115,7 +172,9 @@ def year_page(year):
         prev_url=f"/year/{prev_year}",
         next_url=f"/year/{next_year}",
         today=today,
-        parent_type='annual',
+        page_type='year',
+        parent_type='year',
+        form=form,
         today_quarter=today_quarter
     )
 
@@ -152,7 +211,20 @@ def quarter_page(year, q_num):
         })
     
     quarterly_goals_grouped = group_goals_by_status(quarterly_goals)
+  
+    # GET POSSIBLE PARENTS (weekly goals in same week, NOT completed)
+    start_month = (q_num - 1) * 3 + 1
+    day_date = datetime(year, start_month, 1).date()
+    w_start = day_date - timedelta(days=day_date.weekday())
+    w_end = w_start + timedelta(days=6)
+    possible_parents = Goal.query.filter(
+        Goal.type == 'annual',
+        Goal.due_date >= w_start,
+        Goal.due_date <= w_end,
+        Goal.completed == False  # ← EXCLUDE COMPLETED
+    ).all() 
 
+    form = GoalForm()
     return render_template(
         'quarter.html',
         year=year,
@@ -165,7 +237,10 @@ def quarter_page(year, q_num):
         next_url=f"/quarter/{next_year}/Q{next_q}",
         months=months,
         today=today,
-        parent_type='quarterly',
+        page_type='quarter',
+        parent_type='annual',
+        form=form,
+        possible_parents=possible_parents,
         today_quarter=today_quarter
     )
 
@@ -202,7 +277,7 @@ def month_page(year, month):
             if day == 0:
                 week_data.append(None)
             else:
-                day_date = datetime(year, month, day).date()
+                day_date = datetime(year, month, 1).date()
                 week_data.append({
                     'day': day,
                     'url': f"/day/{year}/{month}/{day:02d}"
@@ -216,7 +291,21 @@ def month_page(year, month):
         })
 
     monthly_goals_grouped = group_goals_by_status(monthly_goals)
+    # GET POSSIBLE PARENTS (weekly goals in same week, NOT completed)
+    # GET POSSIBLE PARENTS (monthly goals overlapping week, NOT completed)
+    m_start_dt = datetime(m_start.year, m_start.month, 1)  # datetime
+    m_end_dt = m_start_dt + relativedelta(months=1) - timedelta(days=1)  # datetime
 
+    possible_parents = Goal.query.filter(
+        Goal.type == 'quarterly',
+        or_(
+            and_(Goal.due_date >= m_start_dt.date(), Goal.due_date <= m_end_dt.date()),
+            Goal.due_date.is_(None)
+        ),
+        Goal.completed == False
+    ).order_by(Goal.due_date.asc(), Goal.id).all()
+
+    form = GoalForm()
     return render_template(
         'month.html',
         year=year,
@@ -229,7 +318,10 @@ def month_page(year, month):
         next_url=f"/month/{next_year}/{next_month}",
         weeks=weeks,
         today=today,
-        parent_type='monthly',
+        page_type='month',
+        parent_type='quarterly',
+        form=form,
+        possible_parents=possible_parents,
         today_quarter=today_quarter
     )
 
@@ -240,19 +332,45 @@ def week_page(year, week):
         abort(404)
 
     try:
+        # Monday of the week (ISO)
         w_start = datetime.strptime(f'{year}-W{week}-1', '%Y-W%W-%w').date()
     except ValueError:
         abort(404)
     w_end = w_start + timedelta(days=6)
 
+    # PICK MONDAY FOR PARENT FILTER
+    day_date = w_start
+
+    # GET POSSIBLE PARENTS (monthly goals overlapping week, NOT completed)
+    m_start_dt = datetime(w_start.year, w_start.month, 1)  # datetime
+    m_end_dt = m_start_dt + relativedelta(months=1) - timedelta(days=1)  # datetime
+
+    possible_parents = Goal.query.filter(
+        Goal.type == 'monthly',
+        or_(
+            and_(Goal.due_date >= m_start_dt.date(), Goal.due_date <= m_end_dt.date()),
+            Goal.due_date.is_(None)
+        ),
+        Goal.completed == False
+    ).order_by(Goal.due_date.asc(), Goal.id).all()
+
+    # GET WEEKLY GOALS
     weekly_goals = Goal.query.filter(
         Goal.type == 'weekly',
-        Goal.due_date >= w_start,
-        Goal.due_date <= w_end,
-        Goal.parent_id.isnot(None)
-    ).order_by(Goal.due_date).all()
+        or_(
+            and_(Goal.due_date >= w_start, Goal.due_date <= w_end),
+            Goal.due_date.is_(None)
+        )
+        #or_(Goal.parent_id.is_(None), Goal.parent_id == '')
+    ).order_by(
+        db_case((Goal.due_date.is_(None), 0), else_=1),
+        Goal.due_date.asc(),
+        Goal.id
+    ).all()
 
-    # Build 7-day calendar (Sun-Sat)
+    weekly_goals_grouped = group_goals_by_status(weekly_goals)
+
+    # BUILD 7-DAY GRID (Sun-Sat)
     days = []
     current = w_start
     for i in range(7):
@@ -272,6 +390,7 @@ def week_page(year, week):
     sample_month = w_start.month
     month_name = w_start.strftime('%B')
 
+    # NAVIGATION
     prev_week = week - 1
     prev_year = year
     if prev_week == 0:
@@ -283,7 +402,7 @@ def week_page(year, week):
         next_week = 1
         next_year += 1
 
-    weekly_goals_grouped = group_goals_by_status(weekly_goals)
+    form = GoalForm()
 
     return render_template(
         'week.html',
@@ -298,8 +417,11 @@ def week_page(year, week):
         month_name=month_name,
         prev_url=f"/week/{prev_year}/{prev_week}",
         next_url=f"/week/{next_year}/{next_week}",
+        parent_type='monthly',
+        page_type='week',
+        form=form,
+        possible_parents=possible_parents,
         today=today,
-        parent_type='weekly',
         today_quarter=today_quarter
     )
 
@@ -321,7 +443,19 @@ def day_page(year, month, day):
     next_date = day_date + timedelta(days=1)
 
     daily_goals_grouped = group_goals_by_status(daily_goals)
+    
+    # GET POSSIBLE PARENTS (weekly goals in same week, NOT completed)
+    day_date = datetime(year, month, day).date()
+    w_start = day_date - timedelta(days=day_date.weekday())
+    w_end = w_start + timedelta(days=6)
+    possible_parents = Goal.query.filter(
+        Goal.type == 'weekly',
+        Goal.due_date >= w_start,
+        Goal.due_date <= w_end,
+        Goal.completed == False  # ← EXCLUDE COMPLETED
+    ).all()
 
+    form = GoalForm()
     return render_template(
         'day.html',
         day_date=day_date,
@@ -330,7 +464,10 @@ def day_page(year, month, day):
         prev_url=f"/day/{prev_date.year}/{prev_date.month}/{prev_date.day}",
         next_url=f"/day/{next_date.year}/{next_date.month}/{next_date.day}",
         today=today,
-        parent_type='daily',
+        page_type='day',
+        parent_type='weekly',
+        form=form,
+        possible_parents=possible_parents,
         today_quarter=today_quarter
     )
 
@@ -340,40 +477,44 @@ def day_page(year, month, day):
 def update_goal_status(goal_id):
     goal = Goal.query.get_or_404(goal_id)
     data = request.json
-    if data.get('status') in ['todo', 'in_progress', 'blocked', 'done']:
-        goal.status = data['status']
+    new_status = data.get('status')
+
+    if new_status in ['todo', 'in_progress', 'blocked', 'done']:
+        goal.status = new_status
+        # SYNC completed WITH status
+        goal.completed = (new_status == 'done')
         db.session.commit()
     return jsonify({'status': 'success'})
 
 
 # ADD SUB-GOAL
 # app/routes.py — add_subgoal
+# app/routes.py — add_subgoal
 @bp.route('/api/goal/<int:parent_id>/subgoal', methods=['POST'])
 def add_subgoal(parent_id):
-    parent = Goal.query.get_or_404(parent_id)
+    print("=== /api/goal/{parent_id}/subgoal DEBUG ===")
+    print("Parent ID:", parent_id)
+    print("JSON data:", request.json)
     data = request.json
 
-    # Use provided type (from JS)
-    goal_type = data.get('type', 'daily')
+    # ENSURE parent_id IS VALID
+    if not Goal.query.get(parent_id):
+        return jsonify({'error': 'Parent not found'}), 404
 
-    due_date = None
-    if data.get('due_date'):
-        try:
-            due_date = datetime.strptime(data['due_date'], '%Y-%m-%d').date()
-        except:
-            pass
-
-    subgoal = Goal(
+    goal = Goal(
         title=data['title'],
-        type=goal_type,
-        description=data.get('description', ''),
-        motivation=data.get('motivation', ''),
-        due_date=due_date,
-        parent_id=parent_id
+        type=data['type'],
+        category=data.get('category'),
+        description=data.get('description'),
+        motivation=data.get('motivation'),
+        due_date=datetime.strptime(data['due_date'], '%Y-%m-%d').date() if data.get('due_date') else None,
+        status=data.get('status', 'todo'),
+        completed=data.get('completed', False),
+        parent_id=parent_id  # ← ALREADY INT FROM URL
     )
-    db.session.add(subgoal)
+    db.session.add(goal)
     db.session.commit()
-    return jsonify({'status': 'success'})
+    return jsonify({'status': 'success', 'goal_id': goal.id})
 
 
 # TOGGLE COMPLETION

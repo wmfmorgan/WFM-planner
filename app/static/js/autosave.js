@@ -190,5 +190,5 @@ document.addEventListener('DOMContentLoaded', function () {
         toast.addEventListener('hidden.bs.toast', () => toast.remove());
     }
 
-    console.log('AUTOSAVE.JS LOADED — READY TO DOMINATE!');
+    //console.log('AUTOSAVE.JS LOADED — READY TO DOMINATE!');
 });
