@@ -213,7 +213,8 @@ def quarter_page(year, q_num):
     quarterly_goals_grouped = group_goals_by_status(quarterly_goals)
   
     # GET POSSIBLE PARENTS (weekly goals in same week, NOT completed)
-    day_date = datetime(year, month, day).date()
+    start_month = (q_num - 1) * 3 + 1
+    day_date = datetime(year, start_month, 1).date()
     w_start = day_date - timedelta(days=day_date.weekday())
     w_end = w_start + timedelta(days=6)
     possible_parents = Goal.query.filter(
@@ -276,7 +277,7 @@ def month_page(year, month):
             if day == 0:
                 week_data.append(None)
             else:
-                day_date = datetime(year, month, day).date()
+                day_date = datetime(year, month, 1).date()
                 week_data.append({
                     'day': day,
                     'url': f"/day/{year}/{month}/{day:02d}"
@@ -291,15 +292,18 @@ def month_page(year, month):
 
     monthly_goals_grouped = group_goals_by_status(monthly_goals)
     # GET POSSIBLE PARENTS (weekly goals in same week, NOT completed)
-    day_date = datetime(year, month, day).date()
-    w_start = day_date - timedelta(days=day_date.weekday())
-    w_end = w_start + timedelta(days=6)
+    # GET POSSIBLE PARENTS (monthly goals overlapping week, NOT completed)
+    m_start_dt = datetime(w_start.year, w_start.month, 1)  # datetime
+    m_end_dt = m_start_dt + relativedelta(months=1) - timedelta(days=1)  # datetime
+
     possible_parents = Goal.query.filter(
         Goal.type == 'quarterly',
-        Goal.due_date >= w_start,
-        Goal.due_date <= w_end,
-        Goal.completed == False  # ← EXCLUDE COMPLETED
-    ).all()
+        or_(
+            and_(Goal.due_date >= m_start_dt.date(), Goal.due_date <= m_end_dt.date()),
+            Goal.due_date.is_(None)
+        ),
+        Goal.completed == False
+    ).order_by(Goal.due_date.asc(), Goal.id).all()
 
     form = GoalForm()
     return render_template(
