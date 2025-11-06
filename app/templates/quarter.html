@@ -55,8 +55,8 @@
             <h5 class="mb-0">Prep for the Quarter</h5>
         </div>
         <div class="card-body">
-            <textarea class="form-control autosave-textarea" 
-                      data-key="prep-{{ year }}-{{ q_num }}" 
+            <textarea name="prep" class="form-control autosave" 
+                      data-scope="quarter" data-year="{{ year }}" data-quarter="{{ q_num }}" data-type="prep" 
                       rows="5" 
                       placeholder="At the end of this quarter, what will my world look like? How will I get to this state?"></textarea>
         </div>
@@ -82,8 +82,8 @@
             <h5 class="mb-0">Notes</h5>
         </div>
         <div class="card-body">
-            <textarea class="form-control autosave-textarea" 
-                      data-key="notes-{{ year }}-{{ q_num }}" 
+            <textarea name="notes" class="form-control autosave" 
+                      data-scope="quarter" data-year="{{ year }}" data-quarter="{{ q_num }}" data-type="notes" 
                       rows="4" 
                       placeholder="Jot down thoughts, ideas, blockers..."></textarea>
         </div>
@@ -97,8 +97,8 @@
                     <h5 class="mb-0">Wins, Successes, Accomplishments</h5>
                 </div>
                 <div class="card-body">
-                    <textarea class="form-control autosave-textarea" 
-                              data-key="wins-{{ year }}-{{ q_num }}" 
+                    <textarea name="wins" class="form-control autosave" 
+                              data-scope="quarter" data-year="{{ year }}" data-quarter="{{ q_num }}" data-type="wins" 
                               rows="4" 
                               placeholder="What went well?"></textarea>
                 </div>
@@ -110,8 +110,8 @@
                     <h5 class="mb-0">Areas to Improve</h5>
                 </div>
                 <div class="card-body">
-                    <textarea class="form-control autosave-textarea" 
-                              data-key="improve-{{ year }}-{{ q_num }}" 
+                    <textarea name="improve" class="form-control autosave" 
+                              data-scope="quarter" data-year="{{ year }}" data-quarter="{{ q_num }}" data-type="improve" 
                               rows="4" 
                               placeholder="What could be better?"></textarea>
                 </div>

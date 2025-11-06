@@ -586,28 +586,41 @@ def create_goal():
 
 @bp.route('/api/note/<path:key>', methods=['GET', 'POST'])
 def api_note(key):
-    # Parse key: note-year-2025--prep
+    # key format: note-quarter-2025-4-prep
     parts = key.split('-')
     if len(parts) < 4 or parts[0] != 'note':
         abort(400)
-
+    print(key)
     scope = parts[1]
-    year = int(parts[2])
-    type = parts[-1]  # last part is type
+    idx = 2
+    year = int(parts[idx]); idx += 1
+    quarter = int(parts[idx]) if idx < len(parts) and parts[idx].isdigit() else None; idx += 1
+    month = int(parts[idx]) if idx < len(parts) and parts[idx].isdigit() else None; idx += 1
+    week = int(parts[idx]) if idx < len(parts) and parts[idx].isdigit() else None; idx += 1
+    day = int(parts[idx]) if idx < len(parts) and parts[idx].isdigit() else None; idx += 1
+    type_ = parts[-1]
 
+    filters = {
+        'scope': scope,
+        'year': year,
+        'quarter': quarter,
+        'month': month,
+        'week': week,
+        'day': day,
+        'type': type_
+    }
+    # Remove None values
+    filters = {k: v for k, v in filters.items() if v is not None}
+    
     if request.method == 'GET':
-        note = Note.query.filter_by(
-        scope=scope, year=year, quarter=None, month=None, week=None, day=None, type=type
-        ).first()
+        note = Note.query.filter_by(**filters).first()
         return jsonify({'content': note.content if note else ''})
 
     elif request.method == 'POST':
         content = request.json.get('content', '')
-        note = Note.query.filter_by(
-        scope=scope, year=year, quarter=None, month=None, week=None, day=None, type=type
-        ).first()
+        note = Note.query.filter_by(**filters).first()
         if not note:
-            note = Note(scope=scope, year=year, type=type)
+            note = Note(**filters)
             db.session.add(note)
         note.content = content
         db.session.commit()

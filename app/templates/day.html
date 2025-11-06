@@ -44,10 +44,10 @@
             <h5 class="mb-0">Prep for the Day</h5>
         </div>
         <div class="card-body">
-            <textarea class="form-control autosave-textarea" 
-                      data-key="prep-{{ day_date.strftime('%Y-%m-%d') }}"  
-                      rows="3" 
-                      placeholder="What must I accomplish today?"></textarea>
+                    <textarea name="prep" class="form-control autosave" 
+                    data-scope="quarter" data-year="{{ year }}" data-quarter="{{ q_num }}" data-type="prep"   
+                    rows="3" 
+                    placeholder="What must I accomplish today?"></textarea>
         </div>
     </div>
 
@@ -125,10 +125,10 @@
             <h5 class="mb-0">Notes</h5>
         </div>
         <div class="card-body">
-            <textarea class="form-control autosave-textarea" 
-                      data-key="notes-{{ day_date.strftime('%Y-%m-%d') }}" 
-                      rows="3" 
-                      placeholder="Quick thoughts, reflections, blockers..."></textarea>
+                    <textarea name="notes" class="form-control autosave" 
+                    data-scope="quarter" data-year="{{ year }}" data-quarter="{{ q_num }}" data-type="notes"  
+                    rows="3" 
+                    placeholder="Quick thoughts, reflections, blockers..."></textarea>
         </div>
     </div>
 
@@ -140,10 +140,10 @@
                     <h5 class="mb-0">Wins, Successes, Accomplishments</h5>
                 </div>
                 <div class="card-body">
-                    <textarea class="form-control autosave-textarea" 
-                              data-key="wins-{{ day_date.strftime('%Y-%m-%d') }}" 
-                              rows="3" 
-                              placeholder="What went well today?"></textarea>
+                    <textarea name="wins" class="form-control autosave" 
+                    data-scope="quarter" data-year="{{ year }}" data-quarter="{{ q_num }}" data-type="wins" 
+                    rows="3" 
+                    placeholder="What went well today?"></textarea>
                 </div>
             </div>
         </div>
@@ -153,10 +153,10 @@
                     <h5 class="mb-0">Areas to Improve</h5>
                 </div>
                 <div class="card-body">
-                    <textarea class="form-control autosave-textarea" 
-                              data-key="improve-{{ day_date.strftime('%Y-%m-%d') }}" 
-                              rows="3" 
-                              placeholder="What could be better tomorrow?"></textarea>
+                    <textarea name="improve" class="form-control autosave" 
+                    data-scope="quarter" data-year="{{ year }}" data-quarter="{{ q_num }}" data-type="improve" 
+                    rows="3" 
+                    placeholder="What could be better tomorrow?"></textarea>
                 </div>
             </div>
         </div>

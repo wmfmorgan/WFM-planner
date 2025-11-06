@@ -206,8 +206,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
         // SAVE TO DB
         textarea.addEventListener('input', function() {
-            console.log(key);
-            console.log(this.value);
             fetch(`/api/note/${key}`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
