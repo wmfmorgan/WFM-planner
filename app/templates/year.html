@@ -46,10 +46,16 @@
             <h5 class="mb-0">Prep for the Year</h5>
         </div>
         <div class="card-body">
-            <textarea class="form-control autosave-textarea" 
+            <textarea name="prep" class="form-control autosave" 
+            data-scope="year" 
+            data-year="{{ year }}" 
+            data-type="prep"
+            rows="5"
+            placeholder="At the end of {{ year }}, what will my world look like? How will I get there?"></textarea>
+            <!-- <textarea class="form-control autosave-textarea" 
                       data-key="prep-{{ year }}" 
                       rows="5" 
-                      placeholder="At the end of {{ year }}, what will my world look like? How will I get there?"></textarea>
+                      placeholder="At the end of {{ year }}, what will my world look like? How will I get there?"></textarea> -->
         </div>
     </div>
 
@@ -72,10 +78,17 @@
             <h5 class="mb-0">Yearly Notes</h5>
         </div>
         <div class="card-body">
-            <textarea class="form-control autosave-textarea" 
+            <textarea name="notes" class="form-control autosave" 
+            data-scope="year" 
+            data-year="{{ year }}" 
+            data-type="notes"
+            rows="4" 
+            placeholder="Themes, blockers, ideas..."></textarea>
+            
+            <!--<textarea class="form-control autosave-textarea" 
                       data-key="notes-{{ year }}" 
                       rows="4" 
-                      placeholder="Themes, blockers, ideas..."></textarea>
+                      placeholder="Themes, blockers, ideas..."></textarea> -->
         </div>
     </div>
 
@@ -87,10 +100,16 @@
                     <h5 class="mb-0">Wins, Successes, Accomplishments</h5>
                 </div>
                 <div class="card-body">
-                    <textarea class="form-control autosave-textarea" 
+                    <textarea name="wins" class="form-control autosave" 
+                    data-scope="year" 
+                    data-year="{{ year }}" 
+                    data-type="wins"
+                    rows="4" 
+                    placeholder="What crushed it this year?"></textarea>
+                    <!-- <textarea class="form-control autosave-textarea" 
                               data-key="wins-{{ year }}" 
                               rows="4" 
-                              placeholder="What crushed it this year?"></textarea>
+                              placeholder="What crushed it this year?"></textarea> -->
                 </div>
             </div>
         </div>
@@ -100,10 +119,16 @@
                     <h5 class="mb-0">Areas to Improve</h5>
                 </div>
                 <div class="card-body">
-                    <textarea class="form-control autosave-textarea" 
+                    <textarea name="improve" class="form-control autosave" 
+                    data-scope="year" 
+                    data-year="{{ year }}" 
+                    data-type="improve"
+                    rows="4" 
+                    placeholder="What to level up next year?"></textarea>
+                    <!-- <textarea class="form-control autosave-textarea" 
                               data-key="improve-{{ year }}" 
                               rows="4" 
-                              placeholder="What to level up next year?"></textarea>
+                              placeholder="What to level up next year?"></textarea> -->
                 </div>
             </div>
         </div>

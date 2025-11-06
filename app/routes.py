@@ -1,7 +1,7 @@
 # app/routes.py
 from flask import Blueprint, render_template, request, jsonify, abort, url_for, flash, redirect
 from . import db
-from .models import Goal
+from .models import Goal, Note
 from .forms import GoalForm
 from datetime import datetime, timedelta
 from dateutil.relativedelta import relativedelta
@@ -583,3 +583,32 @@ def create_goal():
     db.session.add(goal)
     db.session.commit()
     return jsonify({'status': 'success', 'goal_id': goal.id})
+
+@bp.route('/api/note/<path:key>', methods=['GET', 'POST'])
+def api_note(key):
+    # Parse key: note-year-2025--prep
+    parts = key.split('-')
+    if len(parts) < 4 or parts[0] != 'note':
+        abort(400)
+
+    scope = parts[1]
+    year = int(parts[2])
+    type = parts[-1]  # last part is type
+
+    if request.method == 'GET':
+        note = Note.query.filter_by(
+        scope=scope, year=year, quarter=None, month=None, week=None, day=None, type=type
+        ).first()
+        return jsonify({'content': note.content if note else ''})
+
+    elif request.method == 'POST':
+        content = request.json.get('content', '')
+        note = Note.query.filter_by(
+        scope=scope, year=year, quarter=None, month=None, week=None, day=None, type=type
+        ).first()
+        if not note:
+            note = Note(scope=scope, year=year, type=type)
+            db.session.add(note)
+        note.content = content
+        db.session.commit()
+        return jsonify({'status': 'saved'})

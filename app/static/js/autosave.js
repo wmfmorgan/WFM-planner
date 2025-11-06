@@ -190,5 +190,31 @@ document.addEventListener('DOMContentLoaded', function () {
         toast.addEventListener('hidden.bs.toast', () => toast.remove());
     }
 
+    // AUTO-SAVE FOR .autosave FIELDS (DATABASE)
+    document.querySelectorAll('.autosave').forEach(textarea => {
+        const scope = textarea.dataset.scope;
+        const year = textarea.dataset.year;
+        const type = textarea.dataset.type;
+
+        const key = `note-${scope}-${year}--${type}`;  // quarter/month/week/day fields will be empty
+
+        // LOAD FROM DB
+        fetch(`/api/note/${key}`)
+            .then(r => r.json())
+            .then(data => textarea.value = data.content || '')
+            .catch(() => {});
+
+        // SAVE TO DB
+        textarea.addEventListener('input', function() {
+            console.log(key);
+            console.log(this.value);
+            fetch(`/api/note/${key}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ content: this.value })
+            });
+        });
+    });
+
     //console.log('AUTOSAVE.JS LOADED — READY TO DOMINATE!');
 });

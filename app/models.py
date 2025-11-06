@@ -2,6 +2,22 @@
 from datetime import datetime, date
 from . import db
 
+# app/models.py
+class Note(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    scope = db.Column(db.String(20), nullable=False, index=True)  # 'year', 'quarter', 'month', 'week', 'day'
+    year = db.Column(db.Integer, nullable=False, index=True)
+    quarter = db.Column(db.Integer)  # NULL for non-quarter
+    month = db.Column(db.Integer)   # NULL for non-month
+    week = db.Column(db.Integer)    # NULL for non-week
+    day = db.Column(db.Integer)     # NULL for non-day
+    type = db.Column(db.String(20), nullable=False)  # 'prep', 'review', 'wins', 'improve'
+    content = db.Column(db.Text)
+    
+    __table_args__ = (
+        db.UniqueConstraint('scope', 'year', 'quarter', 'month', 'week', 'day', 'type', name='uix_note'),
+    )
+
 class Goal(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(100), nullable=False)
