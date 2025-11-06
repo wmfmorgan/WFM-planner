@@ -48,6 +48,14 @@ def goals():
         print("=== /goals POST DEBUG ===")
         print("Form data:", dict(request.form))
         print("Parent ID:", request.form.get('parent_id'))
+        # DEBUG: Check what came in
+        print("Raw type from form:", request.form.get('type'))
+    
+        # FORCE DEFAULT IF BLANK
+        if not form.type.data:
+            form.type.data = 'annual'
+        print("Forced type to 'annual'")
+
         if form.validate_on_submit():
             # === HANDLE parent_id: '' → None ===
             parent_id = request.form.get('parent_id')
