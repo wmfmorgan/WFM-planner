@@ -79,8 +79,8 @@
             <h5 class="mb-0">Prep for the Month</h5>
         </div>
         <div class="card-body">
-            <textarea class="form-control autosave-textarea" 
-                      data-key="prep-{{ year }}-{{ month }}" 
+            <textarea name="prep" class="form-control autosave"
+                      data-scope="month" data-year="{{ year }}" data-month="{{ month }}" data-type="prep" 
                       rows="5" 
                       placeholder="At the end of this month, what will my world look like? How will I get there?"></textarea>
         </div>
@@ -105,8 +105,8 @@
             <h5 class="mb-0">Notes</h5>
         </div>
         <div class="card-body">
-            <textarea class="form-control autosave-textarea" 
-                      data-key="notes-{{ year }}-{{ month }}" 
+           <textarea name="notes" class="form-control autosave"
+                      data-scope="month" data-year="{{ year }}" data-month="{{ month }}" data-type="notes"
                       rows="4" 
                       placeholder="Jot down thoughts, ideas, blockers..."></textarea>
         </div>
@@ -120,10 +120,10 @@
                     <h5 class="mb-0">Wins, Successes, Accomplishments</h5>
                 </div>
                 <div class="card-body">
-                    <textarea class="form-control autosave-textarea" 
-                              data-key="wins-{{ year }}-{{ month }}" 
-                              rows="4" 
-                              placeholder="What went well?"></textarea>
+                    <textarea name="wins" class="form-control autosave"
+                    data-scope="month" data-year="{{ year }}" data-month="{{ month }}" data-type="wins"
+                    rows="4" 
+                    placeholder="What went well?"></textarea>
                 </div>
             </div>
         </div>
@@ -133,10 +133,10 @@
                     <h5 class="mb-0">Areas to Improve</h5>
                 </div>
                 <div class="card-body">
-                    <textarea class="form-control autosave-textarea" 
-                              data-key="improve-{{ year }}-{{ month }}" 
-                              rows="4" 
-                              placeholder="What could be better?"></textarea>
+                    <textarea name="improve" class="form-control autosave"
+                    data-scope="month" data-year="{{ year }}" data-month="{{ month }}" data-type="improve"
+                    rows="4" 
+                    placeholder="What could be better?"></textarea>
                 </div>
             </div>
         </div>

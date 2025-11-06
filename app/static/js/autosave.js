@@ -199,16 +199,15 @@ document.querySelectorAll('.autosave').forEach(textarea => {
     const day = textarea.dataset.day;
     const type = textarea.dataset.type;
 
-    const key = [
-        'note',
-        scope,
-        year,
-        quarter || '',
-        month || '',
-        week || '',
-        day || '',
-        type
-    ].filter(Boolean).join('-');
+    // BUILD KEY TO MATCH API PARSING
+    const parts = ['note', scope, year];
+    if (quarter) parts.push(quarter);
+    if (month) parts.push(month);
+    if (week) parts.push(week);
+    if (day) parts.push(day);
+    parts.push(type);
+
+    const key = parts.join('-');
 
     // LOAD
     fetch(`/api/note/${key}`)

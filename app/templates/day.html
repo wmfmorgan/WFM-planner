@@ -45,7 +45,7 @@
         </div>
         <div class="card-body">
                     <textarea name="prep" class="form-control autosave" 
-                    data-scope="quarter" data-year="{{ year }}" data-quarter="{{ q_num }}" data-type="prep"   
+                    data-scope="day" data-year="{{ day_date.year }}" data-month="{{ day_date.month }}" data-day="{{ day_date.day }}" data-type="prep"   
                     rows="3" 
                     placeholder="What must I accomplish today?"></textarea>
         </div>
@@ -126,7 +126,7 @@
         </div>
         <div class="card-body">
                     <textarea name="notes" class="form-control autosave" 
-                    data-scope="quarter" data-year="{{ year }}" data-quarter="{{ q_num }}" data-type="notes"  
+                    data-scope="day" data-year="{{ day_date.year }}" data-month="{{ day_date.month }}" data-day="{{ day_date.day }}" data-type="notes"  
                     rows="3" 
                     placeholder="Quick thoughts, reflections, blockers..."></textarea>
         </div>
@@ -141,7 +141,7 @@
                 </div>
                 <div class="card-body">
                     <textarea name="wins" class="form-control autosave" 
-                    data-scope="quarter" data-year="{{ year }}" data-quarter="{{ q_num }}" data-type="wins" 
+                    data-scope="day" data-year="{{ day_date.year }}" data-month="{{ day_date.month }}" data-day="{{ day_date.day }}" data-type="wins" 
                     rows="3" 
                     placeholder="What went well today?"></textarea>
                 </div>
@@ -154,7 +154,7 @@
                 </div>
                 <div class="card-body">
                     <textarea name="improve" class="form-control autosave" 
-                    data-scope="quarter" data-year="{{ year }}" data-quarter="{{ q_num }}" data-type="improve" 
+                    data-scope="day" data-year="{{ day_date.year }}" data-month="{{ day_date.month }}" data-day="{{ day_date.day }}" data-type="improve" 
                     rows="3" 
                     placeholder="What could be better tomorrow?"></textarea>
                 </div>

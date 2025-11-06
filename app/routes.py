@@ -586,19 +586,39 @@ def create_goal():
 
 @bp.route('/api/note/<path:key>', methods=['GET', 'POST'])
 def api_note(key):
-    # key format: note-quarter-2025-4-prep
+    # key format: note-year-2025--prep
+    #             note-quarter-2025-4-prep
+    #             note-month-2025-11-prep
+    #             note-week-2025-45-prep
+    #             note-day-2025-11-5-event
     parts = key.split('-')
     if len(parts) < 4 or parts[0] != 'note':
         abort(400)
-    print(key)
+
     scope = parts[1]
-    idx = 2
-    year = int(parts[idx]); idx += 1
-    quarter = int(parts[idx]) if idx < len(parts) and parts[idx].isdigit() else None; idx += 1
-    month = int(parts[idx]) if idx < len(parts) and parts[idx].isdigit() else None; idx += 1
-    week = int(parts[idx]) if idx < len(parts) and parts[idx].isdigit() else None; idx += 1
-    day = int(parts[idx]) if idx < len(parts) and parts[idx].isdigit() else None; idx += 1
     type_ = parts[-1]
+    year = None
+    quarter = None
+    month = None
+    week = None
+    day = None
+
+    # Parse known fields
+    for i in range(2, len(parts) - 1):
+        if parts[i].isdigit():
+            if year is None:
+                year = int(parts[i])
+            elif scope == 'quarter' and quarter is None:
+                quarter = int(parts[i])
+            elif scope in ['month', 'day'] and month is None:
+                month = int(parts[i])
+            elif scope == 'week' and week is None:
+                week = int(parts[i])
+            elif scope == 'day' and day is None:
+                day = int(parts[i])
+
+    if year is None:
+        abort(400)
 
     filters = {
         'scope': scope,
@@ -609,9 +629,8 @@ def api_note(key):
         'day': day,
         'type': type_
     }
-    # Remove None values
     filters = {k: v for k, v in filters.items() if v is not None}
-    
+
     if request.method == 'GET':
         note = Note.query.filter_by(**filters).first()
         return jsonify({'content': note.content if note else ''})
