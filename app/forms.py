@@ -14,7 +14,7 @@ class GoalForm(FlaskForm):
     type = SelectField('Time Level', choices=[
         ('annual', 'Annual'), ('quarterly', 'Quarterly'), 
         ('monthly', 'Monthly'), ('weekly', 'Weekly'), ('daily', 'Daily')
-    ], validators=[DataRequired()])
+    ], validators=[DataRequired()], default='annual')
     category = SelectField('Category', choices=GOAL_CATEGORY)
     description = TextAreaField('Description')
     motivation = TextAreaField('Motivation')

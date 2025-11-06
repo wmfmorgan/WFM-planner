@@ -43,6 +43,7 @@ from sqlalchemy import case as db_case
 @bp.route('/goals', methods=['GET', 'POST'])
 def goals():
     form = GoalForm()
+    print(form)
     if request.method == 'POST':
         print("=== /goals POST DEBUG ===")
         print("Form data:", dict(request.form))
@@ -71,7 +72,7 @@ def goals():
             # === CREATE GOAL ===
             goal = Goal(
                 title=form.title.data,
-                type=form.type.data,
+                type=form.type.data or 'annual',
                 category=form.category.data,
                 description=form.description.data,
                 motivation=form.motivation.data,
@@ -80,6 +81,8 @@ def goals():
                 completed=form.completed.data,
                 parent_id=parent_id
             )
+
+            print(goal)
             db.session.add(goal)
             db.session.commit()
             flash('Goal saved!', 'success')
