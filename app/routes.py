@@ -3,11 +3,12 @@ from flask import Blueprint, render_template, request, jsonify, abort, url_for, 
 from . import db
 from .models import Goal, Note
 from .forms import GoalForm
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, date
 from dateutil.relativedelta import relativedelta
 from calendar import Calendar, SUNDAY
 from sqlalchemy import case
 from sqlalchemy import and_, or_
+from calendar import monthcalendar, day_name
 
 bp = Blueprint('main', __name__)
 
@@ -15,6 +16,12 @@ bp = Blueprint('main', __name__)
 today = datetime.now().date()
 today_quarter = ((today.month - 1) // 3) + 1
 
+def events_on_date(year, month, day):
+    date = datetime(year, month, day).date()
+    return Event.query.filter(
+        Event.start_date <= date,
+        Event.end_date >= date
+    ).all()
 
 # REUSABLE: GROUP GOALS BY STATUS
 def group_goals_by_status(goals):
@@ -315,14 +322,10 @@ def month_page(year, month):
         ),
         Goal.completed == False
     ).order_by(Goal.due_date.asc(), Goal.id).all()
+  
+    calendar = monthcalendar(year, month)
+    month_name = date(year, month, 1).strftime('%B')
 
-    def events_on_date(year, month, day):
-        date = datetime(year, month, day).date()
-        return Event.query.filter(
-            Event.start_date <= date,
-            Event.end_date >= date
-        ).all()
-        
     form = GoalForm()
     return render_template(
         'month.html',
@@ -341,7 +344,9 @@ def month_page(year, month):
         form=form,
         possible_parents=possible_parents,
         today_quarter=today_quarter,
-        events_on_date=events_on_date
+        events_on_date=events_on_date,
+        calendar=calendar,  # ← ADD THIS
+        month_name=month_name  # ← ADD THIS
     )
 
 
