@@ -190,29 +190,41 @@ document.addEventListener('DOMContentLoaded', function () {
         toast.addEventListener('hidden.bs.toast', () => toast.remove());
     }
 
-    // AUTO-SAVE FOR .autosave FIELDS (DATABASE)
-    document.querySelectorAll('.autosave').forEach(textarea => {
-        const scope = textarea.dataset.scope;
-        const year = textarea.dataset.year;
-        const type = textarea.dataset.type;
+document.querySelectorAll('.autosave').forEach(textarea => {
+    const scope = textarea.dataset.scope;
+    const year = textarea.dataset.year;
+    const quarter = textarea.dataset.quarter;
+    const month = textarea.dataset.month;
+    const week = textarea.dataset.week;
+    const day = textarea.dataset.day;
+    const type = textarea.dataset.type;
 
-        const key = `note-${scope}-${year}--${type}`;  // quarter/month/week/day fields will be empty
+    const key = [
+        'note',
+        scope,
+        year,
+        quarter || '',
+        month || '',
+        week || '',
+        day || '',
+        type
+    ].filter(Boolean).join('-');
 
-        // LOAD FROM DB
-        fetch(`/api/note/${key}`)
-            .then(r => r.json())
-            .then(data => textarea.value = data.content || '')
-            .catch(() => {});
+    // LOAD
+    fetch(`/api/note/${key}`)
+        .then(r => r.json())
+        .then(data => textarea.value = data.content || '')
+        .catch(() => {});
 
-        // SAVE TO DB
-        textarea.addEventListener('input', function() {
-            fetch(`/api/note/${key}`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ content: this.value })
-            });
+    // SAVE
+    textarea.addEventListener('input', function() {
+        fetch(`/api/note/${key}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ content: this.value })
         });
     });
+});
 
     //console.log('AUTOSAVE.JS LOADED — READY TO DOMINATE!');
 });
