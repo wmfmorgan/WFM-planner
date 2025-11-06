@@ -1,7 +1,7 @@
 # app/routes.py
 from flask import Blueprint, render_template, request, jsonify, abort, url_for, flash, redirect
 from . import db
-from .models import Goal, Note
+from .models import Goal, Note, Event
 from .forms import GoalForm
 from datetime import datetime, timedelta, date
 from dateutil.relativedelta import relativedelta
@@ -16,12 +16,6 @@ bp = Blueprint('main', __name__)
 today = datetime.now().date()
 today_quarter = ((today.month - 1) // 3) + 1
 
-def events_on_date(year, month, day):
-    date = datetime(year, month, day).date()
-    return Event.query.filter(
-        Event.start_date <= date,
-        Event.end_date >= date
-    ).all()
 
 # REUSABLE: GROUP GOALS BY STATUS
 def group_goals_by_status(goals):
@@ -325,6 +319,15 @@ def month_page(year, month):
   
     calendar = monthcalendar(year, month)
     month_name = date(year, month, 1).strftime('%B')
+
+
+    def events_on_date(year, month, day):
+        date = datetime(year, month, day).date()
+        return Event.query.filter(
+            Event.start_date <= date,
+            Event.end_date >= date
+        ).all()
+
 
     form = GoalForm()
     return render_template(
