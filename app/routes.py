@@ -459,6 +459,9 @@ def day_page(year, month, day):
     return render_template(
         'day.html',
         day_date=day_date,
+        year=day_date.year,   # ← ADD THESE
+        month=day_date.month,
+        day=day_date.day,
         title=day_date.strftime('%A, %B %d, %Y'),
         daily_goals_grouped=daily_goals_grouped,
         prev_url=f"/day/{prev_date.year}/{prev_date.month}/{prev_date.day}",
@@ -586,11 +589,8 @@ def create_goal():
 
 @bp.route('/api/note/<path:key>', methods=['GET', 'POST'])
 def api_note(key):
-    # key format: note-year-2025--prep
-    #             note-quarter-2025-4-prep
-    #             note-month-2025-11-prep
-    #             note-week-2025-45-prep
-    #             note-day-2025-11-5-event
+    # key format: note-day-2025-11-5-14:00-event
+    #             note-day-2025-11-5-0-task
     parts = key.split('-')
     if len(parts) < 4 or parts[0] != 'note':
         abort(400)
@@ -602,33 +602,44 @@ def api_note(key):
     month = None
     week = None
     day = None
+    time = None
+    index = None
 
-    # Parse known fields
+    # Parse fields from parts[2] to parts[-2]
     for i in range(2, len(parts) - 1):
-        if parts[i].isdigit():
+        part = parts[i]
+        if part.isdigit():
             if year is None:
-                year = int(parts[i])
+                year = int(part)
             elif scope == 'quarter' and quarter is None:
-                quarter = int(parts[i])
+                quarter = int(part)
             elif scope in ['month', 'day'] and month is None:
-                month = int(parts[i])
+                month = int(part)
             elif scope == 'week' and week is None:
-                week = int(parts[i])
+                week = int(part)
             elif scope == 'day' and day is None:
-                day = int(parts[i])
+                day = int(part)
+            elif scope == 'day' and index is None:
+                index = int(part)
+        elif ':' in part and len(part) == 5:  # HH:MM
+            if scope == 'day' and time is None:
+                time = part
 
     if year is None:
         abort(400)
 
     filters = {
         'scope': scope,
+        'type': type_,
         'year': year,
         'quarter': quarter,
         'month': month,
         'week': week,
         'day': day,
-        'type': type_
+        'time': time,
+        'index': index        
     }
+    
     filters = {k: v for k, v in filters.items() if v is not None}
 
     if request.method == 'GET':

@@ -84,10 +84,11 @@
                                     {{ display_hour }}:{{ half }} {{ ampm }}
                                 </div>
                                 <div class="flex-grow-1">
-                                    <input type="text" class="form-control form-control-sm border-0 p-1" 
-                                           style="height: 100%; background: transparent; font-size: 0.9rem;" 
-                                           placeholder="Event..."
-                                           data-key="event-{{ day_date.strftime('%Y-%m-%d') }}-{{ '%02d' % hour }}:{{ half }}">
+                                    <input type="text" name="event" class="form-control autosave" 
+                                        style="height: 100%; background: transparent; font-size: 0.9rem;" 
+                                        placeholder="Event..."
+                                        data-scope="day" data-year="{{ day_date.year }}" data-month="{{ day_date.month }}" 
+                                        data-day="{{ day_date.day }}" data-time="{{ '%02d' % hour }}:{{ half }}" data-type="event">
                                 </div>
                             </div>
                         {% endfor %}
@@ -108,10 +109,11 @@
                     {% for i in range(48) %}
                         <div class="border-bottom d-flex align-items-center px-3 py-1" style="height: 35px;">
                             <input type="checkbox" class="me-3">
-                            <input type="text" class="form-control form-control-sm border-0 p-1 flex-grow-1" 
-                                   style="height: 100%; background: transparent; font-size: 0.9rem;" 
-                                   placeholder="Task..."
-                                   data-key="task-{{ day_date.strftime('%Y-%m-%d') }}-{{ i }}">
+                            <input type="text" name="task" class="form-control autosave" 
+                                style="height: 100%; background: transparent; font-size: 0.9rem;"    
+                                placeholder="Task..."
+                                data-scope="day" data-year="{{ day_date.year }}" data-month="{{ day_date.month }}" 
+                                data-day="{{ day_date.day }}" data-index="{{ i }}" data-type="task">
                         </div>
                     {% endfor %}
                 </div>
