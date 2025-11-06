@@ -201,7 +201,7 @@ document.querySelectorAll('.autosave').forEach(textarea => {
     const time = textarea.dataset.time;      // ← NEW: 14:00
     const index = textarea.dataset.index;
     
-
+    
     // BUILD KEY TO MATCH API PARSING
     const parts = ['note', scope, year];
     if (quarter) parts.push(quarter);
