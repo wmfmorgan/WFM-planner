@@ -239,7 +239,7 @@ document.querySelectorAll('.task-complete').forEach(checkbox => {
     const index = checkbox.dataset.index;
     const type = checkbox.dataset.type;
 
-    const key = `note-${scope}-${year}-${month}-${day}-${index}-${type}`;
+    const key = `note-${scope}-${year}-${month}-${day}-${type}-${index}`;
 
     // LOAD
     fetch(`/api/note/${key}`)

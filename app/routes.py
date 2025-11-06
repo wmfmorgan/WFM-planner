@@ -653,6 +653,13 @@ def api_note(key):
     print(filters)
     filters = {k: v for k, v in filters.items() if v is not None}
 
+    if request.method == 'GET':
+        note = Note.query.filter_by(**filters).first()
+        return jsonify({
+            'content': note.content if note else '',
+            'completed': note.completed if note else False
+    })
+
     if request.method == 'POST':
         data = request.json
         content = data.get('content', '')
