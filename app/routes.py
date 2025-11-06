@@ -589,69 +589,83 @@ def create_goal():
 
 @bp.route('/api/note/<path:key>', methods=['GET', 'POST'])
 def api_note(key):
-    # key format: note-day-2025-11-5-14:00-event
-    #             note-day-2025-11-5-0-task
     parts = key.split('-')
     if len(parts) < 4 or parts[0] != 'note':
         abort(400)
-
+    print(key)
     scope = parts[1]
-    type_ = parts[-1]
+    type_ = parts[-2]
     year = None
     quarter = None
     month = None
     week = None
     day = None
+    
     time = None
     index = None
 
-    # Parse fields from parts[2] to parts[-2]
-    for i in range(2, len(parts) - 1):
-        part = parts[i]
-        if part.isdigit():
-            if year is None:
-                year = int(part)
-            elif scope == 'quarter' and quarter is None:
-                quarter = int(part)
-            elif scope in ['month', 'day'] and month is None:
-                month = int(part)
-            elif scope == 'week' and week is None:
-                week = int(part)
-            elif scope == 'day' and day is None:
-                day = int(part)
-            elif scope == 'day' and index is None:
-                index = int(part)
-        elif ':' in part and len(part) == 5:  # HH:MM
-            if scope == 'day' and time is None:
-                time = part
+    i = 2
+    if i < len(parts) and parts[i].isdigit():
+        year = int(parts[i])
+        i += 1
+
+    if scope == 'quarter' and i < len(parts) and parts[i].isdigit():
+        quarter = int(parts[i])
+        i += 1
+
+    #if scope in ['month', 'quarter', 'week', 'day'] and i < len(parts) and parts[i].isdigit():
+    if scope in ['month', 'day'] and i < len(parts) and parts[i].isdigit():
+        month = int(parts[i])
+        i += 1
+
+    if scope == 'week' and i < len(parts) and parts[i].isdigit():
+        week = int(parts[i])
+        i += 1
+
+    if scope == 'day' and i < len(parts) and parts[i].isdigit():
+        day = int(parts[i])
+        i += 1
+
+    i += 1 #skip the type
+
+    if scope == 'day' and i < len(parts) and ':' in parts[i] and len(parts[i]) == 5:
+        time = parts[i]
+        i += 1
+
+    if scope == 'day' and i < len(parts) and parts[i].isdigit():
+        index = int(parts[i])
+        i += 1
 
     if year is None:
         abort(400)
 
     filters = {
         'scope': scope,
-        'type': type_,
         'year': year,
         'quarter': quarter,
         'month': month,
         'week': week,
         'day': day,
+        'type': type_,
         'time': time,
-        'index': index        
-    }
-    
+        'index': index,
+        }
+    print(filters)
     filters = {k: v for k, v in filters.items() if v is not None}
 
-    if request.method == 'GET':
-        note = Note.query.filter_by(**filters).first()
-        return jsonify({'content': note.content if note else ''})
+    if request.method == 'POST':
+        data = request.json
+        content = data.get('content', '')
+        completed = data.get('completed', False)
 
-    elif request.method == 'POST':
-        content = request.json.get('content', '')
         note = Note.query.filter_by(**filters).first()
         if not note:
-            note = Note(**filters)
+            note = Note(**filters, completed=completed)
             db.session.add(note)
-        note.content = content
+        else:
+            if 'content' in data:
+                note.content = content
+            if 'completed' in data:
+                note.completed = completed
         db.session.commit()
         return jsonify({'status': 'saved'})

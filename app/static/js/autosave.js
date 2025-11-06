@@ -198,6 +198,9 @@ document.querySelectorAll('.autosave').forEach(textarea => {
     const week = textarea.dataset.week;
     const day = textarea.dataset.day;
     const type = textarea.dataset.type;
+    const time = textarea.dataset.time;      // ← NEW: 14:00
+    const index = textarea.dataset.index;
+    
 
     // BUILD KEY TO MATCH API PARSING
     const parts = ['note', scope, year];
@@ -206,7 +209,8 @@ document.querySelectorAll('.autosave').forEach(textarea => {
     if (week) parts.push(week);
     if (day) parts.push(day);
     parts.push(type);
-
+    if (time) parts.push(time);           // ← ADD time
+    if (index !== undefined) parts.push(index);  // ← ADD index
     const key = parts.join('-');
 
     // LOAD
@@ -225,5 +229,32 @@ document.querySelectorAll('.autosave').forEach(textarea => {
     });
 });
 
+
+// TASK COMPLETION
+document.querySelectorAll('.task-complete').forEach(checkbox => {
+    const scope = checkbox.dataset.scope;
+    const year = checkbox.dataset.year;
+    const month = checkbox.dataset.month;
+    const day = checkbox.dataset.day;
+    const index = checkbox.dataset.index;
+    const type = checkbox.dataset.type;
+
+    const key = `note-${scope}-${year}-${month}-${day}-${index}-${type}`;
+
+    // LOAD
+    fetch(`/api/note/${key}`)
+        .then(r => r.json())
+        .then(data => checkbox.checked = data.completed || false)
+        .catch(() => {});
+
+    // SAVE
+    checkbox.addEventListener('change', function() {
+        fetch(`/api/note/${key}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ completed: this.checked })
+        });
+    });
+});
     //console.log('AUTOSAVE.JS LOADED — READY TO DOMINATE!');
 });

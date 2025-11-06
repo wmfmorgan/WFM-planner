@@ -15,6 +15,7 @@ class Note(db.Model):
     index = db.Column(db.Integer)  # Task index — ADD THIS
     type = db.Column(db.String(20), nullable=False)
     content = db.Column(db.Text, nullable=True)
+    completed = db.Column(db.Boolean, default=False)
     __table_args__ = (
         db.UniqueConstraint('scope', 'year', 'quarter', 'month', 'week', 'day', 'time', 'index', 'type', name='uix_note'),
     )

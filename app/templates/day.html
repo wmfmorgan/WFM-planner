@@ -88,7 +88,7 @@
                                         style="height: 100%; background: transparent; font-size: 0.9rem;" 
                                         placeholder="Event..."
                                         data-scope="day" data-year="{{ day_date.year }}" data-month="{{ day_date.month }}" 
-                                        data-day="{{ day_date.day }}" data-time="{{ '%02d' % hour }}:{{ half }}" data-type="event">
+                                        data-day="{{ day_date.day }}" data-type="event" data-time="{{ '%02d' % hour }}:{{ half }}" >
                                 </div>
                             </div>
                         {% endfor %}
@@ -108,12 +108,16 @@
                 <div class="d-flex flex-column h-100">
                     {% for i in range(48) %}
                         <div class="border-bottom d-flex align-items-center px-3 py-1" style="height: 35px;">
-                            <input type="checkbox" class="me-3">
+                            <!--<input type="checkbox" class="me-3">-->
+                            <input type="checkbox" class="task-complete" 
+                            data-scope="day" data-year="{{ year }}" data-month="{{ month }}" 
+                            data-day="{{ day }}" data-index="{{ i }}" data-type="task">
+
                             <input type="text" name="task" class="form-control autosave" 
                                 style="height: 100%; background: transparent; font-size: 0.9rem;"    
                                 placeholder="Task..."
                                 data-scope="day" data-year="{{ day_date.year }}" data-month="{{ day_date.month }}" 
-                                data-day="{{ day_date.day }}" data-index="{{ i }}" data-type="task">
+                                data-day="{{ day_date.day }}" data-type="task" data-index="{{ i }}">
                         </div>
                     {% endfor %}
                 </div>
