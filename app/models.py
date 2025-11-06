@@ -63,3 +63,17 @@ class Goal(db.Model):
 
     def __repr__(self):
         return f"<Goal {self.id}: {self.title} [{self.level()}]>"
+    
+class Event(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    title = db.Column(db.String(100), nullable=False)
+    start_date = db.Column(db.Date, nullable=False)
+    end_date = db.Column(db.Date, nullable=False)
+    start_time = db.Column(db.Time)  # NULL = all day
+    end_time = db.Column(db.Time)    # NULL = all day
+    is_recurring = db.Column(db.Boolean, default=False)
+    recurrence_rule = db.Column(db.String(50))  # 'daily', 'weekly', 'monthly'
+    all_day = db.Column(db.Boolean, default=False)
+
+    def __repr__(self):
+        return f"<Event {self.title}>"

@@ -1,7 +1,6 @@
-<!-- app/templates/month.html -->
 {% extends "base.html" %}
 {% block content %}
-<div class="container mt-4">
+<div class="container-fluid py-4">
     <!-- NAVIGATION -->
     <div class="d-flex justify-content-between align-items-center mb-4">
         <a href="{{ prev_url }}" class="btn btn-outline-dark">Previous Month</a>
@@ -9,137 +8,170 @@
         <a href="{{ next_url }}" class="btn btn-outline-dark">Next Month</a>
     </div>
 
-<!-- app/templates/month.html — REPLACE CALENDAR CARD -->
+    <!-- BREADCRUMBS -->
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{{ url_for('main.index') }}">Home</a></li>
+            <li class="breadcrumb-item">
+                <a href="{{ url_for('main.year_page', year=year) }}" 
+                class="text-dark fw-bold text-decoration-none">
+                    {{ year }}
+                </a>
+            </li>
+            <li class="breadcrumb-item">
+                <a href="{{ url_for('main.quarter_page', year=year, q_num=((month-1)//3)+1) }}" 
+                class="text-dark fw-bold text-decoration-none">Q{{ ((month-1)//3)+1 }}
+                </a>
+            </li>
+        </ol>
+    </nav>
 
-<!-- CALENDAR GRID WITH BREADCRUMBS -->
-<div class="card border-light mb-5">
-    <div class="card-header bg-light">
-        <h5 class="mb-0">Day Navigation</h5>
-    </div>
-    <div class="card-body">
-        <!-- BREADCRUMBS — YEAR → QUARTER ONLY (NO CURRENT MONTH) -->
-        <nav aria-label="breadcrumb" class="mb-3">
-            <ol class="breadcrumb p-0 bg-transparent">
-                <li class="breadcrumb-item">
-                    <a href="{{ url_for('main.year_page', year=year) }}" 
-                    class="text-dark fw-bold text-decoration-none">
-                        {{ year }}
-                    </a>
-                </li>
-                <li class="breadcrumb-item">
-                    <a href="{{ url_for('main.quarter_page', year=year, q_num=((month-1)//3)+1) }}" 
-                    class="text-dark fw-bold text-decoration-none">
-                        Q{{ ((month-1)//3)+1 }}
-                    </a>
-                </li>
-            </ol>
-        </nav>
-
-        <!-- 7×6 CALENDAR -->
-        <table class="table table-bordered table-sm mb-0 text-center">
-            <thead class="bg-light">
-                <tr>
-                    <th style="width: 50px;">Wk</th>
-                    <th>Sun</th>
-                    <th>Mon</th>
-                    <th>Tue</th>
-                    <th>Wed</th>
-                    <th>Thu</th>
-                    <th>Fri</th>
-                    <th>Sat</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for week in weeks %}
-                    <tr>
-                        <td class="align-middle">
-                            <a href="{{ week.week_url }}" class="text-decoration-none text-dark fw-bold">
-                                {{ week.week_num }}
-                            </a>
-                        </td>
-                        {% for day in week.days %}
-                            <td class="{% if day %}bg-white{% else %}bg-light{% endif %} align-middle" style="height: 60px;">
-                                {% if day %}
-                                    <a href="{{ day.url }}" class="d-block h-100 p-2 text-decoration-none text-dark">
-                                        <div class="fw-bold">{{ day.day }}</div>
-                                    </a>
-                                {% endif %}
-                            </td>
-                        {% endfor %}
-                    </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </div>
-</div>
-
-    <!-- PREP FOR THE MONTH -->
-    <div class="card border-light mb-4">
-        <div class="card-header bg-light">
-            <h5 class="mb-0">Prep for the Month</h5>
-        </div>
-        <div class="card-body">
-            <textarea name="prep" class="form-control autosave"
-                      data-scope="month" data-year="{{ year }}" data-month="{{ month }}" data-type="prep" 
-                      rows="5" 
-                      placeholder="At the end of this month, what will my world look like? How will I get there?"></textarea>
-        </div>
-    </div>
-
-    <!-- MONTHLY GOAL CARDS — FULL WIDTH -->
-    <h5 class="mb-3">Monthly Goals</h5>
-    {% set columns = [
-        {'id': 'todo', 'label': 'To Do'},
-        {'id': 'in_progress', 'label': 'In Progress'},
-        {'id': 'blocked', 'label': 'Blocked'},
-        {'id': 'done', 'label': 'Done'}
-    ] %}
-
-    {% with goals=monthly_goals_grouped, columns=columns %}
-        {% include 'kanban_board.html' %}
-    {% endwith %}
-
-    <!-- NOTES -->
-    <div class="card border-light mt-5">
-        <div class="card-header bg-light">
-            <h5 class="mb-0">Notes</h5>
-        </div>
-        <div class="card-body">
-           <textarea name="notes" class="form-control autosave"
-                      data-scope="month" data-year="{{ year }}" data-month="{{ month }}" data-type="notes"
-                      rows="4" 
-                      placeholder="Jot down thoughts, ideas, blockers..."></textarea>
-        </div>
-    </div>
-
-    <!-- REVIEW -->
-    <div class="row mt-5">
-        <div class="col-md-6">
-            <div class="card border-success h-100">
-                <div class="card-header bg-success text-white">
-                    <h5 class="mb-0">Wins, Successes, Accomplishments</h5>
-                </div>
+    <div class="row">
+        <!-- LEFT SIDEBAR: PREP, NOTES, WINS, REVIEW -->
+        <div class="col-lg-3">
+            <div class="card mb-3">
+                <div class="card-header">Prep</div>
                 <div class="card-body">
-                    <textarea name="wins" class="form-control autosave"
-                    data-scope="month" data-year="{{ year }}" data-month="{{ month }}" data-type="wins"
-                    rows="4" 
-                    placeholder="What went well?"></textarea>
+                    <textarea class="form-control autosave" rows="3" data-scope="month" data-year="{{ year }}" data-month="{{ month }}" data-type="prep"></textarea>
+                </div>
+            </div>
+            <div class="card mb-3">
+                <div class="card-header">Notes</div>
+                <div class="card-body">
+                    <textarea class="form-control autosave" rows="3" data-scope="month" data-year="{{ year }}" data-month="{{ month }}" data-type="notes"></textarea>
+                </div>
+            </div>
+            <div class="card mb-3">
+                <div class="card-header">Wins</div>
+                <div class="card-body">
+                    <textarea class="form-control autosave" rows="3" data-scope="month" data-year="{{ year }}" data-month="{{ month }}" data-type="wins"></textarea>
+                </div>
+            </div>
+            <div class="card mb-3">
+                <div class="card-header">Review</div>
+                <div class="card-body">
+                    <textarea class="form-control autosave" rows="3" data-scope="month" data-year="{{ year }}" data-month="{{ month }}" data-type="review"></textarea>
                 </div>
             </div>
         </div>
-        <div class="col-md-6">
-            <div class="card border-warning h-100">
-                <div class="card-header bg-warning text-dark">
-                    <h5 class="mb-0">Areas to Improve</h5>
+
+        <!-- RIGHT: CALENDAR -->
+        <div class="col-lg-9">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5>{{ month_name }} {{ year }}</h5>
+                    <div>
+                        <a href="{{ url_for('main.month_page', year=year, month=month-1 if month > 1 else 12, _anchor='calendar') }}" class="btn btn-sm btn-outline-secondary">‹ Prev</a>
+                        <a href="{{ url_for('main.month_page', year=year, month=month+1 if month < 12 else 1, _anchor='calendar') }}" class="btn btn-sm btn-outline-secondary">Next ›</a>
+                    </div>
                 </div>
-                <div class="card-body">
-                    <textarea name="improve" class="form-control autosave"
-                    data-scope="month" data-year="{{ year }}" data-month="{{ month }}" data-type="improve"
-                    rows="4" 
-                    placeholder="What could be better?"></textarea>
+                <div class="card-body p-0">
+                    <table class="table table-bordered calendar-table mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                {% for day in ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'] %}
+                                    <th class="text-center">{{ day }}</th>
+                                {% endfor %}
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for week in calendar %}
+                                <tr>
+                                    {% for day in week %}
+                                        <td class="calendar-day position-relative {% if day == 0 %}text-muted{% endif %}"
+                                            {% if day != 0 %}data-date="{{ year }}-{{ '%02d'|format(month) }}-{{ '%02d'|format(day) }}"{% endif %}>
+                                            {% if day != 0 %}
+                                                <div class="day-number fw-bold">
+                                                    <a href="{{ url_for('main.day_page', year=year, month=month, day=day) }}" class="text-dark text-decoration-none">
+                                                        {{ day }}
+                                                    </a>
+                                                </div>
+                                                <div class="events-list mt-1">
+                                                    {% for event in events_on_date(year, month, day) %}
+                                                        <div class="event-badge bg-primary text-white p-1 mb-1 rounded small text-truncate">
+                                                            {{ event.title }}
+                                                            {% if event.start_time %}
+                                                                {{ event.start_time.strftime('%H:%M') }}-{{ event.end_time.strftime('%H:%M') }}
+                                                            {% endif %}
+                                                        </div>
+                                                    {% endfor %}
+                                                </div>
+                                                <div class="add-event-area text-center text-muted small mt-2" style="cursor: pointer; font-size: 0.8em;">
+                                                    + Add Event
+                                                </div>
+                                            {% endif %}
+                                        </td>
+                                    {% endfor %}
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
                 </div>
             </div>
         </div>
     </div>
 </div>
+
+<!-- EVENT MODAL -->
+<div class="modal fade" id="eventModal" tabindex="-1" aria-labelledby="eventModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form id="eventForm">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="eventModalLabel">Add Event</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" id="eventDate">
+                    <div class="mb-3">
+                        <label for="eventTitle" class="form-label">Title</label>
+                        <input type="text" class="form-control" id="eventTitle" required>
+                    </div>
+                    <div class="row">
+                        <div class="col">
+                            <label for="startDate" class="form-label">Start Date</label>
+                            <input type="date" class="form-control" id="startDate" required>
+                        </div>
+                        <div class="col">
+                            <label for="endDate" class="form-label">End Date</label>
+                            <input type="date" class="form-control" id="endDate" required>
+                        </div>
+                    </div>
+                    <div class="row mt-3">
+                        <div class="col">
+                            <label for="startTime" class="form-label">Start Time</label>
+                            <input type="time" class="form-control" id="startTime">
+                        </div>
+                        <div class="col">
+                            <label for="endTime" class="form-label">End Time</label>
+                            <input type="time" class="form-control" id="endTime">
+                        </div>
+                    </div>
+                    <div class="form-check mt-3">
+                        <input type="checkbox" class="form-check-input" id="allDay">
+                        <label class="form-check-label" for="allDay">All Day</label>
+                    </div>
+                    <div class="form-check mt-2">
+                        <input type="checkbox" class="form-check-input" id="recurring">
+                        <label class="form-check-label" for="recurring">Recurring</label>
+                    </div>
+                    <div id="recurrenceOptions" class="mt-2 d-none">
+                        <select class="form-select" id="recurrenceRule">
+                            <option value="daily">Daily</option>
+                            <option value="weekly">Weekly</option>
+                            <option value="monthly">Monthly</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Save Event</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- INCLUDE JS -->
+<script src="{{ url_for('static', filename='js/calendar.js') }}"></script>
 {% endblock %}

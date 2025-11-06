@@ -30,7 +30,9 @@
                         </a>
                     </li>
                     <li class="breadcrumb-item fw-bold" aria-current="page">
-                        {{ month_name }}
+                        <a href="{{ url_for('main.month_page', year=year, month=month) }}" class="text-dark fw-bold text-decoration-none">
+                            {{ month_name }}
+                        </a>
                     </li>
                 </ol>
             </nav>

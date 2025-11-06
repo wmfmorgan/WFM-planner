@@ -316,6 +316,13 @@ def month_page(year, month):
         Goal.completed == False
     ).order_by(Goal.due_date.asc(), Goal.id).all()
 
+    def events_on_date(year, month, day):
+        date = datetime(year, month, day).date()
+        return Event.query.filter(
+            Event.start_date <= date,
+            Event.end_date >= date
+        ).all()
+        
     form = GoalForm()
     return render_template(
         'month.html',
@@ -333,7 +340,8 @@ def month_page(year, month):
         parent_type='quarterly',
         form=form,
         possible_parents=possible_parents,
-        today_quarter=today_quarter
+        today_quarter=today_quarter,
+        events_on_date=events_on_date
     )
 
 
@@ -414,11 +422,15 @@ def week_page(year, week):
         next_year += 1
 
     form = GoalForm()
-
+    # GET MONTH FROM FIRST DAY OF WEEK
+    first_day = datetime.strptime(f'{year}-W{week}-1', "%Y-W%W-%w").date()
+    month = first_day.month
+    
     return render_template(
         'week.html',
         year=year,
         week=week,
+        month=month,
         title=f"Week {week}: {w_start.strftime('%b %d')} - {w_end.strftime('%b %d, %Y')}",
         w_start=w_start,
         w_end=w_end,
@@ -687,3 +699,21 @@ def api_note(key):
                 note.completed = completed
         db.session.commit()
         return jsonify({'status': 'saved'})
+    
+
+@bp.route('/api/event', methods=['POST'])
+def api_create_event():
+    data = request.json
+    event = Event(
+        title=data['title'],
+        start_date=datetime.strptime(data['start_date'], '%Y-%m-%d').date(),
+        end_date=datetime.strptime(data['end_date'], '%Y-%m-%d').date(),
+        start_time=datetime.strptime(data['start_time'], '%H:%M').time() if data['start_time'] else None,
+        end_time=datetime.strptime(data['end_time'], '%H:%M').time() if data['end_time'] else None,
+        all_day=data['all_day'],
+        is_recurring=data['is_recurring'],
+        recurrence_rule=data['recurrence_rule']
+    )
+    db.session.add(event)
+    db.session.commit()
+    return jsonify({'status': 'success'})
