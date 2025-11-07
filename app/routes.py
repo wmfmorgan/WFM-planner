@@ -462,8 +462,15 @@ def week_page(year, week):
     month = first_day.month
     
     # GET 7 DAYS OF WEEK (SUNDAY START)
-    first_day = datetime.strptime(f'{year}-W{week}-1', "%Y-W%W-%w").date()
-    week_days = [first_day + timedelta(days=i) for i in range(7)]
+    # GET MONDAY OF ISO WEEK
+    monday = datetime.strptime(f'{year}-W{week}-1', "%Y-W%W-%w").date()
+
+    # SUNDAY = MONDAY - 1 DAY
+    sunday = monday - timedelta(days=1)
+
+    # BUILD 7 DAYS: SUN → SAT
+    week_days = [sunday + timedelta(days=i) for i in range(7)]
+    #week_days = [first_day + timedelta(days=i) for i in range(7)]
 
     # DEFINE events_on_date HELPER
     def events_on_date(year, month, day):
