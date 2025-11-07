@@ -1,35 +1,40 @@
 document.addEventListener('DOMContentLoaded', () => {
     const modal = new bootstrap.Modal(document.getElementById('eventModal'));
     let selectedDate = null;
-    let selectedHour = null;
+    let selectedHour = null; // ← ADD THIS
 
-    // MONTHLY/WEEKLY: CLICK CELL
-    document.querySelectorAll('.calendar-day[data-date] .add-event-area').forEach(area => {
+    // CLICK + ADD EVENT — SUPPORT ALL PAGES
+    document.querySelectorAll('.add-event-area').forEach(area => {
         area.addEventListener('click', (e) => {
-            const cell = e.target.closest('.calendar-day');
-            selectedDate = cell.dataset.date;
-            document.getElementById('eventDate').value = selectedDate;
-            document.getElementById('startDate').value = selectedDate;
-            document.getElementById('endDate').value = selectedDate;
-            modal.show();
-        });
-    });
+            e.stopPropagation();
+            //console.log('Add Event clicked:', area);
 
-    // DAILY PAGE: CLICK HOUR ROW
-    document.querySelectorAll('.add-event-area[data-hour]').forEach(area => {
-        area.addEventListener('click', (e) => {
-            selectedHour = e.target.dataset.hour;
-            const dateInput = document.querySelector('input[name="year"], input[type="hidden"][value*="2025"]');
-            const year = {{ year }};
-            const month = {{ month }};
-            const day = {{ day }};
-            selectedDate = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+            const cell = e.target.closest('.calendar-day') || e.target.closest('[data-hour]');
+            if (!cell) return;
 
-            document.getElementById('eventDate').value = selectedDate;
-            document.getElementById('startDate').value = selectedDate;
-            document.getElementById('endDate').value = selectedDate;
-            document.getElementById('startTime').value = `${selectedHour.padStart(2, '0')}:00`;
-            modal.show();
+            // GET DATE
+            if (cell.dataset.date) {
+                selectedDate = cell.dataset.date;
+            } else if (cell.dataset.hour) {
+                selectedHour = cell.dataset.hour;
+                // GET DATE FROM URL OR HIDDEN INPUT
+                const yearMatch = window.location.pathname.match(/\/(20\d{2})\//);
+                const monthMatch = window.location.pathname.match(/\/(\d{1,2})\//);
+                const dayMatch = window.location.pathname.match(/\/(\d{1,2})$/);
+                if (yearMatch && monthMatch && dayMatch) {
+                    selectedDate = `${yearMatch[1]}-${String(monthMatch[1]).padStart(2, '0')}-${String(dayMatch[1]).padStart(2, '0')}`;
+                }
+            }
+
+            if (selectedDate) {
+                document.getElementById('eventDate').value = selectedDate;
+                document.getElementById('startDate').value = selectedDate;
+                document.getElementById('endDate').value = selectedDate;
+                if (selectedHour) {
+                    document.getElementById('startTime').value = `${selectedHour.padStart(2, '0')}:00`;
+                }
+                modal.show();
+            }
         });
     });
 
@@ -62,20 +67,5 @@ document.addEventListener('DOMContentLoaded', () => {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(data)
         }).then(() => location.reload());
-    });
-});
-
-// DAILY PAGE: CLICK + ADD IN HOUR
-document.querySelectorAll('.add-event-area[data-hour]').forEach(area => {
-    area.addEventListener('click', (e) => {
-        const hour = e.target.dataset.hour;
-        const date = document.querySelector('.calendar-day[data-date]')?.dataset.date || 
-                     `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-        document.getElementById('eventDate').value = date;
-        document.getElementById('startDate').value = date;
-        document.getElementById('endDate').value = date;
-        document.getElementById('startTime').value = `${hour.padStart(2, '0')}:00`;
-        document.getElementById('eventHour').value = hour;
-        modal.show();
     });
 });
