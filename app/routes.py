@@ -812,3 +812,48 @@ def api_event(event_id):
         db.session.delete(event)
         db.session.commit()
         return jsonify({'status': 'deleted'})
+    
+
+@bp.route('/api/event/<int:event_id>', methods=['PUT'])
+def api_update_event(event_id):
+    """
+    Update an existing event.
+    Expects JSON with any of: title, start_date, end_date, start_time, end_time,
+    all_day, is_recurring, recurrence_rule
+    """
+    event = Event.query.get_or_404(event_id)
+    data = request.get_json()
+
+    # Update only provided fields
+    if 'title' in data:
+        event.title = data['title']
+    if 'start_date' in data:
+        event.start_date = datetime.strptime(data['start_date'], '%Y-%m-%d').date()
+    if 'end_date' in data:
+        event.end_date = datetime.strptime(data['end_date'], '%Y-%m-%d').date()
+    if 'start_time' in data:
+        event.start_time = datetime.strptime(data['start_time'], '%H:%M').time() if data['start_time'] else None
+    if 'end_time' in data:
+        event.end_time = datetime.strptime(data['end_time'], '%H:%M').time() if data['end_time'] else None
+    if 'all_day' in data:
+        event.all_day = data['all_day']
+    if 'is_recurring' in data:
+        event.is_recurring = data['is_recurring']
+    if 'recurrence_rule' in data:
+        event.recurrence_rule = data['recurrence_rule'] if data.get('is_recurring') else None
+
+    db.session.commit()
+    return jsonify({
+        'status': 'updated',
+        'event': {
+            'id': event.id,
+            'title': event.title,
+            'start_date': event.start_date.isoformat(),
+            'end_date': event.end_date.isoformat(),
+            'start_time': event.start_time.strftime('%H:%M') if event.start_time else None,
+            'end_time': event.end_time.strftime('%H:%M') if event.end_time else None,
+            'all_day': event.all_day,
+            'is_recurring': event.is_recurring,
+            'recurrence_rule': event.recurrence_rule
+        }
+    })

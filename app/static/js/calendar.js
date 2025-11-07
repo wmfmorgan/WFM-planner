@@ -3,13 +3,14 @@ document.addEventListener('DOMContentLoaded', () => {
     let selectedDate = null;
     let selectedHour = null;
 
-    // === CLICK HANDLER (SAFE) ===
+    // === CLICK + ADD EVENT — SUPPORT ALL PAGES ===
     document.querySelectorAll('.add-event-area').forEach(area => {
         area.addEventListener('click', (e) => {
             e.stopPropagation();
             const cell = e.target.closest('.calendar-day') || e.target.closest('[data-hour]');
             if (!cell) return;
 
+            // GET DATE
             if (cell.dataset.date) {
                 selectedDate = cell.dataset.date;
             } else if (cell.dataset.hour) {
@@ -38,21 +39,34 @@ document.addEventListener('DOMContentLoaded', () => {
                     document.body.classList.remove('modal-open');
                     document.body.style.overflow = '';
                     document.body.style.paddingRight = '';
-                });
-            }
+                    }
         });
     });
-// NEW: EVENT BADGE CLICK — EDIT EVENT
+
+    // === EVENT BADGE CLICK — EDIT EVENT ===
     document.querySelectorAll('.event-badge[data-event-id]').forEach(badge => {
         badge.addEventListener('click', (e) => {
             e.stopPropagation();
             const eventId = badge.dataset.eventId;
-            console.log('Editing event:', eventId);
 
             fetch(`/api/event/${eventId}`)
                 .then(res => res.json())
                 .then(event => {
-                    document.getElementById('eventModalLabel').textContent = 'Edit Event';
+                    // STEP 1: ADD HIDDEN event_id
+                    let hiddenId = document.getElementById('eventId');
+                    if (!hiddenId) {
+                        hiddenId = document.createElement('input');
+                        hiddenId.type = 'hidden';
+                        hiddenId.id = 'eventId';
+                        hiddenId.name = 'event_id';
+                        document.getElementById('eventForm').appendChild(hiddenId);
+                    }
+                    hiddenId.value = event.id;
+
+                    // UPDATE BUTTON TEXT
+                    document.querySelector('#eventForm .btn-primary').textContent = 'Save Changes';
+
+                    // FILL FORM
                     document.getElementById('eventTitle').value = event.title;
                     document.getElementById('startDate').value = event.start_date;
                     document.getElementById('endDate').value = event.end_date;
@@ -69,11 +83,12 @@ document.addEventListener('DOMContentLoaded', () => {
                         deleteBtn.id = 'deleteEventBtn';
                         deleteBtn.className = 'btn btn-danger';
                         deleteBtn.textContent = 'Delete Event';
+                        deleteBtn.type = 'button';
                         document.querySelector('.modal-footer').appendChild(deleteBtn);
                     }
                     deleteBtn.onclick = () => {
                         if (confirm('Delete this event?')) {
-                            fetch(`/api/event/${eventId}`, { method: 'DELETE' })
+                            fetch(`/api/event/${event.id}`, { method: 'DELETE' })
                                 .then(() => location.reload());
                         }
                     };
@@ -81,26 +96,35 @@ document.addEventListener('DOMContentLoaded', () => {
                     modal.show();
                     // ENSURE BACKDROP REMOVES ON HIDE
                     modal._element.addEventListener('hidden.bs.modal', () => {
-                        document.querySelectorAll('.modal-backdrop').forEach(backdrop => {
-                            backdrop.remove();
-                        });
-                        document.body.classList.remove('modal-open');
-                        document.body.style.overflow = '';
-                        document.body.style.paddingRight = '';
+                    document.querySelectorAll('.modal-backdrop').forEach(backdrop => {
+                        backdrop.remove();
                     });
-
-                })
-                .catch(err => console.error('Error fetching event:', err));
+                    document.body.classList.remove('modal-open');
+                    document.body.style.overflow = '';
+                    document.body.style.paddingRight = '';
+                    }
+                });
         });
     });
 
-    // === SUBMIT HANDLER — ONLY ONCE ===
+    // === RECURRING & ALL DAY ===
+    document.getElementById('recurring')?.addEventListener('change', (e) => {
+        document.getElementById('recurrenceOptions')?.classList.toggle('d-none', !e.target.checked);
+    });
+
+    document.getElementById('allDay')?.addEventListener('change', (e) => {
+        const timeFields = document.querySelectorAll('#startTime, #endTime');
+        timeFields.forEach(f => f.disabled = e.target.checked);
+    });
+
+    // === SUBMIT FORM — STEP 2: CONDITIONAL SAVE ===
     const form = document.getElementById('eventForm');
     if (form && !form.dataset.listenerAttached) {
-        form.dataset.listenerAttached = 'true'; // MARK AS ATTACHED
+        form.dataset.listenerAttached = 'true';
 
         form.addEventListener('submit', (e) => {
             e.preventDefault();
+            const eventId = document.getElementById('eventId')?.value;
             const data = {
                 title: document.getElementById('eventTitle').value,
                 start_date: document.getElementById('startDate').value,
@@ -112,72 +136,21 @@ document.addEventListener('DOMContentLoaded', () => {
                 recurrence_rule: document.getElementById('recurring').checked ? document.getElementById('recurrenceRule').value : null
             };
 
-            fetch('/api/event', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(data)
-            }).then(() => location.reload());
+            if (eventId) {
+                // EDIT — PUT
+                fetch(`/api/event/${eventId}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                }).then(() => location.reload());
+            } else {
+                // CREATE — POST
+                fetch('/api/event', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                }).then(() => location.reload());
+            }
         });
     }
-
-    // === RECURRING & ALL DAY (SAFE) ===
-    document.getElementById('recurring')?.addEventListener('change', (e) => {
-        document.getElementById('recurrenceOptions')?.classList.toggle('d-none', !e.target.checked);
-    });
-
-    document.getElementById('allDay')?.addEventListener('change', (e) => {
-        const timeFields = document.querySelectorAll('#startTime, #endTime');
-        timeFields.forEach(f => f.disabled = e.target.checked);
-    });
-});
-
-// AFTER THE ADD EVENT LISTENER
-document.querySelectorAll('.event-badge').forEach(badge => {
-    badge.addEventListener('click', (e) => {
-        e.stopPropagation();
-        const eventId = badge.dataset.eventId;
-        if (!eventId) return;
-
-        fetch(`/api/event/${eventId}`)
-            .then(res => res.json())
-            .then(event => {
-                document.getElementById('eventModalLabel').textContent = 'Edit Event';
-                document.getElementById('eventTitle').value = event.title;
-                document.getElementById('startDate').value = event.start_date;
-                document.getElementById('endDate').value = event.end_date;
-                document.getElementById('startTime').value = event.start_time || '';
-                document.getElementById('endTime').value = event.end_time || '';
-                document.getElementById('allDay').checked = event.all_day;
-                document.getElementById('recurring').checked = event.is_recurring;
-                document.getElementById('recurrenceRule').value = event.recurrence_rule || 'daily';
-
-                // SHOW DELETE BUTTON
-                let deleteBtn = document.getElementById('deleteEventBtn');
-                if (!deleteBtn) {
-                    deleteBtn = document.createElement('button');
-                    deleteBtn.id = 'deleteEventBtn';
-                    deleteBtn.className = 'btn btn-danger';
-                    deleteBtn.textContent = 'Delete';
-                    deleteBtn.type = 'button';
-                    document.querySelector('#eventForm .modal-footer').appendChild(deleteBtn);
-                }
-                deleteBtn.onclick = () => {
-                    if (confirm('Delete this event?')) {
-                        fetch(`/api/event/${eventId}`, { method: 'DELETE' })
-                            .then(() => location.reload());
-                    }
-                };
-
-                modal.show();
-                // ENSURE BACKDROP REMOVES ON HIDE
-                modal._element.addEventListener('hidden.bs.modal', () => {
-                    document.querySelectorAll('.modal-backdrop').forEach(backdrop => {
-                        backdrop.remove();
-                    });
-                    document.body.classList.remove('modal-open');
-                    document.body.style.overflow = '';
-                    document.body.style.paddingRight = '';
-                });
-            });
-    });
 });
