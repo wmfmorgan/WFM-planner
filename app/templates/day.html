@@ -66,10 +66,10 @@
 
 
 <!-- 24-HOUR GRID: SCHEDULE + TASKS -->
-<div class="row mb-4">
-    <!-- LEFT: 24-HOUR SCHEDULE (SPACED OUT) -->
-<!-- RIGHT: 24HR SCHEDULE -->
-        <div class="col-lg-8">
+    <div class="row mb-4">
+        <!-- LEFT: 24-HOUR SCHEDULE (SPACED OUT) -->
+    
+        <div class="col-md-6">
             <div class="card">
                 <div class="card-header">
                     <h5 class="mb-0">Schedule</h5>
@@ -114,32 +114,35 @@
         </div>
 
     <!-- RIGHT: TASK CHECKLIST (SPACED OUT) -->
-    <div class="col-md-6">
-        <div class="card border-light h-100">
-            <div class="card-header bg-light">
-                <h5 class="mb-0">Tasks</h5>
-            </div>
-            <div class="card-body p-0" style="height: 840px; overflow-y: auto;">
-                <div class="d-flex flex-column h-100">
-                    {% for i in range(48) %}
-                        <div class="border-bottom d-flex align-items-center px-3 py-1" style="height: 35px;">
-                            <!--<input type="checkbox" class="me-3">-->
-                            <input type="checkbox" class="task-complete" 
-                            data-scope="day" data-year="{{ year }}" data-month="{{ month }}" 
-                            data-day="{{ day }}" data-type="task" data-index="{{ i }}">
+        <div class="col-md-6">
+            <div class="card border-light h-100">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0">Tasks</h5>
+                </div>
+                <div class="card-body p-0" style="height: 840px; overflow-y: auto;">
+                    <div class="d-flex flex-column h-100">
+                        {% for i in range(48) %}
+                            <div class="border-bottom d-flex align-items-center px-3 py-1" style="height: 35px;">
+                                <!--<input type="checkbox" class="me-3">-->
+                                <input type="checkbox" class="task-complete" 
+                                data-scope="day" data-year="{{ year }}" data-month="{{ month }}" 
+                                data-day="{{ day }}" data-type="task" data-index="{{ i }}">
 
-                            <input type="text" name="task" class="form-control autosave" 
-                                style="height: 100%; background: transparent; font-size: 0.9rem;"    
-                                placeholder="Task..."
-                                data-scope="day" data-year="{{ day_date.year }}" data-month="{{ day_date.month }}" 
-                                data-day="{{ day_date.day }}" data-type="task" data-index="{{ i }}">
-                        </div>
-                    {% endfor %}
+                                <input type="text" name="task" class="form-control autosave" 
+                                    style="height: 100%; background: transparent; font-size: 0.9rem;"    
+                                    placeholder="Task..."
+                                    data-scope="day" data-year="{{ day_date.year }}" data-month="{{ day_date.month }}" 
+                                    data-day="{{ day_date.day }}" data-type="task" data-index="{{ i }}">
+                            </div>
+                        {% endfor %}
+                    </div>
                 </div>
             </div>
         </div>
     </div>
-</div>
+
+
+
     <!-- NOTES — FULL WIDTH -->
     <div class="card border-light mb-4">
         <div class="card-header bg-light">
