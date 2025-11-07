@@ -11,7 +11,9 @@ from sqlalchemy import and_, or_
 import calendar
 from calendar import monthcalendar, day_name
 from calendar import month_name  # ← ADD THIS LINE
-
+import shutil
+from flask import send_file
+import os
 
 bp = Blueprint('main', __name__)
 
@@ -857,3 +859,23 @@ def api_update_event(event_id):
             'recurrence_rule': event.recurrence_rule
         }
     })
+
+@bp.route('/backup')
+def backup_db():
+    backup_path = f"backups/wfm_planner_backup_{datetime.now().strftime('%Y%m%d_%H%M%S')}.db"
+    os.makedirs('backups', exist_ok=True)
+    shutil.copy('wfm_planner.db', backup_path)
+    flash(f"Backup created: {os.path.basename(backup_path)}", "success")
+    return redirect(url_for('main.index'))
+
+@bp.route('/restore', methods=['GET', 'POST'])
+def restore_db():
+    if request.method == 'POST':
+        file = request.files['file']
+        if file and file.filename.endswith('.db'):
+            file.save('wfm_planner.db')
+            flash("Database restored successfully!", "success")
+            return redirect(url_for('main.index'))
+        flash("Invalid file", "danger")
+    backups = sorted([f for f in os.listdir('backups') if f.endswith('.db')], key=lambda x: os.path.getmtime(f'backups/{x}'), reverse=True)
+    return render_template('restore.html', backups=backups)
