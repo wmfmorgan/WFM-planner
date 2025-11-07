@@ -499,6 +499,7 @@ def week_page(year, week):
 
 @bp.route('/day/<int:year>/<int:month>/<int:day>')
 def day_page(year, month, day):
+
     try:
         day_date = datetime(year, month, day).date()
     except ValueError:
@@ -535,7 +536,7 @@ def day_page(year, month, day):
             Event.all_day.desc(),
             Event.start_time.asc()
         ).all()
-
+    
     form = GoalForm()
     return render_template(
         'day.html',
