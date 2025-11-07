@@ -86,27 +86,29 @@
                                         {{ '%02d'|format(hour_12) }}:00 {{ am_pm }}
                                     </td>
                                     <td class="p-2">
-                                    <!-- ADD THE FIXED CODE HERE -->
-                                            {% set day_events = events_on_date(year, month, day) %}
-                                            {% for event in day_events %}
-                                                {% if event.all_day and hour == 7 %}
-                                                    <div class="event-badge bg-success text-white p-1 mb-1 rounded small">
-                                                        {{ event.title }} (All Day)
-                                                    </div>
-                                                {% elif event.start_time and event.start_time.hour == hour %}
+                                        <div class="events-list">
+                                            {% for event in events_on_date(year, month, day) %}
+                                                {% if event.start_time and event.start_time.hour == hour %}
                                                     <div class="event-badge bg-primary text-white p-1 mb-1 rounded small">
                                                         {{ event.title }}
                                                         {{ event.start_time.strftime('%H:%M') }}-{{ event.end_time.strftime('%H:%M') }}
                                                     </div>
+                                                {% elif event.all_day and hour == 7 %}
+                                                    <div class="event-badge bg-success text-white p-1 mb-1 rounded small">
+                                                        {{ event.title }} (All Day)
+                                                    </div>
                                                 {% endif %}
-                                            {% endfor %}                                        {% if is_visible %}
-                                            <div class="add-event-area text-center text-muted small mt-1" style="cursor: pointer;" data-hour="{{ hour }}">
-                                                + Add
-                                            </div>
-                                        {% endif %}
+                                            {% endfor %}
+                                        </div>
+                                        <!-- + ADD EVENT IN EVERY SLOT -->
+                                        <div class="add-event-area text-center text-muted small mt-1" 
+                                            style="cursor: pointer;" 
+                                            data-hour="{{ hour }}">
+                                            + Add Event
+                                        </div>
                                     </td>
                                 </tr>
-                            {% endfor %}
+                            {% endfor %}                        
                         </tbody>
                     </table>
                 </div>
