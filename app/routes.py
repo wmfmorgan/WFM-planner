@@ -380,6 +380,7 @@ def month_page(year, month):
 
 @bp.route('/week/<int:year>/<int:week>')
 def week_page(year, week):
+    setfirstweekday(SUNDAY)
     if week < 1 or week > 53:
         abort(404)
 
@@ -422,7 +423,7 @@ def week_page(year, week):
 
     weekly_goals_grouped = group_goals_by_status(weekly_goals)
     
-    setfirstweekday(SUNDAY)
+    
     # BUILD 7-DAY GRID (Sun-Sat)
     days = []
     current = w_start
