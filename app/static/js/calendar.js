@@ -1,22 +1,39 @@
 document.addEventListener('DOMContentLoaded', () => {
     const modal = new bootstrap.Modal(document.getElementById('eventModal'));
     let selectedDate = null;
+    let selectedHour = null;
 
-    // CLICK + ADD EVENT — WORKS ON MONTH & WEEK
-    document.querySelectorAll('.add-event-area').forEach(area => {
+    // MONTHLY/WEEKLY: CLICK CELL
+    document.querySelectorAll('.calendar-day[data-date] .add-event-area').forEach(area => {
         area.addEventListener('click', (e) => {
-            const cell = e.target.closest('[data-date]');
-            if (cell && cell.dataset.date) {
-                selectedDate = cell.dataset.date;
-                document.getElementById('eventDate').value = selectedDate;
-                document.getElementById('startDate').value = selectedDate;
-                document.getElementById('endDate').value = selectedDate;
-                modal.show();
-            }
+            const cell = e.target.closest('.calendar-day');
+            selectedDate = cell.dataset.date;
+            document.getElementById('eventDate').value = selectedDate;
+            document.getElementById('startDate').value = selectedDate;
+            document.getElementById('endDate').value = selectedDate;
+            modal.show();
         });
     });
 
-    // RECURRING & ALL DAY — SAME AS BEFORE
+    // DAILY PAGE: CLICK HOUR ROW
+    document.querySelectorAll('.add-event-area[data-hour]').forEach(area => {
+        area.addEventListener('click', (e) => {
+            selectedHour = e.target.dataset.hour;
+            const dateInput = document.querySelector('input[name="year"], input[type="hidden"][value*="2025"]');
+            const year = {{ year }};
+            const month = {{ month }};
+            const day = {{ day }};
+            selectedDate = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+
+            document.getElementById('eventDate').value = selectedDate;
+            document.getElementById('startDate').value = selectedDate;
+            document.getElementById('endDate').value = selectedDate;
+            document.getElementById('startTime').value = `${selectedHour.padStart(2, '0')}:00`;
+            modal.show();
+        });
+    });
+
+    // RECURRING & ALL DAY
     document.getElementById('recurring')?.addEventListener('change', (e) => {
         document.getElementById('recurrenceOptions')?.classList.toggle('d-none', !e.target.checked);
     });
@@ -47,6 +64,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }).then(() => location.reload());
     });
 });
+
 // DAILY PAGE: CLICK + ADD IN HOUR
 document.querySelectorAll('.add-event-area[data-hour]').forEach(area => {
     area.addEventListener('click', (e) => {
