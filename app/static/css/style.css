@@ -11,6 +11,11 @@ html, body, .container, .card, .card-body, .card-header, .navbar, .progress {
     background: #ffffff !important;
 }
 
+.dropdown-toggle {
+    position: relative;
+    z-index: 1050 !important; /* Bootstrap navbar z-index */
+}
+
 body {
     color: #1a1a1a !important;
     line-height: 1.6;

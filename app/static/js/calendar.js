@@ -1,5 +1,6 @@
 document.addEventListener('DOMContentLoaded', () => {
     const modal = new bootstrap.Modal(document.getElementById('eventModal'));
+    
     let selectedDate = null;
     let selectedHour = null;
 
