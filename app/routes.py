@@ -456,6 +456,21 @@ def week_page(year, week):
     first_day = datetime.strptime(f'{year}-W{week}-1', "%Y-W%W-%w").date()
     month = first_day.month
     
+    # GET 7 DAYS OF WEEK (SUNDAY START)
+    first_day = datetime.strptime(f'{year}-W{week}-1', "%Y-W%W-%w").date()
+    week_days = [first_day + timedelta(days=i) for i in range(7)]
+
+    # DEFINE events_on_date HELPER
+    def events_on_date(year, month, day):
+        date = datetime(year, month, day).date()
+        return Event.query.filter(
+            Event.start_date <= date,
+            Event.end_date >= date
+        ).order_by(
+            Event.all_day.desc(),
+            Event.start_time.asc()
+        ).all()
+
     return render_template(
         'week.html',
         year=year,
@@ -475,6 +490,8 @@ def week_page(year, week):
         form=form,
         possible_parents=possible_parents,
         today=today,
+        week_days=week_days,
+        events_on_date=events_on_date,
         today_quarter=today_quarter
     )
 

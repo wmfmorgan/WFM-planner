@@ -1,6 +1,8 @@
 <!-- app/templates/week.html — FULL WITH CALENDAR IN CARD BODY -->
 {% extends "base.html" %}
+
 {% block content %}
+
 <div class="container mt-4">
     <!-- NAVIGATION -->
     <div class="d-flex justify-content-between align-items-center mb-4">
@@ -37,41 +39,58 @@
                 </ol>
             </nav>
 
-            <!-- 7-DAY CALENDAR GRID — PADDING MATCHING MONTHLY -->
-            <table class="table table-bordered table-sm mb-0 text-center">
-                <thead class="bg-light">
-                    <tr>
-                        <th style="width: 50px;">Wk</th>
-                        <th>Sun</th>
-                        <th>Mon</th>
-                        <th>Tue</th>
-                        <th>Wed</th>
-                        <th>Thu</th>
-                        <th>Fri</th>
-                        <th>Sat</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for week in weeks %}
-                        <tr>
-                            <td class="align-middle">
-                                <a href="{{ week.week_url }}" class="text-decoration-none text-dark fw-bold">
-                                    {{ week.week_num }}
-                                </a>
-                            </td>
-                            {% for day in week.days %}
-                                <td class="align-middle" style="height: 60px;">
-                                    <a href="{{ day.url }}" class="d-block h-100 p-2 text-decoration-none text-dark">
-                                         <div>{{ day.day }}</div>
-                                    </a>
-                                </td>
-                            {% endfor %}
-                        </tr>
+<!-- WEEKLY CALENDAR — SAME STYLE AS MONTHLY -->
+<div class="card mt-4">
+    <!-- <div class="card-header">
+        <h5 class="mb-0">Week {{ week }} — {{ year }}</h5>
+    </div> -->
+    <div class="card-body p-0">
+        <table class="table table-bordered calendar-table mb-0">
+            <thead class="table-light">
+                <tr>
+                    <!--<th class="text-center bg-light" style="width: 60px; font-weight: bold;">Week</th>-->
+                    {% for day in ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'] %}
+                        <th class="text-center">{{ day }}</th>
                     {% endfor %}
-                </tbody>
-            </table>
-        </div>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <!-- WEEK NUMBER -->
+                    <!-- <td class="text-center align-middle bg-light">
+                        <a href="{{ url_for('main.week_page', year=year, week=week) }}" class="text-dark text-decoration-none">
+                            <strong>W{{ week }}</strong>
+                        </a>
+                    </td>
+                -->
+                    <!-- 7 DAYS OF WEEK -->
+                    {% for day_date in week_days %}
+                        <td class="calendar-day position-relative">
+                            <div class="day-number fw-bold">
+                                <a href="{{ url_for('main.day_page', year=day_date.year, month=day_date.month, day=day_date.day) }}" class="text-dark text-decoration-none">
+                                    {{ day_date.day }}
+                                </a>
+                            </div>
+                            <div class="events-list mt-1">
+                                {% for event in events_on_date(day_date.year, day_date.month, day_date.day) %}
+                                    <div class="event-badge bg-primary text-white p-1 mb-1 rounded small text-truncate">
+                                        {{ event.title }}
+                                        {% if event.start_time %}
+                                            {{ event.start_time.strftime('%H:%M') }}-{{ event.end_time.strftime('%H:%M') }}
+                                        {% endif %}
+                                    </div>
+                                {% endfor %}
+                            </div>
+                            <div class="add-event-area text-center text-muted small mt-2" style="cursor: pointer; font-size: 0.8em;">
+                                + Add Event
+                            </div>
+                        </td>
+                    {% endfor %}
+                </tr>
+            </tbody>
+        </table>
     </div>
+</div>
 
     <!-- PREP FOR THE WEEK -->
     <div class="card border-light mb-4">
@@ -142,4 +161,61 @@
         </div>
     </div>
 </div>
+
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const modal = new bootstrap.Modal(document.getElementById('eventModal'));
+    let selectedDate = null;
+
+    // CLICK + ADD EVENT → OPEN MODAL
+    document.querySelectorAll('.add-event-area').forEach(area => {
+        area.addEventListener('click', (e) => {
+            const cell = e.target.closest('.calendar-day');
+            if (cell && cell.dataset.date) {
+                selectedDate = cell.dataset.date;
+                document.getElementById('eventDate').value = selectedDate;
+                document.getElementById('startDate').value = selectedDate;
+                document.getElementById('endDate').value = selectedDate;
+                modal.show();
+            }
+        });
+    });
+
+    // RECURRING TOGGLE
+    document.getElementById('recurring').addEventListener('change', (e) => {
+        document.getElementById('recurrenceOptions').classList.toggle('d-none', !e.target.checked);
+    });
+
+    // ALL DAY → DISABLE TIMES
+    document.getElementById('allDay').addEventListener('change', (e) => {
+        const timeFields = document.querySelectorAll('#startTime, #endTime');
+        timeFields.forEach(f => f.disabled = e.target.checked);
+    });
+
+    // SUBMIT FORM
+    document.getElementById('eventForm').addEventListener('submit', (e) => {
+        e.preventDefault();
+        const data = {
+            title: document.getElementById('eventTitle').value,
+            start_date: document.getElementById('startDate').value,
+            end_date: document.getElementById('endDate').value,
+            start_time: document.getElementById('allDay').checked ? null : document.getElementById('startTime').value,
+            end_time: document.getElementById('allDay').checked ? null : document.getElementById('endTime').value,
+            all_day: document.getElementById('allDay').checked,
+            is_recurring: document.getElementById('recurring').checked,
+            recurrence_rule: document.getElementById('recurring').checked ? document.getElementById('recurrenceRule').value : null
+        };
+
+        fetch('/api/event', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+        }).then(() => {
+            location.reload();
+        });
+    });
+});
+</script>
+
 {% endblock %}
