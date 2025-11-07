@@ -8,8 +8,9 @@ from dateutil.relativedelta import relativedelta
 from calendar import Calendar, SUNDAY
 from sqlalchemy import case
 from sqlalchemy import and_, or_
+import calendar
 from calendar import monthcalendar, day_name
-
+from calendar import month_name  # ← ADD THIS LINE
 
 
 bp = Blueprint('main', __name__)
@@ -525,6 +526,16 @@ def day_page(year, month, day):
         Goal.completed == False  # ← EXCLUDE COMPLETED
     ).all()
 
+    def events_on_date(y, m, d):
+        date = datetime(y, m, d).date()
+        return Event.query.filter(
+            Event.start_date <= date,
+            Event.end_date >= date
+        ).order_by(
+            Event.all_day.desc(),
+            Event.start_time.asc()
+        ).all()
+
     form = GoalForm()
     return render_template(
         'day.html',
@@ -541,6 +552,11 @@ def day_page(year, month, day):
         parent_type='weekly',
         form=form,
         possible_parents=possible_parents,
+        #year=year,
+        #month=month,
+        #day=day,
+        month_name=calendar.month_name[month],
+        events_on_date=events_on_date,
         today_quarter=today_quarter
     )
 

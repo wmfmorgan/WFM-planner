@@ -47,3 +47,17 @@ document.addEventListener('DOMContentLoaded', () => {
         }).then(() => location.reload());
     });
 });
+// DAILY PAGE: CLICK + ADD IN HOUR
+document.querySelectorAll('.add-event-area[data-hour]').forEach(area => {
+    area.addEventListener('click', (e) => {
+        const hour = e.target.dataset.hour;
+        const date = document.querySelector('.calendar-day[data-date]')?.dataset.date || 
+                     `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+        document.getElementById('eventDate').value = date;
+        document.getElementById('startDate').value = date;
+        document.getElementById('endDate').value = date;
+        document.getElementById('startTime').value = `${hour.padStart(2, '0')}:00`;
+        document.getElementById('eventHour').value = hour;
+        modal.show();
+    });
+});

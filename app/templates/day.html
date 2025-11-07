@@ -68,35 +68,57 @@
 <!-- 24-HOUR GRID: SCHEDULE + TASKS -->
 <div class="row mb-4">
     <!-- LEFT: 24-HOUR SCHEDULE (SPACED OUT) -->
-    <div class="col-md-6">
-        <div class="card border-light h-100">
-            <div class="card-header bg-light">
-                <h5 class="mb-0">Schedule</h5>
-            </div>
-            <div class="card-body p-0" style="height: 840px; overflow-y: auto;"> <!-- TALLER -->
-                <div class="d-flex flex-column h-100">
-                    {% for hour in range(24) %}
-                        {% set ampm = 'AM' if hour < 12 else 'PM' %}
-                        {% set display_hour = 12 if hour % 12 == 0 else hour % 12 %}
-                        {% for half in ['00', '30'] %}
-                            <div class="border-bottom d-flex align-items-center px-3 py-1" style="height: 35px; font-size: 0.9rem;">
-                                <div class="text-muted me-3" style="width: 75px; font-weight: 500;">
-                                    {{ display_hour }}:{{ half }} {{ ampm }}
-                                </div>
-                                <div class="flex-grow-1">
-                                    <input type="text" name="event" class="form-control autosave" 
-                                        style="height: 100%; background: transparent; font-size: 0.9rem;" 
-                                        placeholder="Event..."
-                                        data-scope="day" data-year="{{ day_date.year }}" data-month="{{ day_date.month }}" 
-                                        data-day="{{ day_date.day }}" data-type="event" data-time="{{ '%02d' % hour }}:{{ half }}" >
-                                </div>
-                            </div>
-                        {% endfor %}
-                    {% endfor %}
+<!-- RIGHT: 24HR SCHEDULE -->
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Schedule</h5>
+                </div>
+                <div class="card-body p-0" style="max-height: 600px; overflow-y: auto;">
+                    <table class="table table-bordered table-sm mb-0">
+                        <tbody>
+                            {% for hour in range(0, 24) %}
+                                {% set hour_12 = (hour % 12) or 12 %}
+                                {% set am_pm = 'AM' if hour < 12 else 'PM' %}
+                                {% set is_visible = 7 <= hour < 19 %}
+                                <tr class="{% if not is_visible %}text-muted{% endif %}">
+                                    <td class="text-center align-middle" style="width: 80px; font-weight: bold;">
+                                        {{ '%02d'|format(hour_12) }}:00 {{ am_pm }}
+                                    </td>
+                                    <td class="p-2">
+                                        <div class="events-list">
+                                            {% for event in events_on_date(year, month, day) %}
+                                                {% if event.start_time %}
+                                                    {% set start_hour = event.start_time.hour %}
+                                                    {% set end_hour = event.end_time.hour %}
+                                                    {% if start_hour <= hour < end_hour %}
+                                                        <div class="event-badge bg-primary text-white p-1 mb-1 rounded small">
+                                                            {{ event.title }}
+                                                            {% if event.start_time.minute != 0 %}
+                                                                {{ event.start_time.strftime('%H:%M') }}-{{ event.end_time.strftime('%H:%M') }}
+                                                            {% endif %}
+                                                        </div>
+                                                    {% endif %}
+                                                {% elif event.all_day and hour == 7 %}
+                                                    <div class="event-badge bg-success text-white p-1 mb-1 rounded small">
+                                                        {{ event.title }} (All Day)
+                                                    </div>
+                                                {% endif %}
+                                            {% endfor %}
+                                        </div>
+                                        {% if is_visible %}
+                                            <div class="add-event-area text-center text-muted small mt-1" style="cursor: pointer;" data-hour="{{ hour }}">
+                                                + Add
+                                            </div>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
                 </div>
             </div>
         </div>
-    </div>
 
     <!-- RIGHT: TASK CHECKLIST (SPACED OUT) -->
     <div class="col-md-6">
@@ -168,4 +190,67 @@
         </div>
     </div>
 </div>
+
+<!-- EVENT MODAL -->
+<div class="modal fade" id="eventModal" tabindex="-1" aria-labelledby="eventModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form id="eventForm">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="eventModalLabel">Add Event</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" id="eventDate">
+                    <input type="hidden" id="eventHour">
+                    <div class="mb-3">
+                        <label for="eventTitle" class="form-label">Title</label>
+                        <input type="text" class="form-control" id="eventTitle" required>
+                    </div>
+                    <div class="row">
+                        <div class="col">
+                            <label for="startDate" class="form-label">Start Date</label>
+                            <input type="date" class="form-control" id="startDate" required>
+                        </div>
+                        <div class="col">
+                            <label for="endDate" class="form-label">End Date</label>
+                            <input type="date" class="form-control" id="endDate" required>
+                        </div>
+                    </div>
+                    <div class="row mt-3">
+                        <div class="col">
+                            <label for="startTime" class="form-label">Start Time</label>
+                            <input type="time" class="form-control" id="startTime">
+                        </div>
+                        <div class="col">
+                            <label for="endTime" class="form-label">End Time</label>
+                            <input type="time" class="form-control" id="endTime">
+                        </div>
+                    </div>
+                    <div class="form-check mt-3">
+                        <input type="checkbox" class="form-check-input" id="allDay">
+                        <label class="form-check-label" for="allDay">All Day</label>
+                    </div>
+                    <div class="form-check mt-2">
+                        <input type="checkbox" class="form-check-input" id="recurring">
+                        <label class="form-check-label" for="recurring">Recurring</label>
+                    </div>
+                    <div id="recurrenceOptions" class="mt-2 d-none">
+                        <select class="form-select" id="recurrenceRule">
+                            <option value="daily">Daily</option>
+                            <option value="weekly">Weekly</option>
+                            <option value="monthly">Monthly</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Save Event</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script src="{{ url_for('static', filename='js/calendar.js') }}"></script>
 {% endblock %}
