@@ -42,7 +42,7 @@
             <table class="table table-bordered calendar-table mb-0">
                 <thead class="table-light">
                     <tr>
-                        <th class="text-center bg-light" style="width: 60px; font-weight: bold;">Week</th>
+                        <!--<th class="text-center bg-light" style="width: 60px; font-weight: bold;">Week</th>-->
                         {% for day in ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'] %}
                             <th class="text-center">{{ day }}</th>
                         {% endfor %}
@@ -51,11 +51,11 @@
                 <tbody>
                     <tr>
                         <!-- WEEK NUMBER -->
-                        <td class="text-center align-middle bg-light">
+                       <!-- <td class="text-center align-middle bg-light">
                             <a href="{{ url_for('main.week_page', year=year, week=week) }}" class="text-dark text-decoration-none">
                                 <strong>W{{ week }}</strong>
                             </a>
-                        </td>
+                        </td> -->
                         <!-- 7 DAYS -->
                         {% for day_date in week_days %}
                             <td class="calendar-day position-relative" {% if day_date %}data-date="{{ day_date.strftime('%Y-%m-%d') }}"{% endif %}>

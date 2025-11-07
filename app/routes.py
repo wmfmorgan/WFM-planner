@@ -5,7 +5,7 @@ from .models import Goal, Note, Event
 from .forms import GoalForm
 from datetime import datetime, timedelta, date
 from dateutil.relativedelta import relativedelta
-from calendar import Calendar, SUNDAY
+from calendar import Calendar, SUNDAY, setfirstweekday
 from sqlalchemy import case
 from sqlalchemy import and_, or_
 import calendar
@@ -284,6 +284,8 @@ def month_page(year, month):
     next_month = 1 if month == 12 else month + 1
 
     # SUNDAY-FIRST CALENDAR
+    setfirstweekday(SUNDAY)  # ← FORCE SUNDAY
+    #cal = monthcalendar(year, month)
     cal = Calendar(firstweekday=SUNDAY)
     weeks = []
     for week in cal.monthdayscalendar(year, month):
@@ -419,7 +421,8 @@ def week_page(year, week):
     ).all()
 
     weekly_goals_grouped = group_goals_by_status(weekly_goals)
-
+    
+    setfirstweekday(SUNDAY)
     # BUILD 7-DAY GRID (Sun-Sat)
     days = []
     current = w_start
