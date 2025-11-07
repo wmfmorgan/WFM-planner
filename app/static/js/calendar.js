@@ -31,15 +31,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     document.getElementById('startTime').value = `${selectedHour.padStart(2, '0')}:00`;
                 }
                 modal.show();
-                // ENSURE BACKDROP REMOVES ON HIDE
-                modal._element.addEventListener('hidden.bs.modal', () => {
-                    document.querySelectorAll('.modal-backdrop').forEach(backdrop => {
-                        backdrop.remove();
-                    });
-                    document.body.classList.remove('modal-open');
-                    document.body.style.overflow = '';
-                    document.body.style.paddingRight = '';
-                    }
+            }
         });
     });
 
@@ -94,15 +86,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     };
 
                     modal.show();
-                    // ENSURE BACKDROP REMOVES ON HIDE
-                    modal._element.addEventListener('hidden.bs.modal', () => {
-                    document.querySelectorAll('.modal-backdrop').forEach(backdrop => {
-                        backdrop.remove();
-                    });
-                    document.body.classList.remove('modal-open');
-                    document.body.style.overflow = '';
-                    document.body.style.paddingRight = '';
-                    }
                 });
         });
     });
