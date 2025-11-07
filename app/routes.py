@@ -10,6 +10,8 @@ from sqlalchemy import case
 from sqlalchemy import and_, or_
 from calendar import monthcalendar, day_name
 
+
+
 bp = Blueprint('main', __name__)
 
 # GLOBAL TODAY FOR NAVBAR
@@ -326,8 +328,27 @@ def month_page(year, month):
         return Event.query.filter(
             Event.start_date <= date,
             Event.end_date >= date
+        ).order_by(
+            Event.all_day.desc(),  # All day first
+            Event.start_time.asc()   # Then by time
         ).all()
 
+    # GENERATE CALENDAR WITH WEEK NUMBERS
+    cal = monthcalendar(year, month)
+    calendar_with_weeks = []
+    for i, week in enumerate(cal, start=1):
+        # Get week number from first non-zero day
+        first_day = None
+        for day in week:
+            if day != 0:
+                first_day = date(year, month, day)
+                break
+        if first_day:
+            week_num = first_day.isocalendar()[1]
+        else:
+            # Fallback: use first day of month
+            week_num = date(year, month, 1).isocalendar()[1] + i - 1
+        calendar_with_weeks.append((week_num, week))
 
     form = GoalForm()
     return render_template(
@@ -349,6 +370,7 @@ def month_page(year, month):
         today_quarter=today_quarter,
         events_on_date=events_on_date,
         calendar=calendar,  # ← ADD THIS
+        calendar_with_weeks=calendar_with_weeks,
         month_name=month_name  # ← ADD THIS
     )
 

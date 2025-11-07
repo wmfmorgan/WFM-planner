@@ -66,17 +66,25 @@
                     </div> -->
                 </div>
                 <div class="card-body p-0">
-                    <table class="table table-bordered calendar-table mb-0">
+                    <table class="table table-bordered calendar-table">
                         <thead class="table-light">
                             <tr>
+                                <th class="text-center bg-light" style="width: 60px; font-weight: bold;">Week</th>
                                 {% for day in ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'] %}
                                     <th class="text-center">{{ day }}</th>
                                 {% endfor %}
                             </tr>
                         </thead>
                         <tbody>
-                            {% for week in calendar %}
+                            {% for week_num, week in calendar_with_weeks %}
                                 <tr>
+                                    <!-- WEEK NUMBER COLUMN -->
+                                    <td class="text-center align-middle bg-light" style="cursor: pointer;">
+                                        <a href="{{ url_for('main.week_page', year=year, week=week_num) }}" class="text-dark text-decoration-none">
+                                            <strong>W{{ week_num }}</strong>
+                                        </a>
+                                    </td>
+                                    <!-- DAYS -->
                                     {% for day in week %}
                                         <td class="calendar-day position-relative {% if day == 0 %}text-muted{% endif %}"
                                             {% if day != 0 %}data-date="{{ year }}-{{ '%02d'|format(month) }}-{{ '%02d'|format(day) }}"{% endif %}>
