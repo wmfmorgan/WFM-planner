@@ -26,36 +26,7 @@
         </ol>
     </nav>
 
-    <div class="row">
-        <!-- LEFT SIDEBAR: PREP, NOTES, WINS, REVIEW -->
-        <div class="col-lg-3">
-            <div class="card mb-3">
-                <div class="card-header">Prep</div>
-                <div class="card-body">
-                    <textarea class="form-control autosave" rows="3" data-scope="month" data-year="{{ year }}" data-month="{{ month }}" data-type="prep"></textarea>
-                </div>
-            </div>
-            <div class="card mb-3">
-                <div class="card-header">Notes</div>
-                <div class="card-body">
-                    <textarea class="form-control autosave" rows="3" data-scope="month" data-year="{{ year }}" data-month="{{ month }}" data-type="notes"></textarea>
-                </div>
-            </div>
-            <div class="card mb-3">
-                <div class="card-header">Wins</div>
-                <div class="card-body">
-                    <textarea class="form-control autosave" rows="3" data-scope="month" data-year="{{ year }}" data-month="{{ month }}" data-type="wins"></textarea>
-                </div>
-            </div>
-            <div class="card mb-3">
-                <div class="card-header">Review</div>
-                <div class="card-body">
-                    <textarea class="form-control autosave" rows="3" data-scope="month" data-year="{{ year }}" data-month="{{ month }}" data-type="review"></textarea>
-                </div>
-            </div>
-        </div>
-
-        <!-- RIGHT: CALENDAR -->
+          <!-- RIGHT: CALENDAR -->
         <div class="col-lg-9">
             <div class="card">
                 <div class="card-header d-flex justify-content-between align-items-center">
@@ -114,6 +85,77 @@
                             {% endfor %}
                         </tbody>
                     </table>
+                </div>
+            </div>
+        </div>
+    
+</div>
+
+
+ <!-- PREP FOR THE MONTH -->
+    <div class="card border-light mb-4">
+        <div class="card-header bg-light">
+            <h5 class="mb-0">Prep for the Month</h5>
+        </div>
+        <div class="card-body">
+            <textarea name="prep" class="form-control autosave"
+                      data-scope="month" data-year="{{ year }}" data-month="{{ month }}" data-type="prep" 
+                      rows="5" 
+                      placeholder="At the end of this month, what will my world look like? How will I get there?"></textarea>
+        </div>
+    </div>
+
+    <!-- MONTHLY GOAL CARDS — FULL WIDTH -->
+    <h5 class="mb-3">Monthly Goals</h5>
+    {% set columns = [
+        {'id': 'todo', 'label': 'To Do'},
+        {'id': 'in_progress', 'label': 'In Progress'},
+        {'id': 'blocked', 'label': 'Blocked'},
+        {'id': 'done', 'label': 'Done'}
+    ] %}
+
+    {% with goals=monthly_goals_grouped, columns=columns %}
+        {% include 'kanban_board.html' %}
+    {% endwith %}
+
+    <!-- NOTES -->
+    <div class="card border-light mt-5">
+        <div class="card-header bg-light">
+            <h5 class="mb-0">Notes</h5>
+        </div>
+        <div class="card-body">
+           <textarea name="notes" class="form-control autosave"
+                      data-scope="month" data-year="{{ year }}" data-month="{{ month }}" data-type="notes"
+                      rows="4" 
+                      placeholder="Jot down thoughts, ideas, blockers..."></textarea>
+        </div>
+    </div>
+
+    <!-- REVIEW -->
+    <div class="row mt-5">
+        <div class="col-md-6">
+            <div class="card border-success h-100">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0">Wins, Successes, Accomplishments</h5>
+                </div>
+                <div class="card-body">
+                    <textarea name="wins" class="form-control autosave"
+                    data-scope="month" data-year="{{ year }}" data-month="{{ month }}" data-type="wins"
+                    rows="4" 
+                    placeholder="What went well?"></textarea>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card border-warning h-100">
+                <div class="card-header bg-warning text-dark">
+                    <h5 class="mb-0">Areas to Improve</h5>
+                </div>
+                <div class="card-body">
+                    <textarea name="improve" class="form-control autosave"
+                    data-scope="month" data-year="{{ year }}" data-month="{{ month }}" data-type="improve"
+                    rows="4" 
+                    placeholder="What could be better?"></textarea>
                 </div>
             </div>
         </div>
