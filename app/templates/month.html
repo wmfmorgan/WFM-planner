@@ -66,8 +66,7 @@
                                                 </div>
                                                 <div class="events-list mt-1">
                                                     {% for event in events_on_date(year, month, day) %}
-                                                        <div class="event-badge bg-primary text-white p-1 mb-1 rounded small" 
-                                                            data-event-id="{{ event.id }}">
+                                                        <div class="event-badge bg-primary text-white p-1 mb-1 rounded small text-truncate" data-event-id="{{ event.id }}" style="cursor: pointer;">
                                                             {{ event.title }}
                                                             {% if event.start_time %}
                                                                 {{ event.start_time.strftime('%H:%M') }}-{{ event.end_time.strftime('%H:%M') }}
