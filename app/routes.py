@@ -792,3 +792,23 @@ def api_create_event():
     db.session.add(event)
     db.session.commit()
     return jsonify({'status': 'success'})
+
+@bp.route('/api/event/<int:event_id>', methods=['GET', 'DELETE'])
+def api_event(event_id):
+    event = Event.query.get_or_404(event_id)
+    if request.method == 'GET':
+        return jsonify({
+            'id': event.id,
+            'title': event.title,
+            'start_date': event.start_date.isoformat(),
+            'end_date': event.end_date.isoformat(),
+            'start_time': event.start_time.strftime('%H:%M') if event.start_time else None,
+            'end_time': event.end_time.strftime('%H:%M') if event.end_time else None,
+            'all_day': event.all_day,
+            'is_recurring': event.is_recurring,
+            'recurrence_rule': event.recurrence_rule
+        })
+    elif request.method == 'DELETE':
+        db.session.delete(event)
+        db.session.commit()
+        return jsonify({'status': 'deleted'})

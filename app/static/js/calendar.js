@@ -30,6 +30,15 @@ document.addEventListener('DOMContentLoaded', () => {
                     document.getElementById('startTime').value = `${selectedHour.padStart(2, '0')}:00`;
                 }
                 modal.show();
+                // ENSURE BACKDROP REMOVES ON HIDE
+                modal._element.addEventListener('hidden.bs.modal', () => {
+                    document.querySelectorAll('.modal-backdrop').forEach(backdrop => {
+                        backdrop.remove();
+                    });
+                    document.body.classList.remove('modal-open');
+                    document.body.style.overflow = '';
+                    document.body.style.paddingRight = '';
+                });
             }
         });
     });
@@ -68,5 +77,56 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('allDay')?.addEventListener('change', (e) => {
         const timeFields = document.querySelectorAll('#startTime, #endTime');
         timeFields.forEach(f => f.disabled = e.target.checked);
+    });
+});
+
+// AFTER THE ADD EVENT LISTENER
+document.querySelectorAll('.event-badge').forEach(badge => {
+    badge.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const eventId = badge.dataset.eventId;
+        if (!eventId) return;
+
+        fetch(`/api/event/${eventId}`)
+            .then(res => res.json())
+            .then(event => {
+                document.getElementById('eventModalLabel').textContent = 'Edit Event';
+                document.getElementById('eventTitle').value = event.title;
+                document.getElementById('startDate').value = event.start_date;
+                document.getElementById('endDate').value = event.end_date;
+                document.getElementById('startTime').value = event.start_time || '';
+                document.getElementById('endTime').value = event.end_time || '';
+                document.getElementById('allDay').checked = event.all_day;
+                document.getElementById('recurring').checked = event.is_recurring;
+                document.getElementById('recurrenceRule').value = event.recurrence_rule || 'daily';
+
+                // SHOW DELETE BUTTON
+                let deleteBtn = document.getElementById('deleteEventBtn');
+                if (!deleteBtn) {
+                    deleteBtn = document.createElement('button');
+                    deleteBtn.id = 'deleteEventBtn';
+                    deleteBtn.className = 'btn btn-danger';
+                    deleteBtn.textContent = 'Delete';
+                    deleteBtn.type = 'button';
+                    document.querySelector('#eventForm .modal-footer').appendChild(deleteBtn);
+                }
+                deleteBtn.onclick = () => {
+                    if (confirm('Delete this event?')) {
+                        fetch(`/api/event/${eventId}`, { method: 'DELETE' })
+                            .then(() => location.reload());
+                    }
+                };
+
+                modal.show();
+                // ENSURE BACKDROP REMOVES ON HIDE
+                modal._element.addEventListener('hidden.bs.modal', () => {
+                    document.querySelectorAll('.modal-backdrop').forEach(backdrop => {
+                        backdrop.remove();
+                    });
+                    document.body.classList.remove('modal-open');
+                    document.body.style.overflow = '';
+                    document.body.style.paddingRight = '';
+                });
+            });
     });
 });
