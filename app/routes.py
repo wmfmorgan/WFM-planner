@@ -913,9 +913,6 @@ def export_json():
     response.headers['Content-Disposition'] = f'attachment; filename=wfm_planner_{datetime.now().strftime("%Y%m%d_%H%M%S")}.json'
     return response
 
-from datetime import datetime
-
-from datetime import datetime
 
 @bp.route('/import-json', methods=['GET', 'POST'])
 def import_json():
@@ -927,19 +924,23 @@ def import_json():
                 model = globals()[table.capitalize()]
                 db.session.query(model).delete()
                 for row in rows:
-                    # CONVERT DATES FOR Goal
-                    if table == 'goal':
-                        if 'due_date' in row and row['due_date']:
-                            row['due_date'] = datetime.strptime(row['due_date'], '%Y-%m-%d').date()
-                        if 'created_at' in row and row['created_at']:
-                            row['created_at'] = datetime.fromisoformat(row['created_at'].replace('Z', '+00:00'))
+                    # CONVERT DATES
+                    if 'due_date' in row and row['due_date']:
+                        row['due_date'] = datetime.strptime(row['due_date'], '%Y-%m-%d').date()
+                    if 'start_date' in row and row['start_date']:
+                        row['start_date'] = datetime.strptime(row['start_date'], '%Y-%m-%d').date()
+                    if 'end_date' in row and row['end_date']:
+                        row['end_date'] = datetime.strptime(row['end_date'], '%Y-%m-%d').date()
                     
-                    # CONVERT DATES FOR Event
-                    if table == 'event':
-                        if 'start_date' in row and row['start_date']:
-                            row['start_date'] = datetime.strptime(row['start_date'], '%Y-%m-%d').date()
-                        if 'end_date' in row and row['end_date']:
-                            row['end_date'] = datetime.strptime(row['end_date'], '%Y-%m-%d').date()
+                    # CONVERT TIMES
+                    if 'start_time' in row and row['start_time']:
+                        row['start_time'] = datetime.strptime(row['start_time'], '%H:%M:%S').time()
+                    if 'end_time' in row and row['end_time']:
+                        row['end_time'] = datetime.strptime(row['end_time'], '%H:%M:%S').time()
+                    
+                    # CONVERT created_at
+                    if 'created_at' in row and row['created_at']:
+                        row['created_at'] = datetime.fromisoformat(row['created_at'].replace('Z', '+00:00'))
                     
                     obj = model(**row)
                     db.session.add(obj)
