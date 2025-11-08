@@ -1,12 +1,11 @@
-<!-- app/templates/goals.html -->
 {% extends "base.html" %}
 {% block content %}
 <div class="container mt-4">
     <!-- HEADER WITH + ICON -->
     <div class="position-relative mb-4">
         <h1 class="display-5 fw-bold text-center">Goals</h1>
-        <button class="btn btn-success position-absolute top-0 end-0 rounded-circle p-0 d-flex align-items-center justify-content-center" 
-                style="width: 40px; height: 40px;" 
+        <button class="btn btn-success position-absolute top-0 end-0 rounded-circle p-0 d-flex align-items-center justify-content-center"
+                style="width: 40px; height: 40px;"
                 data-bs-toggle="modal" data-bs-target="#goalModal"
                 title="Add New Goal">
             <i class="bi bi-plus-lg"></i>
@@ -18,28 +17,38 @@
         <div class="goal-hierarchy">
             {% macro render_goal(goal, level=0) %}
                 <div class="goal-item" style="margin-left: {{ level * 30 }}px;" data-goal-id="{{ goal.id }}">
+
+                    <!-- CARD (title + buttons) -->
                     <div class="card mb-2 goal-card" data-goal-id="{{ goal.id }}">
+
                         <!-- VIEW MODE -->
-                        <div class="view-mode p-3 d-flex align-items-center justify-content-between">
-                            <div class="flex-grow-1">
-                                <h6 class="card-title mb-1 goal-title-text">{{ goal.title }}</h6>
-                                <small class="text-muted">{{ goal.type|capitalize }}</small>
-                                {% if goal.category %}
-                                    <small class="text-muted d-block">{{ goal.category }}</small>
+                        <div class="view-mode p-3">
+                            <div class="d-flex align-items-center gap-2">
+                                <!-- Chevron only when we have something to collapse -->
+                                {% if goal.children or goal.category or goal.due_date %}
+                                    <i class="bi bi-chevron-right toggle-chevron"
+                                       style="font-size:0.9rem;cursor:pointer;color:#6c757d;transition:transform .2s ease;"></i>
+                                {% else %}
+                                    <span style="display:inline-block;width:1.1rem;"></span>
                                 {% endif %}
-                                {% if goal.due_date %}
-                                    <small class="text-muted d-block">{{ goal.due_date.strftime('%b %d') }}</small>
-                                {% endif %}
-                            </div>
-                            <div class="d-flex gap-2">
-                                {% if goal.children %}
-                                    <button class="btn btn-sm btn-outline-secondary collapse-toggle">
-                                        <i class="bi bi-chevron-down"></i>
+
+                                <div class="flex-grow-1">
+                                    <h6 class="card-title mb-0 goal-title-text">{{ goal.title }}</h6>
+                                </div>
+
+                                <div class="d-flex gap-1">
+                                    <button class="btn btn-sm btn-outline-secondary edit-goal-btn" title="Edit">
+                                        <i class="bi bi-pencil"></i>
                                     </button>
-                                {% endif %}
-                                <button class="btn btn-sm btn-outline-dark edit-goal-btn">Edit</button>
-                                <button class="btn btn-sm btn-outline-primary add-subgoal-btn" data-parent-id="{{ goal.id }}">Add Sub-Goal</button>
-                                <button class="btn btn-sm btn-outline-danger delete-goal-btn" data-goal-id="{{ goal.id }}">Delete</button>
+                                    <button class="btn btn-sm btn-outline-primary add-subgoal-btn" 
+                                            data-parent-id="{{ goal.id }}" title="Add Sub-Goal">
+                                        <i class="bi bi-plus-circle"></i>
+                                    </button>
+                                    <button class="btn btn-sm btn-outline-danger delete-goal-btn" 
+                                            data-goal-id="{{ goal.id }}" title="Delete">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </div>
                             </div>
                         </div>
 
@@ -47,9 +56,9 @@
                         <div class="edit-mode d-none p-3">
                             <form class="edit-goal-form">
                                 <input type="hidden" name="goal_id" value="{{ goal.id }}">
-                                
+
                                 <div class="mb-2">
-                                    <input type="text" class="form-control form-control-sm goal-title-input" 
+                                    <input type="text" class="form-control form-control-sm goal-title-input"
                                            value="{{ goal.title }}" required>
                                 </div>
 
@@ -68,7 +77,7 @@
                                     <div class="col-md-6">
                                         <div class="mb-2">
                                             <select class="form-select form-select-sm goal-category-input">
-                                                {% for value, label in [('Work', 'Work'), ('Marital', 'Marital'), ('Family', 'Family'), ('Physical', 'Physical'), ('Mental', 'Mental'), ('Hobby', 'Hobby'), ('Social', 'Social'), ('Financial', 'Financial')] %}
+                                                {% for value, label in [('Work','Work'),('Marital','Marital'),('Family','Family'),('Physical','Physical'),('Mental','Mental'),('Hobby','Hobby'),('Social','Social'),('Financial','Financial')] %}
                                                     <option value="{{ value }}" {% if goal.category == value %}selected{% endif %}>{{ label }}</option>
                                                 {% endfor %}
                                             </select>
@@ -87,7 +96,7 @@
                                 <div class="row">
                                     <div class="col-md-6">
                                         <div class="mb-2">
-                                            <input type="date" class="form-control form-control-sm goal-due-date-input" 
+                                            <input type="date" class="form-control form-control-sm goal-due-date-input"
                                                    value="{{ goal.due_date.strftime('%Y-%m-%d') if goal.due_date else '' }}">
                                         </div>
                                     </div>
@@ -104,7 +113,8 @@
                                 </div>
 
                                 <div class="form-check mb-2">
-                                    <input type="checkbox" class="form-check-input goal-completed-input" {% if goal.completed %}checked{% endif %}>
+                                    <input type="checkbox" class="form-check-input goal-completed-input"
+                                           {% if goal.completed %}checked{% endif %}>
                                     <label class="form-check-label">Completed</label>
                                 </div>
 
@@ -116,15 +126,26 @@
                         </div>
                     </div>
 
-                    <!-- CHILDREN -->
-                    {% if goal.children %}
-                        <div class="goal-children">
+                    <!-- COLLAPSIBLE SECTION (details + children) -->
+                    {% if goal.children or goal.category or goal.due_date %}
+                    <div class="goal-collapse" data-collapsed="true"
+                         style="max-height:0;overflow:hidden;transition:max-height .3s ease;">
+                        <div class="px-3 py-2 text-muted small border-top">
+                            <div><strong>{{ goal.type|capitalize }}</strong></div>
+                            {% if goal.category %}<div>{{ goal.category }}</div>{% endif %}
+                            {% if goal.due_date %}<div>{{ goal.due_date.strftime('%b %d') }}</div>{% endif %}
+                        </div>
+
+                        <!-- CHILD GOALS -->
+                        {% if goal.children %}
                             {% for child in goal.children %}
                                 {{ render_goal(child, level + 1) }}
                             {% endfor %}
-                        </div>
+                        {% endif %}
+                    </div>
                     {% endif %}
-                </div>
+
+                </div> <!-- END .goal-item -->
             {% endmacro %}
 
             {% for goal in goals %}
@@ -141,15 +162,15 @@
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="modalTitle">Create GoalXXX</h5>
+                <h5 class="modal-title" id="modalTitle">Create Goal</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
                 <form id="unified-goal-form" action="/goals" method="POST">
                     {{ form.hidden_tag() }}
                     <input type="hidden" name="parent_id" value="">
-                    <!-- IN MODAL, AFTER parent_id -->
                     <input type="hidden" name="type" id="hidden-type-field">
+
                     <div class="mb-3">
                         {{ form.title.label(class="form-label") }}
                         {{ form.title(class="form-control") }}
@@ -159,7 +180,7 @@
                         <div class="col-md-6">
                             <div class="mb-3">
                                 {{ form.type.label(class="form-label") }}
-                                {{ form.type(class="form-select")}}
+                                {{ form.type(class="form-select") }}
                             </div>
                         </div>
                         <div class="col-md-6">
@@ -212,86 +233,69 @@
 
 <!-- FULL JS LOGIC -->
 <script>
-    // OPEN MODAL FOR NEW GOAL
-    document.querySelector('[data-bs-target="#goalModal"]').addEventListener('click', function() {
+    /* ---------- MODAL HELPERS ---------- */
+    document.querySelector('[data-bs-target="#goalModal"]').addEventListener('click', function () {
         document.getElementById('modalTitle').textContent = 'Create Goal';
         document.getElementById('unified-goal-form').reset();
         document.querySelector('[name="parent_id"]').value = '';
         document.querySelector('[name="type"]').disabled = false;
     });
 
-    // OPEN MODAL FOR SUB-GOAL
-    document.addEventListener('click', function(e) {
+    document.addEventListener('click', function (e) {
         if (e.target.classList.contains('add-subgoal-btn')) {
             const parentId = e.target.dataset.parentId;
-            const parentType = e.target.closest('.goal-card').querySelector('small.text-muted').textContent.toLowerCase();
-            
-            const typeMap = { 'year': 'annual', 'annual': 'quarterly', 'quarterly': 'monthly', 'monthly': 'weekly', 'weekly': 'daily', 'daily': 'daily' };
+            const parentType = e.target.closest('.goal-card')
+                .querySelector('small.text-muted')?.textContent.toLowerCase() || '';
+
+            const typeMap = { 'annual': 'quarterly', 'quarterly': 'monthly', 'monthly': 'weekly', 'weekly': 'daily', 'daily': 'daily' };
             const childType = typeMap[parentType] || 'daily';
 
             document.getElementById('modalTitle').textContent = 'Add Sub-Goal';
             document.getElementById('unified-goal-form').reset();
             document.querySelector('[name="parent_id"]').value = parentId;
-            
-            // SET VISIBLE SELECT (DISABLED)
+
             const typeSelect = document.querySelector('[name="type"]');
             typeSelect.value = childType;
             typeSelect.disabled = true;
-
-            // COPY TO HIDDEN FIELD (SENT TO SERVER)
             document.getElementById('hidden-type-field').value = childType;
 
-            const modal = new bootstrap.Modal(document.getElementById('goalModal'));
-            modal.show();
+            new bootstrap.Modal(document.getElementById('goalModal')).show();
         }
     });
 
-    // FORM SUBMIT (UNIFIED)
-    document.getElementById('unified-goal-form').addEventListener('submit', function(e) {
-        
-        const formData = new FormData(this);
-        
-        // Add completed as 'y' or null
-        formData.set('completed', formData.get('completed') === 'on' ? 'y' : '');
-
-        const parentId = formData.get('parent_id');
-        const url = parentId ? `/api/goal/${parentId}/subgoal` : '/goals';
-
-    });
-
-    // RESET ON CLOSE
-    document.getElementById('goalModal').addEventListener('hidden.bs.modal', function() {
+    document.getElementById('goalModal').addEventListener('hidden.bs.modal', function () {
         document.getElementById('unified-goal-form').reset();
         document.querySelector('[name="parent_id"]').value = '';
         document.querySelector('[name="type"]').disabled = false;
         document.getElementById('modalTitle').textContent = 'Create Goal';
     });
 
-    // EDIT BUTTON
-    document.addEventListener('click', function(e) {
+    /* ---------- EDIT / CANCEL / SAVE ---------- */
+    document.addEventListener('click', function (e) {
         if (e.target.classList.contains('edit-goal-btn')) {
             const card = e.target.closest('.goal-card');
             card.querySelector('.view-mode').classList.add('d-none');
             card.querySelector('.edit-mode').classList.remove('d-none');
         }
-    });
-
-    // CANCEL EDIT
-    document.addEventListener('click', function(e) {
         if (e.target.classList.contains('cancel-edit')) {
             const card = e.target.closest('.goal-card');
             card.querySelector('.view-mode').classList.remove('d-none');
             card.querySelector('.edit-mode').classList.add('d-none');
         }
+        if (e.target.classList.contains('delete-goal-btn')) {
+            const goalId = e.target.dataset.goalId;
+            if (confirm('Delete this goal and all sub-goals? This cannot be undone.')) {
+                fetch(`/api/goal/${goalId}`, { method: 'DELETE' })
+                    .then(() => location.reload());
+            }
+        }
     });
 
-    // SAVE EDIT
-    document.addEventListener('submit', function(e) {
+    document.addEventListener('submit', function (e) {
         if (e.target.classList.contains('edit-goal-form')) {
             e.preventDefault();
             const form = e.target;
             const goalId = form.querySelector('[name="goal_id"]').value;
-            
             const data = {
                 title: form.querySelector('.goal-title-input').value,
                 type: form.querySelector('.goal-type-input').value,
@@ -310,54 +314,61 @@
             }).then(() => {
                 const card = form.closest('.goal-card');
                 card.querySelector('.goal-title-text').textContent = data.title;
-                const typeEl = card.querySelector('small.text-muted');
-                typeEl.textContent = data.type.charAt(0).toUpperCase() + data.type.slice(1);
-                const dueEl = card.querySelector('small.d-block');
-                if (data.due_date) {
-                    dueEl.textContent = new Date(data.due_date).toLocaleDateString('en', { month: 'short', day: 'numeric' });
-                } else {
-                    dueEl.textContent = '';
-                }
                 card.querySelector('.view-mode').classList.remove('d-none');
                 card.querySelector('.edit-mode').classList.add('d-none');
             });
         }
     });
 
-    // DELETE GOAL
-    document.addEventListener('click', function(e) {
-        if (e.target.classList.contains('delete-goal-btn')) {
-            const goalId = e.target.dataset.goalId;
-            if (confirm('Delete this goal and all sub-goals? This cannot be undone.')) {
-                fetch(`/api/goal/${goalId}`, {
-                    method: 'DELETE'
-                }).then(() => {
-                    location.reload();
-                });
-            }
-        }
-    });
+    /* ---------- CHEVRON + COLLAPSE (details + children) ---------- */
+    document.addEventListener('click', function (e) {
+        const chevron = e.target.closest('.toggle-chevron');
+        if (!chevron) return;
 
-    // COLLAPSE TOGGLE
-    document.addEventListener('click', function(e) {
-        const toggle = e.target.closest('.collapse-toggle');
-        if (toggle) {
-            const children = toggle.closest('.goal-item').querySelector('.goal-children');
-            children.classList.toggle('collapsed');
-            toggle.querySelector('i').classList.toggle('bi-chevron-down');
-            toggle.querySelector('i').classList.toggle('bi-chevron-right');
+        const goalItem = chevron.closest('.goal-item');
+        const collapse = goalItem.querySelector('.goal-collapse');
+        if (!collapse) return;
+
+        const wasCollapsed = collapse.dataset.collapsed === 'true';
+        collapse.dataset.collapsed = (!wasCollapsed).toString();
+
+        // toggle icon
+        chevron.classList.replace(
+            wasCollapsed ? 'bi-chevron-right' : 'bi-chevron-down',
+            wasCollapsed ? 'bi-chevron-down' : 'bi-chevron-right'
+        );
+
+        // animate
+        if (wasCollapsed) {
+            collapse.style.maxHeight = 'none';
+            void collapse.offsetHeight;               // force reflow
+            const full = collapse.scrollHeight + 'px';
+            collapse.style.maxHeight = '0';
+            requestAnimationFrame(() => collapse.style.maxHeight = full);
+        } else {
+            collapse.style.maxHeight = collapse.scrollHeight + 'px';
+            requestAnimationFrame(() => collapse.style.maxHeight = '0');
         }
+
+        // clean up max-height when fully open
+        collapse.addEventListener('transitionend', function onEnd(ev) {
+            if (ev.propertyName !== 'max-height') return;
+            if (collapse.dataset.collapsed === 'false') {
+                collapse.style.maxHeight = 'none';
+            }
+            collapse.removeEventListener('transitionend', onEnd);
+        });
     });
 </script>
 
 <!-- STYLE BLOCK -->
 <style>
-    .goal-children {
-        transition: max-height 0.3s ease;
+    .goal-collapse {
         overflow: hidden;
+        transition: max-height .3s ease;
     }
-    .goal-children.collapsed {
-        max-height: 0 !important;
+    .goal-collapse > .border-top {
+        border-top: 1px solid rgba(0,0,0,.125);
     }
 </style>
 {% endblock %}
