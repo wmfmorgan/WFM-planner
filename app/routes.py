@@ -1,5 +1,5 @@
 # app/routes.py
-from flask import Blueprint, render_template, request, jsonify, abort, url_for, flash, redirect
+from flask import Blueprint, render_template, request, jsonify, abort, url_for, flash, redirect, Response
 from . import db
 from .models import Goal, Note, Event
 from .forms import GoalForm
@@ -14,6 +14,9 @@ from calendar import month_name  # ← ADD THIS LINE
 import shutil
 from flask import send_file
 import os
+from flask import current_app
+import json
+
 
 bp = Blueprint('main', __name__)
 
@@ -862,9 +865,17 @@ def api_update_event(event_id):
 
 @bp.route('/backup')
 def backup_db():
-    backup_path = f"backups/wfm_planner_backup_{datetime.now().strftime('%Y%m%d_%H%M%S')}.db"
-    os.makedirs('backups', exist_ok=True)
-    shutil.copy('wfm_planner.db', backup_path)
+    db_filename = 'wfm_planner.db'
+    db_path = os.path.join(current_app.instance_path, db_filename)
+    backup_dir = os.path.join(current_app.instance_path, 'backups')
+    os.makedirs(backup_dir, exist_ok=True)
+    backup_path = os.path.join(backup_dir, f"backup_{datetime.now().strftime('%Y%m%d_%H%M%S')}.db")
+    
+    if not os.path.exists(db_path):
+        flash("Database file not found!", "danger")
+        return redirect(url_for('main.index'))
+    
+    shutil.copy(db_path, backup_path)
     flash(f"Backup created: {os.path.basename(backup_path)}", "success")
     return redirect(url_for('main.index'))
 
@@ -877,5 +888,66 @@ def restore_db():
             flash("Database restored successfully!", "success")
             return redirect(url_for('main.index'))
         flash("Invalid file", "danger")
-    backups = sorted([f for f in os.listdir('backups') if f.endswith('.db')], key=lambda x: os.path.getmtime(f'backups/{x}'), reverse=True)
-    return render_template('restore.html', backups=backups)
+    today = date.today()
+    today_quarter = (today.month - 1) // 3 + 1  # Q1, Q2, Q3, Q4
+    
+    backups = sorted([f for f in os.listdir('backups') if f.endswith('.db')], 
+                     key=lambda x: os.path.getmtime(f'backups/{x}'), reverse=True)
+    
+    return render_template('restore.html', backups=backups, today=today, today_quarter=today_quarter)
+import json
+from flask import send_file, request, flash, redirect, url_for, Response
+
+@bp.route('/export-json')
+def export_json():
+    """Export all DB tables to JSON"""
+    data = {}
+    for table in db.metadata.tables.keys():
+        model = globals()[table.capitalize()]
+        data[table] = [row.__dict__ for row in model.query.all()]
+        for row in data[table]:
+            row.pop('_sa_instance_state', None)
+    
+    json_str = json.dumps(data, indent=2, default=str)
+    response = Response(json_str, mimetype='application/json')
+    response.headers['Content-Disposition'] = f'attachment; filename=wfm_planner_{datetime.now().strftime("%Y%m%d_%H%M%S")}.json'
+    return response
+
+from datetime import datetime
+
+from datetime import datetime
+
+@bp.route('/import-json', methods=['GET', 'POST'])
+def import_json():
+    if request.method == 'POST':
+        file = request.files['file']
+        if file and file.filename.endswith('.json'):
+            data = json.load(file)
+            for table, rows in data.items():
+                model = globals()[table.capitalize()]
+                db.session.query(model).delete()
+                for row in rows:
+                    # CONVERT DATES FOR Goal
+                    if table == 'goal':
+                        if 'due_date' in row and row['due_date']:
+                            row['due_date'] = datetime.strptime(row['due_date'], '%Y-%m-%d').date()
+                        if 'created_at' in row and row['created_at']:
+                            row['created_at'] = datetime.fromisoformat(row['created_at'].replace('Z', '+00:00'))
+                    
+                    # CONVERT DATES FOR Event
+                    if table == 'event':
+                        if 'start_date' in row and row['start_date']:
+                            row['start_date'] = datetime.strptime(row['start_date'], '%Y-%m-%d').date()
+                        if 'end_date' in row and row['end_date']:
+                            row['end_date'] = datetime.strptime(row['end_date'], '%Y-%m-%d').date()
+                    
+                    obj = model(**row)
+                    db.session.add(obj)
+            db.session.commit()
+            flash("Database imported from JSON!", "success")
+            return redirect(url_for('main.index'))
+        flash("Invalid file", "danger")
+    
+    today = date.today()
+    today_quarter = (today.month - 1) // 3 + 1
+    return render_template('import_json.html', today=today, today_quarter=today_quarter)

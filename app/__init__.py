@@ -15,8 +15,13 @@ def get_current_sunday_week():
     return sunday.isocalendar()[0], sunday.isocalendar()[1]
 
 def create_app():
-    app = Flask(__name__)
-    
+    app = Flask(__name__, instance_relative_config=True)
+    app.config.from_mapping(
+        SECRET_KEY='dev',
+        SQLALCHEMY_DATABASE_URI='sqlite:///wfm_planner.db',
+        SQLALCHEMY_TRACK_MODIFICATIONS=False,
+    )
+
     # CONFIG
     app.config['SECRET_KEY'] = 'macho-madness-yeah!'
     app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///wfm_planner.db'
@@ -25,12 +30,21 @@ def create_app():
     # INIT
     db.init_app(app)
     migrate.init_app(app, db)
+    
 
+    
     # BLUEPRINT
     from . import routes
     app.register_blueprint(routes.bp)
 
     # JINJA GLOBAL
     app.jinja_env.globals['get_current_sunday_week'] = get_current_sunday_week
+
+    # === AUTO CREATE DB & MIGRATE ON FIRST RUN ===
+    with app.app_context():
+        db.create_all()  # Creates tables if no migrations
+        # OR use migrate if you have migrations
+        # from flask_migrate import upgrade
+        # upgrade()
 
     return app

@@ -57,6 +57,9 @@
                         <ul class="dropdown-menu">
                             <li><a class="dropdown-item" href="{{ url_for('main.backup_db') }}">Backup Database</a></li>
                             <li><a class="dropdown-item" href="{{ url_for('main.restore_db') }}">Restore Database</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="{{ url_for('main.export_json') }}">Export to JSON</a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('main.import_json') }}">Import from JSON</a></li>
                         </ul>
                     </li>
                 </ul>
