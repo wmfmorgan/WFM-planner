@@ -9,6 +9,7 @@
 html, body, .container, .card, .card-body, .card-header, .navbar, .progress {
     background-color: #ffffff !important;
     background: #ffffff !important;
+    box-shadow: none !important;
 }
 
 .dropdown-toggle {
@@ -17,7 +18,7 @@ html, body, .container, .card, .card-body, .card-header, .navbar, .progress {
 }
 
 body {
-    color: #1a1a1a !important;
+    color: #ffffff !important;
     line-height: 1.6;
 }
 
@@ -29,7 +30,7 @@ h1, h2, h3, h4, h5, h6 {
 
 .navbar {
     border-bottom: 1px solid #e2e8f0 !important;
-    box-shadow: 0 1px 2px rgba(0,0,0,0.03);
+    /*box-shadow: 0 1px 2px rgba(0,0,0,0.03);*/
 }
 
 .navbar-brand {
