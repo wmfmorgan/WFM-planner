@@ -101,6 +101,27 @@ h1, h2, h3, h4, h5, h6 {
     border-color: #3182ce;
 }
 
+
+/* -------------------------------------------------
+   FORCE PERFECT CIRCLE FOR .rounded-circle BUTTONS
+   ------------------------------------------------- */
+.btn.rounded-circle {
+    width: 44px !important;
+    height: 44px !important;
+    padding: 0 !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    font-size: 1.25rem !important;
+    border-radius: 50% !important;
+}
+
+/* Smoother hover for the circle */
+.btn-success.rounded-circle:hover {
+    transform: scale(1.05);
+    transition: transform .15s ease, background-color .15s ease;
+}
+
 .progress {
     height: 6px !important;
     border-radius: 3px;
@@ -130,3 +151,56 @@ small {
     border-radius: 0.5rem;
     box-shadow: 0 4px 12px rgba(0,0,0,0.08);
 }
+
+.goal-collapse {
+         overflow: hidden;
+         transition: max-height .3s ease;
+     }
+     .goal-collapse > .border-top {
+         border-top: 1px solid rgba(0,0,0,.125);
+     }
+
+    /* -------------------------------------------------
+       BORDERLESS ICON BUTTONS (keep outline colors)
+       ------------------------------------------------- */
+    .btn-icon-secondary {
+        --bs-btn-color: var(--bs-secondary);
+        --bs-btn-bg: transparent;
+        --bs-btn-border-color: transparent;
+        --bs-btn-hover-color: var(--bs-white);
+        --bs-btn-hover-bg: var(--bs-secondary);
+        --bs-btn-hover-border-color: transparent;
+        --bs-btn-active-bg: var(--bs-secondary);
+        --bs-btn-active-border-color: transparent;
+    }
+
+    .btn-icon-primary {
+        --bs-btn-color: var(--bs-primary);
+        --bs-btn-bg: transparent;
+        --bs-btn-border-color: transparent;
+        --bs-btn-hover-color: var(--bs-white);
+        --bs-btn-hover-bg: var(--bs-primary);
+        --bs-btn-hover-border-color: transparent;
+        --bs-btn-active-bg: var(--bs-primary);
+        --bs-btn-active-border-color: transparent;
+    }
+
+    .btn-icon-danger {
+        --bs-btn-color: var(--bs-danger);
+        --bs-btn-bg: transparent;
+        --bs-btn-border-color: transparent;
+        --bs-btn-hover-color: var(--bs-white);
+        --bs-btn-hover-bg: var(--bs-danger);
+        --bs-btn-hover-border-color: transparent;
+        --bs-btn-active-bg: var(--bs-danger);
+        --bs-btn-active-border-color: transparent;
+    }
+
+    /* Ensure consistent padding & rounded corners */
+    .btn-icon-secondary,
+    .btn-icon-primary,
+    .btn-icon-danger {
+        border: none !important;
+        padding: .25rem .5rem;
+        border-radius: .25rem;
+    }
