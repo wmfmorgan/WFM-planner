@@ -879,22 +879,29 @@ def backup_db():
     flash(f"Backup created: {os.path.basename(backup_path)}", "success")
     return redirect(url_for('main.index'))
 
+from flask import current_app
+import shutil
+
 @bp.route('/restore', methods=['GET', 'POST'])
 def restore_db():
     if request.method == 'POST':
         file = request.files['file']
         if file and file.filename.endswith('.db'):
-            file.save('wfm_planner.db')
+            # SAVE TO INSTANCE PATH
+            db_path = os.path.join(current_app.instance_path, 'wfm_planner.db')
+            file.save(db_path)
             flash("Database restored successfully!", "success")
             return redirect(url_for('main.index'))
         flash("Invalid file", "danger")
+    
     today = date.today()
-    today_quarter = (today.month - 1) // 3 + 1  # Q1, Q2, Q3, Q4
+    today_quarter = (today.month - 1) // 3 + 1
     
     backups = sorted([f for f in os.listdir('backups') if f.endswith('.db')], 
                      key=lambda x: os.path.getmtime(f'backups/{x}'), reverse=True)
     
     return render_template('restore.html', backups=backups, today=today, today_quarter=today_quarter)
+
 import json
 from flask import send_file, request, flash, redirect, url_for, Response
 
