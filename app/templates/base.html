@@ -13,7 +13,7 @@
 </head>
 <body class="bg-dark text-warning">
     <!-- app/templates/base.html — UPDATE NAVBAR -->
-    <nav class="navbar navbar-expand-lg navbar-dark ">
+    <nav class="navbar navbar-expand-lg navbar-dark sticky-top">
         <div class="container">
             <a class="navbar-brand fw-bold" href="/">WFM PLANNER</a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
@@ -66,7 +66,7 @@
             </div>
         </div>
     </nav>
-    <div class="container mt-5">
+    <div class="container" style="padding-top: 5rem;">
         <!-- FLASH MESSAGES -->
         {% with messages = get_flashed_messages(with_categories=true) %}
         {% if messages %}
@@ -84,7 +84,13 @@
     <script src="{{ url_for('static', filename='js/autosave.js') }}" defer></script>
     <script src="{{ url_for('static', filename='js/calendar.js') }}" defer></script>
     <style>
-    *, *::before, *::after { background: transparent !important; border: none !important; }
+        /* -------------------------------------------------
+       NAVBAR STICKY STYLES
+       ------------------------------------------------- */
+        .navbar {
+            background-color: #ffffff !important;   /* dark bg – matches navbar-dark */
+            box-shadow: 0 2px 4px rgba(0,0,0,.1);
+        }    
     </style>
 </body>
 </html>
