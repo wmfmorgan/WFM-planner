@@ -313,7 +313,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
         // EDIT (inline form)
         if (target.closest('.edit-goal-btn')) {
-            console.log('Edit clicked');
             card.querySelector('.view-mode').classList.add('d-none');
             card.querySelector('.edit-mode').classList.remove('d-none');
             return;
@@ -321,7 +320,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
         // CANCEL
         if (target.closest('.cancel-edit')) {
-            console.log('Cancel clicked');
             card.querySelector('.view-mode').classList.remove('d-none');
             card.querySelector('.edit-mode').classList.add('d-none');
             return;
@@ -330,7 +328,6 @@ document.addEventListener('DOMContentLoaded', function () {
         // DELETE
         if (target.closest('.delete-goal-btn')) {
             const goalId = target.closest('.delete-goal-btn').dataset.goalId;
-            console.log('Delete clicked for goal ID:', goalId);
 
             if (confirm('Delete this goal and all sub-goals? This cannot be undone.')) {
                 fetch(`/api/goal/${goalId}`, { method: 'DELETE' })
@@ -351,12 +348,11 @@ document.addEventListener('DOMContentLoaded', function () {
             const button = target.closest('.add-subgoal-btn');
             const parentId = button.dataset.parentId;
             const parentType = card.dataset.goalType || 'annual';
-            alert(card.dataset.goalType);
+
             const goalTitle = card.querySelector('.goal-title-text')?.textContent?.trim().toLowerCase() || '';
             const typeMap = { 'annual': 'quarterly', 'quarterly': 'monthly', 'monthly': 'weekly', 'weekly': 'daily', 'daily': 'daily' };
             const childType = typeMap[parentType] || 'daily';
-            //alert(goalTitle);
-            alert(childType);
+
             document.getElementById('modalTitle').textContent = 'Add Sub-Goal';
             const form = document.getElementById('unified-goal-form');
             form.reset();
@@ -381,7 +377,6 @@ document.addEventListener('DOMContentLoaded', function () {
     document.addEventListener('submit', function (e) {
         if (e.target.matches('.edit-goal-form')) {
             e.preventDefault();
-            console.log('Inline edit submitted!');
 
             const form = e.target;
             const goalId = form.querySelector('[name="goal_id"]').value;
@@ -398,15 +393,12 @@ document.addEventListener('DOMContentLoaded', function () {
                 completed: form.querySelector('.goal-completed-input').checked
             };
 
-            console.log('Sending edit data:', data);
-
             fetch(`/api/goal/${goalId}`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(data)
             })
             .then(res => {
-                console.log('Edit response:', res.status);
                 if (!res.ok) throw new Error(`HTTP ${res.status}`);
                 // UPDATE UI WITHOUT RELOAD
                 card.querySelector('.goal-title-text').textContent = data.title;
@@ -423,7 +415,6 @@ document.addEventListener('DOMContentLoaded', function () {
     /* ---------- MODAL FORM SUBMIT — ADD SUBGOAL ---------- */
     document.getElementById('unified-goal-form').addEventListener('submit', function (e) {
         e.preventDefault();
-        console.log('Modal form submitted!');
 
         const form = e.target;
         const parentId = form.querySelector('[name="parent_id"]').value;
@@ -442,7 +433,6 @@ document.addEventListener('DOMContentLoaded', function () {
                 completed: form.querySelector('[name="completed"]').checked
             };
 
-            console.log('Sending JSON to:', url, data);
 
             fetch(url, {
                 method: 'POST',
@@ -466,9 +456,6 @@ document.addEventListener('DOMContentLoaded', function () {
             if (hiddenType && hiddenType.value) {
                 formData.set('type', hiddenType.value);
             }
-
-            console.log('Sending FormData to:', url);
-            for (let [k, v] of formData) console.log(k, v);
 
             fetch(url, {
                 method: 'POST',

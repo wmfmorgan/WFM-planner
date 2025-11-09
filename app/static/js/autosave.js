@@ -132,14 +132,12 @@ document.addEventListener('DOMContentLoaded', function () {
     document.addEventListener('input', function (e) {
         if (e.target.dataset.key) {
             localStorage.setItem(e.target.dataset.key, e.target.value);
-            console.log('Saved:', e.target.dataset.key, e.target.value);
         }
     });
 
     document.addEventListener('change', function (e) {
         if (e.target.type === 'checkbox' && e.target.dataset.key) {
             localStorage.setItem(e.target.dataset.key, e.target.checked);
-            console.log('Saved checkbox:', e.target.dataset.key, e.target.checked);
         }
     });
 
@@ -157,7 +155,6 @@ document.addEventListener('DOMContentLoaded', function () {
                     } else {
                         el.value = saved;
                     }
-                    console.log('Loaded:', key, saved);
                 }
             }
         });
@@ -256,5 +253,4 @@ document.querySelectorAll('.task-complete').forEach(checkbox => {
         });
     });
 });
-    //console.log('AUTOSAVE.JS LOADED — READY TO DOMINATE!');
 });
