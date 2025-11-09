@@ -651,6 +651,10 @@ def delete_goal(goal_id):
     db.session.commit()
     return jsonify({'status': 'success'})
 
+@bp.route('/api/goal/<int:goal_id>', methods=['GET'])
+def get_goal(goal_id):
+    goal = Goal.query.get_or_404(goal_id)
+    return jsonify(goal.to_dict())
 
 # EDIT GOAL
 @bp.route('/api/goal/<int:goal_id>', methods=['PUT'])

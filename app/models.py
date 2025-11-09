@@ -64,6 +64,21 @@ class Goal(db.Model):
     def __repr__(self):
         return f"<Goal {self.id}: {self.title} [{self.level()}]>"
     
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'title': self.title,
+            'type': self.type,
+            'category': self.category,
+            'description': self.description,
+            'motivation': self.motivation,
+            'due_date': self.due_date.isoformat() if self.due_date else None,
+            'status': self.status,
+            'completed': self.completed,
+            'parent_id': self.parent_id
+        }
+
+
 class Event(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(100), nullable=False)
