@@ -271,6 +271,13 @@ document.addEventListener('DOMContentLoaded', function () {
             if (!collapse) return;
 
             const wasCollapsed = collapse.dataset.collapsed === 'true';
+
+            // NEW: Ctrl+Click → expand all children
+            if (e.ctrlKey || e.metaKey) {
+                expandAllChildren(goalItem);
+                return;
+            }
+            
             collapse.dataset.collapsed = (!wasCollapsed).toString();
 
             chevron.classList.replace(
@@ -479,6 +486,18 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 
 });
+
+function expandAllChildren(goalItem) {
+    const collapses = goalItem.querySelectorAll('.goal-collapse');
+    collapses.forEach(collapse => {
+        collapse.dataset.collapsed = 'false';
+        collapse.style.maxHeight = 'none';
+        const chevron = collapse.closest('.goal-item').querySelector('.toggle-chevron');
+        if (chevron) {
+            chevron.classList.replace('bi-chevron-right', 'bi-chevron-down');
+        }
+    });
+}
 </script>
 
 <!-- STYLE BLOCK -->
