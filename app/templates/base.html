@@ -13,41 +13,44 @@
 </head>
 <body class="bg-dark text-warning">
     <!-- app/templates/base.html — UPDATE NAVBAR -->
-    <nav class="navbar navbar-expand-lg navbar-dark sticky-top">
-        <div class="container">
-            <a class="navbar-brand fw-bold" href="/">WFM PLANNER</a>
+    <nav class="navbar navbar-expand-lg navbar-light bg-white border-bottom sticky-top">
+        <div class="container-fluid">
+            <a class="navbar-brand fw-bold text-primary" href="{{ url_for('main.index') }}">
+                <i class="bi bi-bullseye me-2"></i>WFM Planner
+            </a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                 <span class="navbar-toggler-icon"></span>
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav ms-auto">
                     <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('main.goals') }}">Goals</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('main.year_page', year=today.year) }}">
-                            Annual
+                        <a class="nav-link" href="/day/{{ today.year }}/{{ today.month }}/{{ today.day }}">
+                            <i class="bi bi-calendar-day"></i> Daily
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('main.quarter_page', year=today.year, q_num=today_quarter) }}">
-                            Quarterly
+                        <a class="nav-link" href="/week/{{ today.year }}/{{ today.isocalendar()[1] }}">
+                            <i class="bi bi-calendar-week"></i> Weekly
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('main.month_page', year=today.year, month=today.month) }}">
-                            Monthly
+                        <a class="nav-link" href="/month/{{ today.year }}/{{ today.month }}">
+                            <i class="bi bi-calendar-month"></i> Monthly
                         </a>
                     </li>
                     <li class="nav-item">
-                        {% set current_year, current_week = get_current_sunday_week() %}
-                        <a class="nav-link" href="{{ url_for('main.week_page', year=current_year, week=current_week) }}">
-                            Weekly
+                        <a class="nav-link" href="/quarter/{{ today.year }}/Q{{ today_quarter }}">
+                            <i class="bi bi-calendar-range"></i> Quarterly
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('main.day_page', year=today.year, month=today.month, day=today.day) }}">
-                            Daily
+                        <a class="nav-link" href="/year/{{ today.year }}">
+                            <i class="bi bi-calendar3"></i> Annually
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="{{ url_for('main.goals') }}">
+                            <i class="bi bi-check2-square"></i> Goals
                         </a>
                     </li>
                     <li class="nav-item dropdown">
@@ -63,6 +66,9 @@
                         </ul>
                     </li>
                 </ul>
+                <span class="navbar-text text-muted small">
+                Today: {{ today.strftime('%b %d, %Y') }}
+                </span>
             </div>
         </div>
     </nav>
