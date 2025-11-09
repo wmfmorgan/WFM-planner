@@ -170,7 +170,7 @@
                     {{ form.hidden_tag() }}
                     <input type="hidden" name="parent_id" value="">
                     <input type="hidden" name="goal_id" value="">
-                    <input type="hidden" name="type" id="hidden-type-field">
+                    <input type="hidden" name="hidden_type" id="hidden-type-field">
 
                     <div class="mb-3">
                         {{ form.title.label(class="form-label") }}
@@ -240,6 +240,7 @@ document.addEventListener('DOMContentLoaded', function () {
         const target = e.target;
 
         // ADD TOP-LEVEL GOAL (modal)
+        // ADD TOP-LEVEL GOAL (modal) — FULL RESET
         if (target.matches('[data-bs-target="#goalModal"]')) {
             document.getElementById('modalTitle').textContent = 'Create Goal';
             const form = document.getElementById('unified-goal-form');
@@ -247,14 +248,17 @@ document.addEventListener('DOMContentLoaded', function () {
             form.action = '/goals';
             form.method = 'POST';
 
+            // CLEAR ALL HIDDEN FIELDS
             form.querySelector('[name="parent_id"]').value = '';
             form.querySelector('[name="goal_id"]').value = '';
-            alert(form.querySelector('[name="type"]'));
-            const typeSelect = form.querySelector('[name="type"]');
-            typeSelect.disabled = false;
             const hiddenField = document.getElementById('hidden-type-field');
             if (hiddenField) hiddenField.value = '';
-            alert(hiddenField);    
+
+            // RE-ENABLE TYPE SELECT
+            const typeSelect = form.querySelector('[name="type"]');
+            typeSelect.value = 'annual';  // default
+            typeSelect.disabled = true;
+            
             new bootstrap.Modal(document.getElementById('goalModal')).show();
             return;
         }
@@ -417,34 +421,63 @@ document.addEventListener('DOMContentLoaded', function () {
         const parentId = form.querySelector('[name="parent_id"]').value;
         const url = parentId ? `/api/goal/${parentId}/subgoal` : '/goals';
 
-        const data = {
-            title: form.querySelector('[name="title"]').value,
-            type: form.querySelector('[name="type"]').value,
-            category: form.querySelector('[name="category"]').value || null,
-            description: form.querySelector('[name="description"]').value || null,
-            motivation: form.querySelector('[name="motivation"]').value || null,
-            due_date: form.querySelector('[name="due_date"]').value || null,
-            status: form.querySelector('[name="status"]').value,
-            completed: form.querySelector('[name="completed"]').checked
-        };
+        if (parentId) {
+            // SUB-GOAL: Send JSON
+            const data = {
+                title: form.querySelector('[name="title"]').value,
+                type: form.querySelector('[name="hidden_type"]').value || form.querySelector('[name="type"]').value,
+                category: form.querySelector('[name="category"]').value || null,
+                description: form.querySelector('[name="description"]').value || null,
+                motivation: form.querySelector('[name="motivation"]').value || null,
+                due_date: form.querySelector('[name="due_date"]').value || null,
+                status: form.querySelector('[name="status"]').value,
+                completed: form.querySelector('[name="completed"]').checked
+            };
 
-        alert(JSON.stringify(data));
-        console.log('Sending to:', url, data);
+            console.log('Sending JSON to:', url, data);
 
-        fetch(url, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(data)
-        })
-        .then(res => {
-            if (!res.ok) throw new Error(`HTTP ${res.status}`);
-            location.reload();
-        })
-        .catch(err => {
-            console.error('Add failed:', err);
-            alert('Failed to add goal.');
-        });
+            fetch(url, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            })
+            .then(res => {
+                if (!res.ok) throw new Error(`HTTP ${res.status}`);
+                location.reload();
+            })
+            .catch(err => {
+                console.error('Add sub-goal failed:', err);
+                alert('Failed to add sub-goal.');
+            });
+        } else {
+            // TOP-LEVEL: Send FormData
+            const formData = new FormData(form);
+
+            // Use hidden_type if exists
+            const hiddenType = document.getElementById('hidden-type-field');
+            if (hiddenType && hiddenType.value) {
+                formData.set('type', hiddenType.value);
+            }
+
+            console.log('Sending FormData to:', url);
+            for (let [k, v] of formData) console.log(k, v);
+
+            fetch(url, {
+                method: 'POST',
+                body: formData  // ← SEND AS FORM DATA
+                // NO Content-Type!
+            })
+            .then(res => {
+                if (!res.ok) throw new Error(`HTTP ${res.status}`);
+                location.reload();
+            })
+            .catch(err => {
+                console.error('Add top-level failed:', err);
+                alert('Failed to add goal.');
+            });
+        }
     });
+
 });
 </script>
 
