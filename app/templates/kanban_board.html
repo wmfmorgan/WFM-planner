@@ -138,7 +138,7 @@
                         <div class="col-md-6">
                             <div class="mb-3">
                                 {{ form.type.label(class="form-label") }}
-                                {{ form.type(class="form-select") }}
+                                {{ form.type(class="form-select goal-type-select") }}
                             </div>
                         </div>
                         <div class="col-md-6">
@@ -281,39 +281,44 @@
     });
 
     // ADD GOAL FROM KANBAN
-    document.addEventListener('click', function(e) {
-        if (e.target.closest('.add-kanban-goal-btn')) {
-            const btn = e.target.closest('.add-kanban-goal-btn');
-            const parentType = btn.dataset.parentType;
-            
-            const typeMap = {
-                'year' : "annual ",
-                'annual': 'quarterly',
-                'quarterly': 'monthly',
-                'monthly': 'weekly',
-                'weekly': 'daily',
-                'daily': 'daily'
-            };
-            const childType = typeMap[parentType] || 'daily';
+// ADD GOAL FROM KANBAN
+document.addEventListener('click', function(e) {
+    if (e.target.closest('.add-kanban-goal-btn')) {
+        const btn = e.target.closest('.add-kanban-goal-btn');
+        const parentType = btn.dataset.parentType;
+        const typeMap = {
+            'year': 'annual',
+            'annual': 'quarterly',
+            'quarterly': 'monthly',
+            'monthly': 'weekly',
+            'weekly': 'daily',
+            'daily': 'daily'
+        };
+        const childType = typeMap[parentType] || 'daily';
 
-            const form = document.getElementById('unified-goal-form');
-            form.reset();
-            form.querySelector('[name="parent_id"]').value = '';
-            
-            // SET VISIBLE SELECT (DISABLED)
-            const typeSelect = form.querySelector('[name="type"]');
-            typeSelect.value = childType;
-            typeSelect.disabled = true;
+        const form = document.getElementById('unified-goal-form');
+        form.reset();
+        form.querySelector('[name="parent_id"]').value = '';
 
-            // COPY TO HIDDEN FIELD (SENT TO SERVER)
-            document.getElementById('kanban-hidden-type').value = childType;
+        document.getElementById('modalTitle').textContent = `Add ${childType.charAt(0).toUpperCase() + childType.slice(1)} Goal`;
 
-            document.getElementById('modalTitle').textContent = `Add ${childType.charAt(0).toUpperCase() + childType.slice(1)} Goal`;
+            const typeSelect = form.querySelector('.goal-type-select');
+            if (typeSelect) {
+                typeSelect.value = childType;
+                typeSelect.disabled = true;
+            }
+            const hidden = document.getElementById('kanban-hidden-type');
+            if (hidden) hidden.value = childType;
 
-            const modal = new bootstrap.Modal(document.getElementById('goalModal'));
-            modal.show();
-        }
-    });
+        // Reset modal state
+        //const modalEl = document.getElementById('goalModal');
+        //modalEl.querySelectorAll('input, select, textarea').forEach(el => el.value = '');
+
+        const modal = new bootstrap.Modal(document.getElementById('goalModal'));
+        modal.show();
+    }
+});
+
 
     // DELETE GOAL
     document.addEventListener('click', function(e) {
