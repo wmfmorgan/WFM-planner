@@ -181,7 +181,8 @@
                         <div class="col-md-6">
                             <div class="mb-3">
                                 {{ form.type.label(class="form-label") }}
-                                {{ form.type(class="form-select") }}
+                                {{ form.type(class="form-select goal-type-select") }}
+
                             </div>
                         </div>
                         <div class="col-md-6">
@@ -255,7 +256,7 @@ document.addEventListener('DOMContentLoaded', function () {
             if (hiddenField) hiddenField.value = '';
 
             // RE-ENABLE TYPE SELECT
-            const typeSelect = form.querySelector('[name="type"]');
+            const typeSelect = form.querySelector('.goal-type-select');
             typeSelect.value = 'annual';  // default
             typeSelect.disabled = true;
             
