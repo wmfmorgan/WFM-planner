@@ -742,7 +742,7 @@ def api_note(key):
         abort(400)
     print(key)
     scope = parts[1]
-    type_ = parts[-2]
+    type_ = parts[-1]
     year = None
     quarter = None
     month = None
