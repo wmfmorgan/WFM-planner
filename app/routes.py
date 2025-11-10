@@ -1039,3 +1039,17 @@ def api_update_status(task_id):
     task.status = TaskStatus(new_status)
     db.session.commit()
     return jsonify({'success': True})
+
+
+@bp.context_processor
+def inject_week_info():
+    today = date.today()
+    # Calculate days to subtract to get to Sunday (weeks start Sunday)
+    days_to_sunday = (today.weekday() + 1) % 7  # Mon=0 → 1, Sun=6 → 0
+    this_sunday = today - timedelta(days=days_to_sunday)
+    current_week_num = this_sunday.isocalendar()[1]
+    
+    return {
+        'current_week_num': current_week_num,
+        'today': today
+    }
