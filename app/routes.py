@@ -323,6 +323,7 @@ def month_page(year, month):
     print("date")
     #today = date.today()  # Nov 10, 2025
     q_start, q_end = quarter_range(year, month)
+    print(f"Start: {q_start} | End: {q_end}")
     #last_day = last_day_of_month(year, month)
     #print(last_day)  # 2025-11-30
     #m_start_dt = datetime(m_start.year, m_start.month, 1).date()
@@ -334,6 +335,7 @@ def month_page(year, month):
         Goal.completed == False  # ← EXCLUDE COMPLETED
     ).all() 
 
+    print(F"Possbile Parens: {possible_parents}")
 
     #possible_parents = Goal.query.filter(
      #   Goal.type == 'quarterly',
@@ -1151,6 +1153,7 @@ def week_range(year: int, month: int, day: int) -> tuple[date, date]:
     Return (week_start_sunday, week_end_saturday) for the given date.
     Week starts on Sunday.
     """
+    print(year, month, day)
     given_date = date(year, month, day)
     
     # weekday(): Mon=0, Tue=1, ..., Sun=6
