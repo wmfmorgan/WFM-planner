@@ -1,165 +1,284 @@
+/* --------------------------------------------------------------
+   calendar.js – all day-page logic in ONE place
+   -------------------------------------------------------------- */
 document.addEventListener('DOMContentLoaded', () => {
-    const modal = new bootstrap.Modal(document.getElementById('eventModal'));
-    
-    let selectedDate = null;
-    let selectedHour = null;
+    // -----------------------------------------------------------------
+    // 1. CONFIG – these values are injected by the Flask template
+    // -----------------------------------------------------------------
+    const apiBase   = '/api';
+    const dayDate = (function() {
+    const el = document.getElementById('dayDateData');
+        return el ? el.textContent.replace(/\s/g, '') : '';
+    })();
+    const isToday   = (new Date().toISOString().slice(0,10) === dayDate);
 
-    // === CLICK + ADD EVENT — SUPPORT ALL PAGES ===
-    document.querySelectorAll('.add-event-area').forEach(area => {
-        area.addEventListener('click', (e) => {
+    // -----------------------------------------------------------------
+    // 2. DOM ELEMENTS
+    // -----------------------------------------------------------------
+    const modalEl   = document.getElementById('eventModal');
+    const modal     = new bootstrap.Modal(modalEl);
+    const form      = document.getElementById('eventForm');
+    const titleEl   = document.getElementById('eventModalLabel');
+
+    let editingEventId = null;
+
+    // -----------------------------------------------------------------
+    // 3. HELPERS
+    // -----------------------------------------------------------------
+    const pad = n => n.toString().padStart(2, '0');
+
+    const resetModal = () => {
+        editingEventId = null;
+        titleEl.textContent = 'Add Event';
+        form.reset();
+        document.getElementById('startTime').disabled = false;
+        document.getElementById('endTime').disabled   = false;
+        document.getElementById('recurrenceOptions').classList.add('d-none');
+        const del = document.getElementById('deleteEventBtn');
+        if (del) del.remove();
+    };
+
+    // -----------------------------------------------------------------
+    // 4+5. SINGLE CLICK HANDLER – ADD OR EDIT (NO DUPLICATES)
+    // -----------------------------------------------------------------
+    let isProcessingClick = false;
+
+    document.addEventListener('click', e => {
+        if (isProcessingClick) return;  // ← BLOCK ALL EXTRA CLICKS
+
+        // --- 1. EDIT EVENT (badge) ---
+        const badge = e.target.closest('.event-badge[data-event-id]');
+        if (badge) {
+            isProcessingClick = true;
             e.stopPropagation();
-            const cell = e.target.closest('.calendar-day') || e.target.closest('[data-hour]');
-            if (!cell) return;
 
-            // GET DATE
-            if (cell.dataset.date) {
-                selectedDate = cell.dataset.date;
-            } else if (cell.dataset.hour) {
-                selectedHour = cell.dataset.hour;
-                const yearMatch = window.location.pathname.match(/\/(20\d{2})\//);
-                const monthMatch = window.location.pathname.match(/\/(\d{1,2})\//);
-                const dayMatch = window.location.pathname.match(/\/(\d{1,2})$/);
-                if (yearMatch && monthMatch && dayMatch) {
-                    selectedDate = `${yearMatch[1]}-${String(monthMatch[1]).padStart(2, '0')}-${String(dayMatch[1]).padStart(2, '0')}`;
-                }
-            }
+            const id = badge.dataset.eventId;
+            fetch(`${apiBase}/event/${id}`)
+                .then(r => r.json())
+                .then(ev => {
+                    editingEventId = ev.id;
+                    titleEl.textContent = 'Edit Event';
 
-            if (selectedDate) {
-                document.getElementById('eventDate').value = selectedDate;
-                document.getElementById('startDate').value = selectedDate;
-                document.getElementById('endDate').value = selectedDate;
-                if (selectedHour) {
-                    document.getElementById('startTime').value = `${selectedHour.padStart(2, '0')}:00`;
-                }
-                modal.show();
+                    form.reset();
+                    document.getElementById('eventTitle').value = ev.title || '';
+                    document.getElementById('startDate').value  = ev.start_date;
+                    document.getElementById('endDate').value    = ev.end_date;
+                    document.getElementById('startTime').value = ev.start_time || '';
+                    document.getElementById('endTime').value   = ev.end_time   || '';
 
-                // ENSURE BACKDROP REMOVES ON HIDE
-                modal._element.addEventListener('hidden.bs.modal', () => {
-                    document.querySelectorAll('.modal-backdrop').forEach(backdrop => {
-                        backdrop.remove();
-                    });
-                    document.body.classList.remove('modal-open');
-                    document.body.style.overflow = '';
-                    document.body.style.paddingRight = '';
-                });
+                    const allDay = ev.all_day;
+                    document.getElementById('allDay').checked = allDay;
+                    document.getElementById('startTime').disabled = allDay;
+                    document.getElementById('endTime').disabled   = allDay;
 
-
-
-
-            }
-        });
-    });
-
-    // === EVENT BADGE CLICK — EDIT EVENT ===
-    document.querySelectorAll('.event-badge[data-event-id]').forEach(badge => {
-        badge.addEventListener('click', (e) => {
-            e.stopPropagation();
-            const eventId = badge.dataset.eventId;
-
-            fetch(`/api/event/${eventId}`)
-                .then(res => res.json())
-                .then(event => {
-                    // STEP 1: ADD HIDDEN event_id
-                    let hiddenId = document.getElementById('eventId');
-                    if (!hiddenId) {
-                        hiddenId = document.createElement('input');
-                        hiddenId.type = 'hidden';
-                        hiddenId.id = 'eventId';
-                        hiddenId.name = 'event_id';
-                        document.getElementById('eventForm').appendChild(hiddenId);
+                    document.getElementById('recurring').checked = ev.is_recurring || false;
+                    document.getElementById('recurrenceOptions')
+                        .classList.toggle('d-none', !ev.is_recurring);
+                    if (ev.recurrence_rule) {
+                        document.getElementById('recurrenceRule').value = ev.recurrence_rule;
                     }
-                    hiddenId.value = event.id;
 
-                    // UPDATE BUTTON TEXT
-                    document.querySelector('#eventForm .btn-primary').textContent = 'Save Changes';
-
-                    // FILL FORM
-                    document.getElementById('eventTitle').value = event.title;
-                    document.getElementById('startDate').value = event.start_date;
-                    document.getElementById('endDate').value = event.end_date;
-                    document.getElementById('startTime').value = event.start_time || '';
-                    document.getElementById('endTime').value = event.end_time || '';
-                    document.getElementById('allDay').checked = event.all_day;
-                    document.getElementById('recurring').checked = event.is_recurring;
-                    document.getElementById('recurrenceRule').value = event.recurrence_rule || 'daily';
-
-                    // ADD DELETE BUTTON
-                    let deleteBtn = document.getElementById('deleteEventBtn');
-                    if (!deleteBtn) {
-                        deleteBtn = document.createElement('button');
-                        deleteBtn.id = 'deleteEventBtn';
-                        deleteBtn.className = 'btn btn-danger';
-                        deleteBtn.textContent = 'Delete Event';
-                        deleteBtn.type = 'button';
-                        document.querySelector('.modal-footer').appendChild(deleteBtn);
+                    // Delete button
+                    let del = document.getElementById('deleteEventBtn');
+                    if (!del) {
+                        del = document.createElement('button');
+                        del.id = 'deleteEventBtn';
+                        del.type = 'button';
+                        del.className = 'btn btn-danger';
+                        del.textContent = 'Delete';
+                        modalEl.querySelector('.modal-footer').appendChild(del);
                     }
-                    deleteBtn.onclick = () => {
+                    del.onclick = () => {
                         if (confirm('Delete this event?')) {
-                            fetch(`/api/event/${event.id}`, { method: 'DELETE' })
+                            fetch(`${apiBase}/event/${id}`, {method: 'DELETE'})
                                 .then(() => location.reload());
                         }
                     };
 
                     modal.show();
-
-                    // ENSURE BACKDROP REMOVES ON HIDE
-                    modal._element.addEventListener('hidden.bs.modal', () => {
-                        document.querySelectorAll('.modal-backdrop').forEach(backdrop => {
-                            backdrop.remove();
-                        });
-                        document.body.classList.remove('modal-open');
-                        document.body.style.overflow = '';
-                        document.body.style.paddingRight = '';
-                    });
-
+                })
+                .catch(err => {
+                    console.error('Load event failed:', err);
+                    alert('Could not load event.');
+                })
+                .finally(() => {
+                    setTimeout(() => isProcessingClick = false, 300);  // ← Allow next click
                 });
+            return;
+        }
+
+        // --- 2. ADD EVENT (time slot) ---
+        const slot = e.target.closest('.schedule-time-slot');
+        if (!slot) return;
+
+        isProcessingClick = true;
+        e.stopPropagation();
+
+        const hour    = parseInt(slot.dataset.hour, 10);
+        const minutes = parseInt(slot.dataset.minutes, 10) || 0;
+
+        resetModal();
+        modal.show();
+
+        modalEl.addEventListener('shown.bs.modal', function fillForm() {
+            document.getElementById('eventDate').value = dayDate;
+            document.getElementById('startDate').value = dayDate;
+            document.getElementById('endDate').value   = dayDate;
+            document.getElementById('startTime').value = `${pad(hour)}:${pad(minutes)}`;
+            const endH = (hour + (minutes >= 30 ? 1 : 0)) % 24;
+            const endM = minutes >= 30 ? 0 : 30;
+            document.getElementById('endTime').value = `${pad(endH)}:${pad(endM)}`;
+            this.removeEventListener('shown.bs.modal', fillForm);
+        }, { once: true });
+
+        setTimeout(() => isProcessingClick = false, 300);  // ← Re-enable after modal
+    });
+    
+    // -----------------------------------------------------------------
+    // 6. ALL-DAY / RECURRING TOGGLES
+    // -----------------------------------------------------------------
+    document.getElementById('allDay').addEventListener('change', e => {
+        const disabled = e.target.checked;
+        document.getElementById('startTime').disabled = disabled;
+        document.getElementById('endTime').disabled   = disabled;
+        if (disabled) {
+            document.getElementById('startTime').value = '';
+            document.getElementById('endTime').value   = '';
+        }
+    });
+
+    document.getElementById('recurring').addEventListener('change', e => {
+        document.getElementById('recurrenceOptions')
+            .classList.toggle('d-none', !e.target.checked);
+    });
+
+    // -----------------------------------------------------------------
+    // 7. FORM SUBMIT – CREATE OR UPDATE
+    // -----------------------------------------------------------------
+    form.addEventListener('submit', e => {
+        e.preventDefault();
+
+        const allDay = document.getElementById('allDay').checked;
+        const payload = {
+            title:          document.getElementById('eventTitle').value.trim(),
+            start_date:     document.getElementById('startDate').value,
+            end_date:       document.getElementById('endDate').value,
+            all_day:        allDay,
+            start_time:     allDay ? null : document.getElementById('startTime').value,
+            end_time:       allDay ? null : document.getElementById('endTime').value,
+            is_recurring:   document.getElementById('recurring').checked,
+            recurrence_rule: document.getElementById('recurring').checked
+                               ? document.getElementById('recurrenceRule').value
+                               : null
+        };
+
+        const method = editingEventId ? 'PUT' : 'POST';
+        const url    = editingEventId ? `${apiBase}/event/${editingEventId}` : `${apiBase}/event`;
+
+        fetch(url, {
+            method,
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(payload)
+        })
+        .then(r => { if (!r.ok) throw r; })
+        .then(() => location.reload())
+        .catch(err => {
+            console.error('Save failed:', err);
+            alert('Failed to save event.');
         });
     });
 
-    // === RECURRING & ALL DAY ===
-    document.getElementById('recurring')?.addEventListener('change', (e) => {
-        document.getElementById('recurrenceOptions')?.classList.toggle('d-none', !e.target.checked);
+    // -----------------------------------------------------------------
+    // 8. MODAL CLEAN-UP
+    // -----------------------------------------------------------------
+    modalEl.addEventListener('hidden.bs.modal', () => {
+        resetModal();
+        document.querySelectorAll('.modal-backdrop').forEach(b => b.remove());
+        document.body.classList.remove('modal-open');
+        document.body.style.overflow = '';
+        document.body.style.paddingRight = '';
     });
 
-    document.getElementById('allDay')?.addEventListener('change', (e) => {
-        const timeFields = document.querySelectorAll('#startTime, #endTime');
-        timeFields.forEach(f => f.disabled = e.target.checked);
+    // -----------------------------------------------------------------
+    // 9. KANBAN DRAG-AND-DROP
+    // -----------------------------------------------------------------
+    let dragged = null;
+    const allow = e => e.preventDefault();
+    const start = e => {
+        dragged = e.target;
+        e.dataTransfer.setData('text/plain', e.target.dataset.taskId);
+        setTimeout(() => e.target.classList.add('dragging'), 0);
+    };
+
+    document.addEventListener('dragover', allow);
+    document.addEventListener('drop', e => {
+        e.preventDefault();
+        if (!dragged) return;
+        const col = e.target.closest('.kanban-col');
+        if (!col) return;
+
+        const taskId = dragged.dataset.taskId;
+        const status = col.dataset.status;
+
+        dragged.classList.remove('dragging');
+        col.querySelector('.task-list').appendChild(dragged);
+
+        fetch(`${apiBase}/task/${taskId}/status`, {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({status})
+        }).catch(console.error);
     });
 
-    // === SUBMIT FORM — STEP 2: CONDITIONAL SAVE ===
-    const form = document.getElementById('eventForm');
-    if (form && !form.dataset.listenerAttached) {
-        form.dataset.listenerAttached = 'true';
+    document.querySelectorAll('.task-card[draggable="true"]')
+            .forEach(c => c.addEventListener('dragstart', start));
 
-        form.addEventListener('submit', (e) => {
-            e.preventDefault();
-            const eventId = document.getElementById('eventId')?.value;
-            const data = {
-                title: document.getElementById('eventTitle').value,
-                start_date: document.getElementById('startDate').value,
-                end_date: document.getElementById('endDate').value,
-                start_time: document.getElementById('allDay').checked ? null : document.getElementById('startTime').value,
-                end_time: document.getElementById('allDay').checked ? null : document.getElementById('endTime').value,
-                all_day: document.getElementById('allDay').checked,
-                is_recurring: document.getElementById('recurring').checked,
-                recurrence_rule: document.getElementById('recurring').checked ? document.getElementById('recurrenceRule').value : null
-            };
+    // -----------------------------------------------------------------
+    // 10. ADD TASK (Enter key)
+    // -----------------------------------------------------------------
+    document.addEventListener('keypress', e => {
+        if (!e.target.classList.contains('add-task-input') || e.key !== 'Enter') return;
+        e.preventDefault();
+        const desc = e.target.value.trim();
+        if (!desc) return;
 
-            if (eventId) {
-                // EDIT — PUT
-                fetch(`/api/event/${eventId}`, {
-                    method: 'PUT',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(data)
-                }).then(() => location.reload());
-            } else {
-                // CREATE — POST
-                fetch('/api/event', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(data)
-                }).then(() => location.reload());
-            }
+        const [y, m, d] = dayDate.split('-');
+        fetch(`${apiBase}/task`, {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({description: desc, year: +y, month: +m, day: +d})
+        })
+        .then(r => r.json())
+        .then(data => {
+            const list = document.querySelector('[data-status="todo"] .task-list');
+            const card = document.createElement('div');
+            card.className = 'task-card bg-white p-3 rounded shadow-sm border';
+            card.draggable = true;
+            card.dataset.taskId = data.id;
+            card.innerHTML = `<div class="task-desc fw-medium">${desc}</div>`;
+            card.addEventListener('dragstart', start);
+            list.appendChild(card);
+            e.target.value = '';
+        })
+        .catch(err => {
+            console.error(err);
+            alert('Failed to add task.');
         });
+    });
+
+    // -----------------------------------------------------------------
+    // 11. AUTO-SCROLL TO CURRENT TIME (only on today)
+    // -----------------------------------------------------------------
+    const container = document.getElementById('schedule-container');
+    if (container && isToday) {
+        const now = new Date();
+        const h   = now.getHours();
+        const m   = Math.ceil(now.getMinutes() / 30) * 30;
+        const row = document.querySelector(`[data-hour="${h}"][data-minutes="${m}"]`);
+        if (row) {
+            setTimeout(() => {
+                container.scrollTop = row.offsetTop - container.offsetTop;
+            }, 100);
+        }
     }
 });

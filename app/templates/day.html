@@ -87,7 +87,10 @@
                                         {% set display_time = '%d:%02d %s'|format(hour_12, minutes, am_pm) %}
 
                                         <tr class="schedule-row" data-hour="{{ hour }}" data-minutes="{{ minutes }}">
-                                            <td class="text-left align-middle text-muted small" style="width: 90px; font-weight: {% if minutes == 0 %}bold{% else %}normal{% endif %};">
+                                            <td class="text-left align-middle text-muted small schedule-time-slot" 
+                                                style="width: 90px; font-weight: {% if minutes == 0 %}bold{% else %}normal{% endif %}; cursor: pointer;"
+                                                data-hour="{{ hour }}" 
+                                                data-minutes="{{ minutes }}">
                                                 {{ display_time }}
                                             </td>
                                             <td class="p-2 position-relative">
@@ -111,12 +114,10 @@
                                                         {% endif %}
                                                     {% endfor %}
                                                 </div>
-                                                <div class="add-event-area text-center text-muted small mt-1" 
-                                                    style="cursor: pointer;" 
+                                                <!-- Hidden trigger for backward compatibility -->
+                                                <div class="add-event-area d-none" 
                                                     data-hour="{{ hour }}" 
-                                                    data-minutes="{{ minutes }}">
-                                                    + Add
-                                                </div>
+                                                    data-minutes="{{ minutes }}"></div>
                                             </td>
                                         </tr>
                                     {% endfor %}
@@ -266,6 +267,10 @@
     </div>
 </div>
 
+<script id="dayDateData" type="application/json">
+{{ day_date.strftime('%Y-%m-%d') }}
+</script>
+
 <script src="{{ url_for('static', filename='js/calendar.js') }}"></script>
 
 <style>
@@ -276,138 +281,4 @@
 .add-task-input:focus { box-shadow: 0 0 0 0.2rem rgba(13,110,253,0.25); }
 </style>
 
-<script>
-document.addEventListener('DOMContentLoaded', () => {
-    const apiBase = '/api';
-    const curYear = {{ day_date.year }};
-    const curMonth = {{ day_date.month }};
-    const curDay = {{ day_date.day }};
-
-    const container = document.getElementById('schedule-container');
-    const now = new Date();
-    const today = {{ day_date.day }};
-    const isToday = now.getFullYear() === {{ day_date.year }} && 
-                    now.getMonth() + 1 === {{ day_date.month }} && 
-                    now.getDate() === today;
-
-    if (isToday && container) {
-        const currentHour = now.getHours();
-        const currentMinutes = Math.ceil((now.getMinutes() + 1) / 30) * 30;  // Round UP to next 30-min
-        const row = document.querySelector(`[data-hour="${currentHour}"][data-minutes="${currentMinutes}"]`);
-        
-        if (row) {
-            setTimeout(() => {
-                container.scrollTop = row.offsetTop - container.offsetTop;
-            }, 100);
-        }
-    }
-
-    // === EVENT MODAL: Set date + time from clicked slot ===
-    document.querySelectorAll('.add-event-area').forEach(area => {
-        area.addEventListener('click', () => {
-            const hour = parseInt(area.dataset.hour);
-            const minutes = parseInt(area.dataset.minutes) || 0;
-            const dateStr = {{ day_date | tojson }};
-            //alert(minutes);
-            document.getElementById('eventDate').value = dateStr;
-            document.getElementById('startDate').value = dateStr;
-            document.getElementById('endDate').value = dateStr;
-
-            // Set start time to clicked 30-min slot
-            const timeStr = `${hour.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
-            document.getElementById('startTime').value = timeStr;
-            //alert(timeStr);
-            // Optional: default end = start + 30 min
-            const endHour = (hour + (minutes >= 30 ? 1 : 0)) % 24;
-            const endMin = minutes >= 30 ? 0 : 30;
-            document.getElementById('endTime').value = `${endHour.toString().padStart(2, '0')}:${endMin.toString().padStart(2, '0')}`;
-
-            new bootstrap.Modal(document.getElementById('eventModal')).show();
-            setTimeout(() => {
-                document.getElementById('startTime').value = timeStr;
-                document.getElementById('endTime').value = `${endHour.toString().padStart(2, '0')}:${endMin.toString().padStart(2, '0')}`;
-            }, 150);
-        });
-    });
-
-    // === DRAG & DROP ===
-    function allowDrop(e) { e.preventDefault(); }
-    function dragStart(e) {
-        e.dataTransfer.setData('taskId', e.target.dataset.taskId);
-        setTimeout(() => e.target.classList.add('dragging'), 0);
-    }
-
-    // Re-attach drag to all cards (including future ones)
-    function attachDragEvents() {
-        document.querySelectorAll('.task-card[draggable="true"]').forEach(card => {
-            if (!card.dataset.dragAttached) {
-                card.ondragstart = dragStart;
-                card.dataset.dragAttached = 'true';
-            }
-        });
-    }
-    attachDragEvents();
-
-    // Drop handler
-    document.addEventListener('drop', e => {
-        e.preventDefault();
-        const taskId = e.dataTransfer.getData('taskId');
-        const card = document.querySelector(`[data-task-id="${taskId}"]`);
-        const col = e.target.closest('.kanban-col');
-        if (!col || !card) return;
-
-        const newStatus = col.dataset.status;
-        card.classList.remove('dragging');
-        col.querySelector('.task-list').appendChild(card);
-
-        fetch(`${apiBase}/task/${taskId}/status`, {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({status: newStatus})
-        }).catch(err => console.error('Status update failed:', err));
-    });
-
-    document.addEventListener('dragover', allowDrop);
-
-    // === ADD TASK (Event Delegation) ===
-    document.addEventListener('keypress', e => {
-        if (e.target.classList.contains('add-task-input') && e.key === 'Enter') {
-            e.preventDefault(); // ← CRITICAL: Stop form submit / newline
-            const input = e.target;
-            const desc = input.value.trim();
-            if (!desc) return;
-
-            fetch(`${apiBase}/task`, {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({
-                    description: desc,
-                    year: curYear,
-                    month: curMonth,
-                    day: curDay
-                })
-            })
-            .then(r => {
-                if (!r.ok) throw r.json();
-                return r.json();
-            })
-            .then(data => {
-                const todoList = document.querySelector('[data-status="todo"] .task-list');
-                const newCard = document.createElement('div');
-                newCard.className = 'task-card bg-white p-3 rounded shadow-sm border';
-                newCard.draggable = true;
-                newCard.dataset.taskId = data.id;
-                newCard.innerHTML = `<div class="task-desc fw-medium">${desc}</div>`;
-                todoList.appendChild(newCard);
-                attachDragEvents(); // Re-attach drag
-                input.value = '';
-            })
-            .catch(err => {
-                console.error('Add task failed:', err);
-                alert('Failed to add task. Check console.');
-            });
-        }
-    });
-});
-</script>
 {% endblock %}
