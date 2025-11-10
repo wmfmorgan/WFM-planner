@@ -42,13 +42,21 @@ document.addEventListener('DOMContentLoaded', () => {
     // 4+5. SINGLE CLICK HANDLER – ADD OR EDIT (NO DUPLICATES)
     // -----------------------------------------------------------------
     let isProcessingClick = false;
+    let clickDebugId = 0;
 
     document.addEventListener('click', e => {
-        if (isProcessingClick) return;  // ← BLOCK ALL EXTRA CLICKS
+        const debugId = ++clickDebugId;
+        console.log(`[DEBUG ${debugId}] Click detected. isProcessingClick = ${isProcessingClick}`);
+
+        if (isProcessingClick) {
+            console.log(`[DEBUG ${debugId}] BLOCKED – already processing`);
+            return;
+        }
 
         // --- 1. EDIT EVENT (badge) ---
         const badge = e.target.closest('.event-badge[data-event-id]');
         if (badge) {
+            console.log(`[DEBUG ${debugId}] EDIT badge clicked (id=${badge.dataset.eventId})`);
             isProcessingClick = true;
             e.stopPropagation();
 
@@ -56,6 +64,7 @@ document.addEventListener('DOMContentLoaded', () => {
             fetch(`${apiBase}/event/${id}`)
                 .then(r => r.json())
                 .then(ev => {
+                    console.log(`[DEBUG ${debugId}] EDIT loaded – opening modal`);
                     editingEventId = ev.id;
                     titleEl.textContent = 'Edit Event';
 
@@ -98,19 +107,27 @@ document.addEventListener('DOMContentLoaded', () => {
                     modal.show();
                 })
                 .catch(err => {
-                    console.error('Load event failed:', err);
+                    console.error(`[DEBUG ${debugId}] Load event failed`, err);
                     alert('Could not load event.');
                 })
                 .finally(() => {
-                    setTimeout(() => isProcessingClick = false, 300);  // ← Allow next click
+                    // Re-enable after modal is fully shown
+                    modalEl.addEventListener('shown.bs.modal', () => {
+                        console.log(`[DEBUG ${debugId}] Modal shown – re-enabling clicks`);
+                        isProcessingClick = false;
+                    }, { once: true });
                 });
             return;
         }
 
         // --- 2. ADD EVENT (time slot) ---
         const slot = e.target.closest('.schedule-time-slot');
-        if (!slot) return;
+        if (!slot) {
+            console.log(`[DEBUG ${debugId}] No slot or badge – ignoring`);
+            return;
+        }
 
+        console.log(`[DEBUG ${debugId}] ADD slot clicked (${slot.dataset.hour}:${slot.dataset.minutes})`);
         isProcessingClick = true;
         e.stopPropagation();
 
@@ -121,6 +138,7 @@ document.addEventListener('DOMContentLoaded', () => {
         modal.show();
 
         modalEl.addEventListener('shown.bs.modal', function fillForm() {
+            console.log(`[DEBUG ${debugId}] ADD modal shown – filling form`);
             document.getElementById('eventDate').value = dayDate;
             document.getElementById('startDate').value = dayDate;
             document.getElementById('endDate').value   = dayDate;
@@ -129,11 +147,9 @@ document.addEventListener('DOMContentLoaded', () => {
             const endM = minutes >= 30 ? 0 : 30;
             document.getElementById('endTime').value = `${pad(endH)}:${pad(endM)}`;
             this.removeEventListener('shown.bs.modal', fillForm);
+            isProcessingClick = false;
         }, { once: true });
-
-        setTimeout(() => isProcessingClick = false, 300);  // ← Re-enable after modal
-    });
-    
+    });    
     // -----------------------------------------------------------------
     // 6. ALL-DAY / RECURRING TOGGLES
     // -----------------------------------------------------------------
@@ -153,40 +169,49 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // -----------------------------------------------------------------
-    // 7. FORM SUBMIT – CREATE OR UPDATE
+    // 7. FORM SUBMIT – CREATE OR UPDATE (ONLY ONCE)
     // -----------------------------------------------------------------
-    form.addEventListener('submit', e => {
-        e.preventDefault();
+    if (!form.dataset.submitListenerAttached) {
+        form.dataset.submitListenerAttached = 'true';
 
-        const allDay = document.getElementById('allDay').checked;
-        const payload = {
-            title:          document.getElementById('eventTitle').value.trim(),
-            start_date:     document.getElementById('startDate').value,
-            end_date:       document.getElementById('endDate').value,
-            all_day:        allDay,
-            start_time:     allDay ? null : document.getElementById('startTime').value,
-            end_time:       allDay ? null : document.getElementById('endTime').value,
-            is_recurring:   document.getElementById('recurring').checked,
-            recurrence_rule: document.getElementById('recurring').checked
-                               ? document.getElementById('recurrenceRule').value
-                               : null
-        };
+        form.addEventListener('submit', e => {
+            e.preventDefault();
 
-        const method = editingEventId ? 'PUT' : 'POST';
-        const url    = editingEventId ? `${apiBase}/event/${editingEventId}` : `${apiBase}/event`;
+            const allDay = document.getElementById('allDay').checked;
+            const payload = {
+                title:          document.getElementById('eventTitle').value.trim(),
+                start_date:     document.getElementById('startDate').value,
+                end_date:       document.getElementById('endDate').value,
+                all_day:        allDay,
+                start_time:     allDay ? null : document.getElementById('startTime').value,
+                end_time:       allDay ? null : document.getElementById('endTime').value,
+                is_recurring:   document.getElementById('recurring').checked,
+                recurrence_rule: document.getElementById('recurring').checked
+                                   ? document.getElementById('recurrenceRule').value
+                                   : null
+            };
 
-        fetch(url, {
-            method,
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify(payload)
-        })
-        .then(r => { if (!r.ok) throw r; })
-        .then(() => location.reload())
-        .catch(err => {
-            console.error('Save failed:', err);
-            alert('Failed to save event.');
+            const method = editingEventId ? 'PUT' : 'POST';
+            const url    = editingEventId ? `${apiBase}/event/${editingEventId}` : `${apiBase}/event`;
+
+            console.log(`[SUBMIT] ${method} → ${url}`, payload);
+
+            fetch(url, {
+                method,
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify(payload)
+            })
+            .then(r => {
+                if (!r.ok) throw r;
+                console.log('[SUBMIT] Success – reloading');
+                location.reload();
+            })
+            .catch(err => {
+                console.error('[SUBMIT] Failed:', err);
+                alert('Failed to save event.');
+            });
         });
-    });
+    }
 
     // -----------------------------------------------------------------
     // 8. MODAL CLEAN-UP
