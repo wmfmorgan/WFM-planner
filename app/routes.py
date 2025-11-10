@@ -2,6 +2,7 @@
 from flask import Blueprint, render_template, request, jsonify, abort, url_for, flash, redirect, Response
 from . import db
 from .models import Goal, Note, Event
+from .models import Task, TaskStatus
 from .forms import GoalForm
 from datetime import datetime, timedelta, date
 from dateutil.relativedelta import relativedelta
@@ -521,6 +522,12 @@ def day_page(year, month, day):
     except ValueError:
         abort(404)
 
+    try:
+        target_date = date(year=year, month=month, day=day)
+    except ValueError:
+        flash('Invalid date!')  # Redirect if needed: return redirect(url_for('index'))
+    # Or raise 404: abort(404)
+
     daily_goals = Goal.query.filter(
         Goal.type == 'daily',
         Goal.due_date == day_date,
@@ -552,7 +559,36 @@ def day_page(year, month, day):
             Event.all_day.desc(),
             Event.start_time.asc()
         ).all()
-    
+        
+    # 1. Carry-forward non-DONE tasks from yesterday
+    yesterday = target_date - timedelta(days=1)
+    prev_tasks = Task.query.filter(
+        Task.date == yesterday,
+        Task.status != TaskStatus.DONE
+    ).all()
+
+    for t in prev_tasks:
+        # avoid duplicates (same description on the same date)
+        if not Task.query.filter_by(description=t.description, date=target_date).first():
+            db.session.add(Task(
+                description=t.description,
+                date=target_date,
+                status=t.status,
+                notes=t.notes
+            ))
+    db.session.commit()
+
+    # 2. Load today’s tasks
+    today_tasks = Task.query.filter_by(date=target_date).order_by(Task.id).all()
+
+    # 3. Group for the Kanban board
+    kanban = {
+        'todo':        [t for t in today_tasks if t.status == TaskStatus.TODO],
+        'in_progress': [t for t in today_tasks if t.status == TaskStatus.IN_PROGRESS],
+        'blocked':     [t for t in today_tasks if t.status == TaskStatus.BLOCKED],
+        'done':        [t for t in today_tasks if t.status == TaskStatus.DONE],
+    }
+
     form = GoalForm()
     return render_template(
         'day.html',
@@ -574,7 +610,9 @@ def day_page(year, month, day):
         #day=day,
         month_name=calendar.month_name[month],
         events_on_date=events_on_date,
-        today_quarter=today_quarter
+        today_quarter=today_quarter,
+        date=target_date,
+        kanban=kanban
     )
 
 
@@ -963,3 +1001,38 @@ def import_json():
     today = date.today()
     today_quarter = (today.month - 1) // 3 + 1
     return render_template('import_json.html', today=today, today_quarter=today_quarter)
+
+# --------------------------------------------------------------
+# API: add a task (only from the To-Do column)
+# --------------------------------------------------------------
+@bp.route('/api/task', methods=['POST'])  # Or @app.route if not Blueprint
+def api_add_task():
+    data = request.get_json()
+    task_date = date(
+        year=int(data['year']),
+        month=int(data['month']),
+        day=int(data['day'])
+    )
+    task = Task(
+        description=data['description'],
+        date=task_date,
+        status=TaskStatus.TODO,
+        notes=data.get('notes', '')
+    )
+    db.session.add(task)
+    db.session.commit()
+    return jsonify({'id': task.id, 'description': task.description})
+
+
+# --------------------------------------------------------------
+# API: change task status (drag-and-drop)
+# --------------------------------------------------------------
+@bp.route('/api/task/<int:task_id>/status', methods=['POST'])  # Or @app.route
+def api_update_status(task_id):
+    task = Task.query.get_or_404(task_id)
+    new_status = request.json.get('status')
+    if new_status not in [s.value for s in TaskStatus]:
+        return jsonify({'error': 'Invalid status'}), 400
+    task.status = TaskStatus(new_status)
+    db.session.commit()
+    return jsonify({'success': True})

@@ -115,35 +115,40 @@
             </div>
         </div>
 
-    <!-- RIGHT: TASK CHECKLIST (SPACED OUT) -->
-        <div class="col-md-6">
-            <div class="card border-light h-100">
-                <div class="card-header bg-light">
-                    <h5 class="mb-0">Tasks</h5>
-                </div>
-                <div class="card-body p-0" style="height: 840px; overflow-y: auto;">
-                    <div class="d-flex flex-column h-100">
-                        {% for i in range(48) %}
-                            <div class="border-bottom d-flex align-items-center px-3 py-1" style="height: 35px;">
-                                <!--<input type="checkbox" class="me-3">-->
-                                <input type="checkbox" class="task-complete" 
-                                data-scope="day" data-year="{{ year }}" data-month="{{ month }}" 
-                                data-day="{{ day }}" data-type="task" data-index="{{ i }}">
 
-                                <input type="text" name="task" class="form-control autosave" 
-                                    style="height: 100%; background: transparent; font-size: 0.9rem;"    
-                                    placeholder="Task..."
-                                    data-scope="day" data-year="{{ day_date.year }}" data-month="{{ day_date.month }}" 
-                                    data-day="{{ day_date.day }}" data-type="task" data-index="{{ i }}">
-                            </div>
-                        {% endfor %}
-                    </div>
-                </div>
-            </div>
-        </div>
     </div>
 
-
+<!-- ==== TASK KANBAN BOARD (Independent of Goals/Events) ==== -->
+<section class="kanban-section mt-4">
+    <h2>Daily Tasks</h2>
+    <div class="kanban-board d-flex gap-3 overflow-auto pb-3">
+        {% for col in ['todo', 'in_progress', 'blocked', 'done'] %}
+        <div class="kanban-col flex-shrink-0 bg-light rounded" style="width: 280px;" data-status="{{ col }}">
+            <h5 class="p-2 mb-0 text-uppercase text-muted border-bottom">
+                {{ col.replace('_', ' ')|title }} ({{ kanban[col]|length }})
+            </h5>
+            <div class="task-list p-3 min-vh-50 d-flex flex-column gap-2" 
+                 ondrop="drop(event)" ondragover="allowDrop(event)">
+                {% for task in kanban[col] %}
+                <div class="task-card bg-white p-3 rounded shadow-sm border"
+                     draggable="true"
+                     data-task-id="{{ task.id }}"
+                     ondragstart="dragStart(event)">
+                    <div class="task-desc fw-medium">{{ task.description }}</div>
+                    {% if task.notes %}
+                    <small class="text-muted d-block mt-1">{{ task.notes }}</small>
+                    {% endif %}
+                </div>
+                {% endfor %}
+                {% if col == 'todo' %}
+                <input type="text" class="form-control mt-auto add-task-input border-0 shadow-sm"
+                       placeholder="+ Add a task... (hit Enter)" />
+                {% endif %}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</section>
 
     <!-- NOTES — FULL WIDTH -->
     <div class="card border-light mb-4">
@@ -251,4 +256,100 @@
 </div>
 
 <script src="{{ url_for('static', filename='js/calendar.js') }}"></script>
+
+<style>
+.kanban-board { max-width: 100vw; }
+.task-card { cursor: grab; user-select: none; transition: all 0.2s; }
+.task-card:active { cursor: grabbing; }
+.task-card.dragging { opacity: 0.6; transform: rotate(3deg) scale(1.02); box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
+.add-task-input:focus { box-shadow: 0 0 0 0.2rem rgba(13,110,253,0.25); }
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const apiBase = '/api';
+    const curYear = {{ day_date.year }};
+    const curMonth = {{ day_date.month }};
+    const curDay = {{ day_date.day }};
+
+    // === DRAG & DROP ===
+    function allowDrop(e) { e.preventDefault(); }
+    function dragStart(e) {
+        e.dataTransfer.setData('taskId', e.target.dataset.taskId);
+        setTimeout(() => e.target.classList.add('dragging'), 0);
+    }
+
+    // Re-attach drag to all cards (including future ones)
+    function attachDragEvents() {
+        document.querySelectorAll('.task-card[draggable="true"]').forEach(card => {
+            if (!card.dataset.dragAttached) {
+                card.ondragstart = dragStart;
+                card.dataset.dragAttached = 'true';
+            }
+        });
+    }
+    attachDragEvents();
+
+    // Drop handler
+    document.addEventListener('drop', e => {
+        e.preventDefault();
+        const taskId = e.dataTransfer.getData('taskId');
+        const card = document.querySelector(`[data-task-id="${taskId}"]`);
+        const col = e.target.closest('.kanban-col');
+        if (!col || !card) return;
+
+        const newStatus = col.dataset.status;
+        card.classList.remove('dragging');
+        col.querySelector('.task-list').appendChild(card);
+
+        fetch(`${apiBase}/task/${taskId}/status`, {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({status: newStatus})
+        }).catch(err => console.error('Status update failed:', err));
+    });
+
+    document.addEventListener('dragover', allowDrop);
+
+    // === ADD TASK (Event Delegation) ===
+    document.addEventListener('keypress', e => {
+        if (e.target.classList.contains('add-task-input') && e.key === 'Enter') {
+            e.preventDefault(); // ← CRITICAL: Stop form submit / newline
+            const input = e.target;
+            const desc = input.value.trim();
+            if (!desc) return;
+
+            fetch(`${apiBase}/task`, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({
+                    description: desc,
+                    year: curYear,
+                    month: curMonth,
+                    day: curDay
+                })
+            })
+            .then(r => {
+                if (!r.ok) throw r.json();
+                return r.json();
+            })
+            .then(data => {
+                const todoList = document.querySelector('[data-status="todo"] .task-list');
+                const newCard = document.createElement('div');
+                newCard.className = 'task-card bg-white p-3 rounded shadow-sm border';
+                newCard.draggable = true;
+                newCard.dataset.taskId = data.id;
+                newCard.innerHTML = `<div class="task-desc fw-medium">${desc}</div>`;
+                todoList.appendChild(newCard);
+                attachDragEvents(); // Re-attach drag
+                input.value = '';
+            })
+            .catch(err => {
+                console.error('Add task failed:', err);
+                alert('Failed to add task. Check console.');
+            });
+        }
+    });
+});
+</script>
 {% endblock %}

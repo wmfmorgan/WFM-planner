@@ -1,6 +1,8 @@
 # app/models.py
+from enum import Enum as PyEnum
 from datetime import datetime, date
 from . import db
+
 
 # app/models.py
 class Note(db.Model):
@@ -92,3 +94,17 @@ class Event(db.Model):
 
     def __repr__(self):
         return f"<Event {self.title}>"
+    
+
+class TaskStatus(PyEnum):
+    TODO = "todo"
+    IN_PROGRESS = "in_progress"
+    BLOCKED = "blocked"
+    DONE = "done"
+
+class Task(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    description = db.Column(db.String(200), nullable=False)
+    date = db.Column(db.Date, nullable=False)
+    status = db.Column(db.Enum(TaskStatus), default=TaskStatus.TODO, nullable=False)
+    notes = db.Column(db.Text)
