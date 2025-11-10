@@ -23,8 +23,11 @@ def create_app():
     )
 
     # CONFIG
-    app.config['SECRET_KEY'] = 'macho-madness-yeah!'
-    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///wfm_planner.db'
+    app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'dev-secret')
+    app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv(
+        'DATABASE_URL',
+        'sqlite:///' + os.path.join(app.instance_path, 'wfm_planner.db')
+    ).replace('postgres://', 'postgresql://', 1)  # Render fix
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
     # INIT
@@ -42,9 +45,13 @@ def create_app():
 
     # === AUTO CREATE DB & MIGRATE ON FIRST RUN ===
     with app.app_context():
+        os.makedirs(app.instance_path, exist_ok=True)
         db.create_all()  # Creates tables if no migrations
         # OR use migrate if you have migrations
         # from flask_migrate import upgrade
         # upgrade()
 
     return app
+
+# Required for Render
+app = create_app()

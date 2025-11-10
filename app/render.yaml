@@ -1,0 +1,12 @@
+services:
+  - type: web
+    name: wfm-planner
+    env: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn "app:create_app()" --bind 0.0.0.0:$PORT
+    plan: free
+    autoDeploy: true
+
+databases:
+  - name: wfm_db
+    plan: free
