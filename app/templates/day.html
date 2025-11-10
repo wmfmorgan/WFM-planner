@@ -113,7 +113,8 @@
                                                 </div>
                                                 <div class="add-event-area text-center text-muted small mt-1" 
                                                     style="cursor: pointer;" 
-                                                    data-hour="{{ hour }}" data-minutes="{{ minutes }}">
+                                                    data-hour="{{ hour }}" 
+                                                    data-minutes="{{ minutes }}">
                                                     + Add
                                                 </div>
                                             </td>
@@ -207,7 +208,7 @@
 <!-- EVENT MODAL -->
 <div class="modal fade" id="eventModal" tabindex="-1" aria-labelledby="eventModalLabel" aria-hidden="true">
     <div class="modal-dialog">
-        <div class="modal-content">
+        <div class="modal-content" style="color: #000 !important;">
             <form id="eventForm">
                 <div class="modal-header">
                     <h5 class="modal-title" id="eventModalLabel">Add Event</h5>
@@ -233,11 +234,11 @@
                     <div class="row mt-3">
                         <div class="col">
                             <label for="startTime" class="form-label">Start Time</label>
-                            <input type="time" class="form-control" id="startTime">
+                            <input type="time" class="form-control" id="startTime" step="1800">
                         </div>
                         <div class="col">
                             <label for="endTime" class="form-label">End Time</label>
-                            <input type="time" class="form-control" id="endTime">
+                            <input type="time" class="form-control" id="endTime" step="1800">
                         </div>
                     </div>
                     <div class="form-check mt-3">
@@ -291,16 +292,44 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (isToday && container) {
         const currentHour = now.getHours();
-        const currentMinutes = Math.floor(now.getMinutes() / 30) * 30;
+        const currentMinutes = Math.ceil((now.getMinutes() + 1) / 30) * 30;  // Round UP to next 30-min
         const row = document.querySelector(`[data-hour="${currentHour}"][data-minutes="${currentMinutes}"]`);
         
         if (row) {
             setTimeout(() => {
-                container.scrollTop = row.offsetTop - container.offsetTop - 100;
+                container.scrollTop = row.offsetTop - container.offsetTop;
             }, 100);
         }
     }
-    
+
+    // === EVENT MODAL: Set date + time from clicked slot ===
+    document.querySelectorAll('.add-event-area').forEach(area => {
+        area.addEventListener('click', () => {
+            const hour = parseInt(area.dataset.hour);
+            const minutes = parseInt(area.dataset.minutes) || 0;
+            const dateStr = {{ day_date | tojson }};
+            //alert(minutes);
+            document.getElementById('eventDate').value = dateStr;
+            document.getElementById('startDate').value = dateStr;
+            document.getElementById('endDate').value = dateStr;
+
+            // Set start time to clicked 30-min slot
+            const timeStr = `${hour.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
+            document.getElementById('startTime').value = timeStr;
+            //alert(timeStr);
+            // Optional: default end = start + 30 min
+            const endHour = (hour + (minutes >= 30 ? 1 : 0)) % 24;
+            const endMin = minutes >= 30 ? 0 : 30;
+            document.getElementById('endTime').value = `${endHour.toString().padStart(2, '0')}:${endMin.toString().padStart(2, '0')}`;
+
+            new bootstrap.Modal(document.getElementById('eventModal')).show();
+            setTimeout(() => {
+                document.getElementById('startTime').value = timeStr;
+                document.getElementById('endTime').value = `${endHour.toString().padStart(2, '0')}:${endMin.toString().padStart(2, '0')}`;
+            }, 150);
+        });
+    });
+
     // === DRAG & DROP ===
     function allowDrop(e) { e.preventDefault(); }
     function dragStart(e) {
