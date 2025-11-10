@@ -25,6 +25,15 @@ bp = Blueprint('main', __name__)
 today = datetime.now().date()
 today_quarter = ((today.month - 1) // 3) + 1
 
+def get_iso_week_for_sunday(sun_date):
+    """
+    Given a Sunday date, find the ISO week number of that week's Monday.
+    Minimal: No state change, just date math for remapping.
+    """
+    if sun_date.weekday() != 6:  # Quick guard (Sun == 6)
+        raise ValueError("Input must be a Sunday")
+    mon_date = sun_date - timedelta(days=6)
+    return mon_date.isocalendar()[1]
 
 # REUSABLE: GROUP GOALS BY STATUS
 def group_goals_by_status(goals):
@@ -291,30 +300,25 @@ def month_page(year, month):
     next_year = year + 1 if month == 12 else year
     next_month = 1 if month == 12 else month + 1
 
-    # SUNDAY-FIRST CALENDAR
-    setfirstweekday(SUNDAY)  # ← FORCE SUNDAY
-    #cal = monthcalendar(year, month)
+    # --- SUNDAY-FIRST CALENDAR WITH 100% CORRECT ISO WEEK NUMBERS ---
+    calendar_with_weeks = []
     cal = Calendar(firstweekday=SUNDAY)
-    weeks = []
-    for week in cal.monthdayscalendar(year, month):
-        week_data = []
-        for day in week:
-            if day == 0:
-                week_data.append(None)
-            else:
-                day_date = datetime(year, month, 1).date()
-                week_data.append({
-                    'day': day,
-                    'url': f"/day/{year}/{month}/{day:02d}"
-                })
-        sample_day = next((d for d in week if d != 0), 1)
-        iso_week = datetime(year, month, sample_day).isocalendar()[1]
-        weeks.append({
-            'week_num': iso_week,
-            'week_url': f"/week/{year}/{iso_week}",
-            'days': week_data
-        })
 
+    for week in cal.monthdayscalendar(year, month):
+        sunday_day = week[0]  # First day = Sunday (0 if padding)
+
+        if sunday_day != 0:
+            sun_date = date(year, month, sunday_day)
+        else:
+            first_of_month = date(year, month, 1)
+            days_back = (first_of_month.weekday() + 1) % 7
+            sun_date = first_of_month - timedelta(days=days_back)
+
+        # CORRECT: Monday = Sunday + 1 day
+        monday = sun_date + timedelta(days=1)
+        iso_week = monday.isocalendar()[1]
+
+        calendar_with_weeks.append((iso_week, week))        
     monthly_goals_grouped = group_goals_by_status(monthly_goals)
     # GET POSSIBLE PARENTS (weekly goals in same week, NOT completed)
     # GET POSSIBLE PARENTS (monthly goals overlapping week, NOT completed)
@@ -360,22 +364,7 @@ def month_page(year, month):
             Event.start_time.asc()   # Then by time
         ).all()
 
-    # GENERATE CALENDAR WITH WEEK NUMBERS
-    cal = monthcalendar(year, month)
-    calendar_with_weeks = []
-    for i, week in enumerate(cal, start=1):
-        # Get week number from first non-zero day
-        first_day = None
-        for day in week:
-            if day != 0:
-                first_day = date(year, month, day)
-                break
-        if first_day:
-            week_num = first_day.isocalendar()[1]
-        else:
-            # Fallback: use first day of month
-            week_num = date(year, month, 1).isocalendar()[1] + i - 1
-        calendar_with_weeks.append((week_num, week))
+ 
 
     form = GoalForm()
     return render_template(
@@ -388,7 +377,7 @@ def month_page(year, month):
         monthly_goals_grouped=monthly_goals_grouped,
         prev_url=f"/month/{prev_year}/{prev_month}",
         next_url=f"/month/{next_year}/{next_month}",
-        weeks=weeks,
+        #weeks=weeks,
         today=today,
         page_type='month',
         parent_type='quarterly',
@@ -409,17 +398,19 @@ def week_page(year, week):
         abort(404)
 
     try:
-        # MONDAY of ISO week
-        monday = datetime.strptime(f'{year}-W{week}-1', '%Y-W%W-%w').date()
+        # FIXED: Use %G (ISO year) + %V (ISO week) for true ISO Monday
+        monday = datetime.strptime(f'{year}-W{week}-1', '%G-W%V-%w').date()
         # SUNDAY = Monday - 1 day
         w_start = monday - timedelta(days=1)
         w_end = w_start + timedelta(days=6)
     except ValueError:
         abort(404)
+
     w_end = w_start + timedelta(days=6)
 
     # PICK MONDAY FOR PARENT FILTER
     day_date = w_start
+    actual_iso_week = (w_start + timedelta(days=1)).isocalendar()[1]  # Monday of this week
 
     # GET POSSIBLE PARENTS (monthly goals overlapping week, NOT completed)
     #m_start_dt = datetime(w_start.year, w_start.month, 1)  # datetime
@@ -465,11 +456,7 @@ def week_page(year, week):
     current = w_start
     for i in range(7):
         day_date = current + timedelta(days=i)
-        days.append({
-            'day': day_date.day,
-            'date': day_date,
-            'url': f"/day/{day_date.year}/{day_date.month}/{day_date.day:02d}"
-        })
+        days.append(day_date)
 
     weeks = [{
         'week_num': week,
@@ -522,9 +509,9 @@ def week_page(year, week):
     return render_template(
         'week.html',
         year=year,
-        week=week,
+        week=actual_iso_week,
         month=month,
-        title=f"Week {week}: {w_start.strftime('%b %d')} - {w_end.strftime('%b %d, %Y')}",
+        title=f"Week {actual_iso_week}: {w_start.strftime('%b %d')} - {w_end.strftime('%b %d, %Y')}",
         w_start=w_start,
         w_end=w_end,
         weekly_goals_grouped=weekly_goals_grouped,

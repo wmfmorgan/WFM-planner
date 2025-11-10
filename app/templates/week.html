@@ -57,7 +57,7 @@
                             </a>
                         </td> -->
                         <!-- 7 DAYS -->
-                        {% for day_date in week_days %}
+                        {% for day_date in weeks[0].days %}
                             <td class="calendar-day position-relative" {% if day_date %}data-date="{{ day_date.strftime('%Y-%m-%d') }}"{% endif %}>
                                 {% if day_date %}
                                     <div class="day-number fw-bold">
