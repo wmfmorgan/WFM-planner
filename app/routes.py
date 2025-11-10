@@ -234,10 +234,12 @@ def quarter_page(year, q_num):
     quarterly_goals_grouped = group_goals_by_status(quarterly_goals)
   
     # GET POSSIBLE PARENTS (weekly goals in same week, NOT completed)
-    start_month = (q_num - 1) * 3 + 1
-    day_date = datetime(year, start_month, 1).date()
-    w_start = day_date - timedelta(days=day_date.weekday())
-    w_end = w_start + timedelta(days=6)
+    #start_month = (q_num - 1) * 3 + 1
+    #day_date = datetime(year, start_month, 1).date()
+    #w_start = day_date - timedelta(days=day_date.weekday())
+    #w_end = w_start + timedelta(days=6)
+    w_start = datetime(year,1,1).date()
+    w_end = datetime(year,12,31).date()
     possible_parents = Goal.query.filter(
         Goal.type == 'annual',
         Goal.due_date >= w_start,
@@ -318,15 +320,29 @@ def month_page(year, month):
     # GET POSSIBLE PARENTS (monthly goals overlapping week, NOT completed)
     m_start_dt = datetime(m_start.year, m_start.month, 1)  # datetime
     m_end_dt = m_start_dt + relativedelta(months=1) - timedelta(days=1)  # datetime
-
+    print("date")
+    #today = date.today()  # Nov 10, 2025
+    q_start, q_end = quarter_range(year, month)
+    #last_day = last_day_of_month(year, month)
+    #print(last_day)  # 2025-11-30
+    #m_start_dt = datetime(m_start.year, m_start.month, 1).date()
+    #m_end_dt = last_day
     possible_parents = Goal.query.filter(
         Goal.type == 'quarterly',
-        or_(
-            and_(Goal.due_date >= m_start_dt.date(), Goal.due_date <= m_end_dt.date()),
-            Goal.due_date.is_(None)
-        ),
-        Goal.completed == False
-    ).order_by(Goal.due_date.asc(), Goal.id).all()
+        Goal.due_date >= q_start,
+        Goal.due_date <= q_end,
+        Goal.completed == False  # ← EXCLUDE COMPLETED
+    ).all() 
+
+
+    #possible_parents = Goal.query.filter(
+     #   Goal.type == 'quarterly',
+      #  or_(
+      #      and_(Goal.due_date >= m_start_dt.date(), Goal.due_date <= m_end_dt.date()),
+      #      Goal.due_date.is_(None)
+    # ),
+    #   Goal.completed == False
+    #).order_by(Goal.due_date.asc(), Goal.id).all()
   
     calendar = monthcalendar(year, month)
     month_name = date(year, month, 1).strftime('%B')
@@ -1053,3 +1069,30 @@ def inject_week_info():
         'current_week_num': current_week_num,
         'today': today
     }
+
+def last_day_of_month(year: int, month: int) -> date:
+    # Next month, day 1
+    next_month = date(year, month, 28) + timedelta(days=4)  # Safe: 28 + 4 always rolls over
+    # Back 1 day = last day of current month
+    return next_month.replace(day=1) - timedelta(days=1)
+
+from typing import Tuple
+
+def quarter_range(year: int, month: int) -> Tuple[date, date]:
+    """
+    Return (start_date, end_date) for the quarter that contains the given year/month.
+    """
+    # 1-based quarter number
+    q = (month - 1) // 3 + 1
+
+    # First month of the quarter
+    start_month = (q - 1) * 3 + 1
+    start = date(year, start_month, 1)
+
+    # Last month of the quarter
+    end_month = start_month + 2
+    # Next month, day 1
+    next_month = date(year, end_month, 28) + timedelta(days=4)
+    end = next_month.replace(day=1) - timedelta(days=1)   # last day of end_month
+
+    return start, end
