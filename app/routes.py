@@ -214,7 +214,7 @@ def quarter_page(year, q_num):
         Goal.due_date >= q_start,
         Goal.due_date <= q_end,
         Goal.parent_id.isnot(None)
-    ).order_by(Goal.due_date).all()
+    ).order_by(Goal.due_date.asc(), Goal.id).all()
 
     prev_year = year - 1 if q_num == 1 else year
     prev_q = 4 if q_num == 1 else q_num - 1
@@ -284,7 +284,7 @@ def month_page(year, month):
         Goal.due_date >= m_start,
         Goal.due_date <= m_end,
         Goal.parent_id.isnot(None)
-    ).order_by(Goal.due_date).all()
+    ).order_by(Goal.due_date.asc(), Goal.id).all()
 
     prev_year = year - 1 if month == 1 else year
     prev_month = 12 if month == 1 else month - 1
@@ -420,17 +420,26 @@ def week_page(year, week):
     day_date = w_start
 
     # GET POSSIBLE PARENTS (monthly goals overlapping week, NOT completed)
-    m_start_dt = datetime(w_start.year, w_start.month, 1)  # datetime
-    m_end_dt = m_start_dt + relativedelta(months=1) - timedelta(days=1)  # datetime
+    #m_start_dt = datetime(w_start.year, w_start.month, 1)  # datetime
+    #m_end_dt = m_start_dt + relativedelta(months=1) - timedelta(days=1)  # datetime
+
+    m_start, m_end = month_range_from_week(year, week)
 
     possible_parents = Goal.query.filter(
         Goal.type == 'monthly',
-        or_(
-            and_(Goal.due_date >= m_start_dt.date(), Goal.due_date <= m_end_dt.date()),
-            Goal.due_date.is_(None)
-        ),
-        Goal.completed == False
-    ).order_by(Goal.due_date.asc(), Goal.id).all()
+        Goal.due_date >= m_start,
+        Goal.due_date <= m_end,
+        Goal.completed == False  # ← EXCLUDE COMPLETED
+    ).order_by(Goal.due_date.asc(), Goal.id).all() 
+
+    #possible_parents = Goal.query.filter(
+     #   Goal.type == 'monthly',
+     #   or_(
+     #       and_(Goal.due_date >= m_start_dt.date(), Goal.due_date <= m_end_dt.date()),
+    #      Goal.due_date.is_(None)
+     #   ),
+    #  Goal.completed == False
+    #).order_by(Goal.due_date.asc(), Goal.id).all()
 
     # GET WEEKLY GOALS
     weekly_goals = Goal.query.filter(
@@ -559,15 +568,16 @@ def day_page(year, month, day):
     daily_goals_grouped = group_goals_by_status(daily_goals)
     
     # GET POSSIBLE PARENTS (weekly goals in same week, NOT completed)
-    day_date = datetime(year, month, day).date()
-    w_start = day_date - timedelta(days=day_date.weekday())
-    w_end = w_start + timedelta(days=6)
+    #day_date = datetime(year, month, day).date()
+    #w_start = day_date - timedelta(days=day_date.weekday())
+    #w_end = w_start + timedelta(days=6)
+    w_start, w_end = week_range(year, month, day)
     possible_parents = Goal.query.filter(
         Goal.type == 'weekly',
         Goal.due_date >= w_start,
         Goal.due_date <= w_end,
         Goal.completed == False  # ← EXCLUDE COMPLETED
-    ).all()
+    ).order_by(Goal.due_date.asc(), Goal.id).all()
 
     def events_on_date(y, m, d):
         date = datetime(y, m, d).date()
@@ -1096,3 +1106,58 @@ def quarter_range(year: int, month: int) -> Tuple[date, date]:
     end = next_month.replace(day=1) - timedelta(days=1)   # last day of end_month
 
     return start, end
+
+def month_range_from_week(year: int, week_num: int) -> tuple[date, date]:
+    """
+    Given a year and ISO week number, return (start, end) of the month
+    that contains the majority of days in that week.
+    Weeks start on Sunday.
+    """
+    # Step 1: Find the Sunday of the given ISO week
+    jan4 = date(year, 1, 4)  # Jan 4 is always in week 1
+    jan4_weekday = jan4.weekday()  # Mon=0 ... Sun=6
+    # Days to Sunday of week 1
+    days_to_sunday = (jan4_weekday + 1) % 7
+    week1_sunday = jan4 - timedelta(days=days_to_sunday)
+    # Sunday of target week
+    week_sunday = week1_sunday + timedelta(weeks=week_num - 1)
+
+    # Step 2: Get all 7 days of the week (Sun → Sat)
+    week_days = [week_sunday + timedelta(days=i) for i in range(7)]
+
+    # Step 3: Count how many days fall in each month
+    month_counts = {}
+    for d in week_days:
+        key = (d.year, d.month)
+        month_counts[key] = month_counts.get(key, 0) + 1
+
+    # Step 4: Pick the month with the most days
+    dominant_year, dominant_month = max(month_counts.items(), key=lambda x: x[1])[0]
+
+    # Step 5: Return first and last day of that month
+    start = date(dominant_year, dominant_month, 1)
+    # Next month, day 1 - 1 day
+    next_month = start.replace(month=start.month % 12 + 1, year=start.year + (start.month // 12))
+    if next_month.month == 1:
+        next_month = next_month.replace(year=next_month.year)
+    end = next_month - timedelta(days=1)
+
+    return start, end
+
+from datetime import date, timedelta
+
+def week_range(year: int, month: int, day: int) -> tuple[date, date]:
+    """
+    Return (week_start_sunday, week_end_saturday) for the given date.
+    Week starts on Sunday.
+    """
+    given_date = date(year, month, day)
+    
+    # weekday(): Mon=0, Tue=1, ..., Sun=6
+    # Days to subtract to get to Sunday
+    days_to_sunday = (given_date.weekday() + 1) % 7
+    
+    week_start = given_date - timedelta(days=days_to_sunday)
+    week_end = week_start + timedelta(days=6)
+    
+    return week_start, week_end
