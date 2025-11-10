@@ -65,7 +65,7 @@
     {% endwith %}
 
 
-<!-- 24-HOUR GRID: SCHEDULE + TASKS -->
+
     <div class="row mb-4">
         <!-- LEFT: 24-HOUR SCHEDULE (SPACED OUT) -->
     
@@ -81,8 +81,8 @@
                                 {% set hour_12 = (hour % 12) or 12 %}
                                 {% set am_pm = 'AM' if hour < 12 else 'PM' %}
                                 {% set is_visible = 7 <= hour < 19 %}
-                                <tr class="{% if not is_visible %}text-muted{% endif %}">
-                                    <td class="text-center align-middle" style="width: 80px; font-weight: bold;">
+                                <tr class="text-muted">
+                                    <td class="text-left align-middle" style="width: 90px; font-weight: bold;">
                                         {{ '%02d'|format(hour_12) }}:00 {{ am_pm }}
                                     </td>
                                     <td class="p-2">

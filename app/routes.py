@@ -391,8 +391,11 @@ def week_page(year, week):
         abort(404)
 
     try:
-        # Monday of the week (ISO)
-        w_start = datetime.strptime(f'{year}-W{week}-1', '%Y-W%W-%w').date()
+        # MONDAY of ISO week
+        monday = datetime.strptime(f'{year}-W{week}-1', '%Y-W%W-%w').date()
+        # SUNDAY = Monday - 1 day
+        w_start = monday - timedelta(days=1)
+        w_end = w_start + timedelta(days=6)
     except ValueError:
         abort(404)
     w_end = w_start + timedelta(days=6)
