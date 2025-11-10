@@ -1,0 +1,724 @@
+{
+  "goal": [
+    {
+      "id": 1,
+      "title": "A goal",
+      "type": "annual",
+      "description": "asdasd",
+      "motivation": "asdasd",
+      "due_date": "2025-11-09",
+      "completed": 0,
+      "created_at": "2025-11-10 01:12:26.776319",
+      "parent_id": null,
+      "status": "todo",
+      "category": "Work"
+    },
+    {
+      "id": 2,
+      "title": "Q goal",
+      "type": "quarterly",
+      "description": "asdasd",
+      "motivation": "asdasd",
+      "due_date": "2025-11-01",
+      "completed": 0,
+      "created_at": "2025-11-10 01:12:38.260478",
+      "parent_id": 1,
+      "status": "todo",
+      "category": "Work"
+    },
+    {
+      "id": 3,
+      "title": "M goal",
+      "type": "monthly",
+      "description": "dldldlddld",
+      "motivation": "dldldld",
+      "due_date": "2025-11-30",
+      "completed": 0,
+      "created_at": "2025-11-10 01:12:52.103778",
+      "parent_id": 2,
+      "status": "todo",
+      "category": "Work"
+    },
+    {
+      "id": 4,
+      "title": "W goal",
+      "type": "weekly",
+      "description": "asdas",
+      "motivation": "asdasd",
+      "due_date": "2025-11-20",
+      "completed": 0,
+      "created_at": "2025-11-10 01:13:04.798843",
+      "parent_id": 3,
+      "status": "todo",
+      "category": "Work"
+    },
+    {
+      "id": 5,
+      "title": "D goal",
+      "type": "daily",
+      "description": "asddd",
+      "motivation": "ddddd",
+      "due_date": "2025-11-09",
+      "completed": 0,
+      "created_at": "2025-11-10 01:13:19.437087",
+      "parent_id": 4,
+      "status": "todo",
+      "category": "Work"
+    },
+    {
+      "id": 6,
+      "title": "Deliver AIP for Backoffice",
+      "type": "annual",
+      "description": "Q3 2026",
+      "motivation": "",
+      "due_date": "2025-12-31",
+      "completed": 0,
+      "created_at": "2025-11-10 13:00:19.237944",
+      "parent_id": null,
+      "status": "in_progress",
+      "category": "Work"
+    },
+    {
+      "id": 7,
+      "title": "Build out Complete Sequenced Roadmap",
+      "type": "quarterly",
+      "description": "Build roadmap",
+      "motivation": "",
+      "due_date": "2025-10-30",
+      "completed": 0,
+      "created_at": "2025-11-10 13:03:11.274008",
+      "parent_id": 6,
+      "status": "in_progress",
+      "category": "Work"
+    },
+    {
+      "id": 8,
+      "title": "Build out Bulk AIP Roadmap",
+      "type": "monthly",
+      "description": "Bulk AIP Roadmap",
+      "motivation": null,
+      "due_date": "2025-11-30",
+      "completed": 0,
+      "created_at": "2025-11-10 13:03:44.396488",
+      "parent_id": 7,
+      "status": "in_progress",
+      "category": "Work"
+    },
+    {
+      "id": 9,
+      "title": "Sequence Bulk at high level ",
+      "type": "weekly",
+      "description": "Bulk at high level",
+      "motivation": "",
+      "due_date": "2025-11-10",
+      "completed": 0,
+      "created_at": "2025-11-10 13:05:24.671024",
+      "parent_id": 8,
+      "status": "in_progress",
+      "category": "Work"
+    },
+    {
+      "id": 10,
+      "title": "Meet with Sri and sequence out high level work",
+      "type": "daily",
+      "description": "Meet with Sri and sequence out high level work",
+      "motivation": "",
+      "due_date": "2025-11-11",
+      "completed": 0,
+      "created_at": "2025-11-10 13:07:18.355130",
+      "parent_id": 9,
+      "status": "in_progress",
+      "category": "Work"
+    },
+    {
+      "id": 11,
+      "title": "Dec Q Goal",
+      "type": "quarterly",
+      "description": "asdasd",
+      "motivation": "",
+      "due_date": "2025-12-19",
+      "completed": 0,
+      "created_at": "2025-11-10 17:21:04.313178",
+      "parent_id": 1,
+      "status": "todo",
+      "category": "Work"
+    },
+    {
+      "id": 12,
+      "title": "nov 15 w goal",
+      "type": "weekly",
+      "description": "",
+      "motivation": "",
+      "due_date": "2025-11-15",
+      "completed": 0,
+      "created_at": "2025-11-10 17:30:48.707937",
+      "parent_id": 3,
+      "status": "todo",
+      "category": "Work"
+    },
+    {
+      "id": 13,
+      "title": "Q3 goal",
+      "type": "annual",
+      "description": "asdasdasd",
+      "motivation": "",
+      "due_date": "2025-09-09",
+      "completed": 0,
+      "created_at": "2025-11-10 17:32:05.093639",
+      "parent_id": null,
+      "status": "todo",
+      "category": "Work"
+    },
+    {
+      "id": 14,
+      "title": "Q3 goal",
+      "type": "quarterly",
+      "description": "asdasd",
+      "motivation": "",
+      "due_date": "2025-09-10",
+      "completed": 0,
+      "created_at": "2025-11-10 17:49:40.616456",
+      "parent_id": 13,
+      "status": "todo",
+      "category": "Work"
+    },
+    {
+      "id": 15,
+      "title": "Oct  GOal",
+      "type": "monthly",
+      "description": "asdasd",
+      "motivation": "",
+      "due_date": "2025-10-09",
+      "completed": 0,
+      "created_at": "2025-11-10 17:50:40.831292",
+      "parent_id": 2,
+      "status": "todo",
+      "category": "Work"
+    }
+  ],
+  "note": [
+    {
+      "id": 1,
+      "scope": "day",
+      "year": 2025,
+      "quarter": null,
+      "month": 11,
+      "week": null,
+      "day": 10,
+      "time": null,
+      "index": null,
+      "type": "10",
+      "content": "At the end of the day, I've sequenced out the bulk work that needs to be done with Sri. I've spent little time building my app (outside of lunch). I do not mess with Grok much and stay focused on work. Updated againddd s",
+      "completed": 0
+    },
+    {
+      "id": 2,
+      "scope": "week",
+      "year": 2025,
+      "quarter": null,
+      "month": null,
+      "week": 46,
+      "day": null,
+      "time": null,
+      "index": null,
+      "type": "46",
+      "content": "",
+      "completed": 0
+    },
+    {
+      "id": 3,
+      "scope": "week",
+      "year": 2025,
+      "quarter": null,
+      "month": null,
+      "week": 45,
+      "day": null,
+      "time": null,
+      "index": null,
+      "type": "45",
+      "content": "prep note for the week",
+      "completed": 0
+    },
+    {
+      "id": 4,
+      "scope": "day",
+      "year": 2025,
+      "quarter": null,
+      "month": 11,
+      "week": null,
+      "day": 10,
+      "time": null,
+      "index": null,
+      "type": "prep",
+      "content": "At the end of the day, I've sequenced out the bulk work that needs to be done with Sri. I've spent little time building my app (outside of lunch). I do not mess with Grok much and stay focused on work.",
+      "completed": 0
+    },
+    {
+      "id": 5,
+      "scope": "day",
+      "year": 2025,
+      "quarter": null,
+      "month": 11,
+      "week": null,
+      "day": 10,
+      "time": null,
+      "index": null,
+      "type": "notes",
+      "content": "notes for 11/10",
+      "completed": 0
+    },
+    {
+      "id": 6,
+      "scope": "day",
+      "year": 2025,
+      "quarter": null,
+      "month": 11,
+      "week": null,
+      "day": 10,
+      "time": null,
+      "index": null,
+      "type": "wins",
+      "content": "Wins for 11/10",
+      "completed": 0
+    },
+    {
+      "id": 7,
+      "scope": "day",
+      "year": 2025,
+      "quarter": null,
+      "month": 11,
+      "week": null,
+      "day": 10,
+      "time": null,
+      "index": null,
+      "type": "improve",
+      "content": "Improve 11/10",
+      "completed": 0
+    },
+    {
+      "id": 8,
+      "scope": "week",
+      "year": 2025,
+      "quarter": null,
+      "month": null,
+      "week": 46,
+      "day": null,
+      "time": null,
+      "index": null,
+      "type": "prep",
+      "content": "Prep for week 46",
+      "completed": 0
+    },
+    {
+      "id": 9,
+      "scope": "month",
+      "year": 2025,
+      "quarter": null,
+      "month": 11,
+      "week": null,
+      "day": null,
+      "time": null,
+      "index": null,
+      "type": "notes",
+      "content": "notes for november\n",
+      "completed": 0
+    },
+    {
+      "id": 10,
+      "scope": "day",
+      "year": 2025,
+      "quarter": null,
+      "month": 11,
+      "week": null,
+      "day": 11,
+      "time": null,
+      "index": null,
+      "type": "prep",
+      "content": "I want to have a good high level sequence of work. I've also documented the DEC dependencies so we have a clear map of what we need to get after there.",
+      "completed": 0
+    }
+  ],
+  "event": [
+    {
+      "id": 1,
+      "title": "Marys bday",
+      "start_date": "2025-10-27",
+      "end_date": "2025-10-27",
+      "start_time": null,
+      "end_time": null,
+      "is_recurring": 0,
+      "recurrence_rule": null,
+      "all_day": 1
+    },
+    {
+      "id": 2,
+      "title": "Offsite - Go into work",
+      "start_date": "2025-11-12",
+      "end_date": "2025-11-14",
+      "start_time": null,
+      "end_time": null,
+      "is_recurring": 0,
+      "recurrence_rule": null,
+      "all_day": 1
+    },
+    {
+      "id": 3,
+      "title": "Accommodation Mtg",
+      "start_date": "2025-11-10",
+      "end_date": "2025-11-10",
+      "start_time": "08:30:00.000000",
+      "end_time": "09:00:00.000000",
+      "is_recurring": 0,
+      "recurrence_rule": null,
+      "all_day": 0
+    },
+    {
+      "id": 4,
+      "title": "Scrum",
+      "start_date": "2025-11-10",
+      "end_date": "2025-11-10",
+      "start_time": "09:30:00.000000",
+      "end_time": "10:00:00.000000",
+      "is_recurring": 1,
+      "recurrence_rule": "daily",
+      "all_day": 0
+    },
+    {
+      "id": 5,
+      "title": "Align on SST Changes",
+      "start_date": "2025-11-10",
+      "end_date": "2025-11-10",
+      "start_time": "12:30:00.000000",
+      "end_time": "13:00:00.000000",
+      "is_recurring": 0,
+      "recurrence_rule": null,
+      "all_day": 0
+    },
+    {
+      "id": 6,
+      "title": "ASoup Arch Call",
+      "start_date": "2025-11-10",
+      "end_date": "2025-11-10",
+      "start_time": "13:30:00.000000",
+      "end_time": "14:00:00.000000",
+      "is_recurring": 1,
+      "recurrence_rule": "daily",
+      "all_day": 0
+    },
+    {
+      "id": 7,
+      "title": "Nigo Roll Ins",
+      "start_date": "2025-11-10",
+      "end_date": "2025-11-10",
+      "start_time": "14:00:00.000000",
+      "end_time": "14:30:00.000000",
+      "is_recurring": 0,
+      "recurrence_rule": null,
+      "all_day": 0
+    },
+    {
+      "id": 8,
+      "title": "Sequence Work",
+      "start_date": "2025-11-10",
+      "end_date": "2025-11-10",
+      "start_time": "14:30:00.000000",
+      "end_time": "15:30:00.000000",
+      "is_recurring": 0,
+      "recurrence_rule": null,
+      "all_day": 0
+    },
+    {
+      "id": 9,
+      "title": "ASoup Phase 2 Priorities",
+      "start_date": "2025-11-11",
+      "end_date": "2025-11-11",
+      "start_time": "08:30:00.000000",
+      "end_time": "09:00:00.000000",
+      "is_recurring": 0,
+      "recurrence_rule": null,
+      "all_day": 0
+    },
+    {
+      "id": 10,
+      "title": "Drive",
+      "start_date": "2025-11-11",
+      "end_date": "2025-11-11",
+      "start_time": "09:00:00.000000",
+      "end_time": "10:00:00.000000",
+      "is_recurring": 0,
+      "recurrence_rule": null,
+      "all_day": 0
+    },
+    {
+      "id": 11,
+      "title": "Sequence Work",
+      "start_date": "2025-11-11",
+      "end_date": "2025-11-11",
+      "start_time": "10:00:00.000000",
+      "end_time": "11:00:00.000000",
+      "is_recurring": 0,
+      "recurrence_rule": null,
+      "all_day": 0
+    },
+    {
+      "id": 12,
+      "title": "Lunch",
+      "start_date": "2025-11-11",
+      "end_date": "2025-11-11",
+      "start_time": "12:00:00.000000",
+      "end_time": "12:30:00.000000",
+      "is_recurring": 0,
+      "recurrence_rule": null,
+      "all_day": 0
+    },
+    {
+      "id": 13,
+      "title": "Roth Catchup",
+      "start_date": "2025-11-11",
+      "end_date": "2025-11-11",
+      "start_time": "12:30:00.000000",
+      "end_time": "13:00:00.000000",
+      "is_recurring": 0,
+      "recurrence_rule": null,
+      "all_day": 0
+    },
+    {
+      "id": 14,
+      "title": "S2 Impact",
+      "start_date": "2025-11-11",
+      "end_date": "2025-11-11",
+      "start_time": "15:30:00.000000",
+      "end_time": "16:00:00.000000",
+      "is_recurring": 0,
+      "recurrence_rule": null,
+      "all_day": 0
+    },
+    {
+      "id": 15,
+      "title": "another event at the same time",
+      "start_date": "2025-11-10",
+      "end_date": "2025-11-10",
+      "start_time": "10:00:00.000000",
+      "end_time": "12:30:00.000000",
+      "is_recurring": 0,
+      "recurrence_rule": null,
+      "all_day": 0
+    },
+    {
+      "id": 16,
+      "title": "Drive",
+      "start_date": "2025-11-11",
+      "end_date": "2025-11-11",
+      "start_time": "09:30:00.000000",
+      "end_time": "10:00:00.000000",
+      "is_recurring": 0,
+      "recurrence_rule": null,
+      "all_day": 0
+    }
+  ],
+  "task": [
+    {
+      "id": 1,
+      "description": "add a task",
+      "date": "2025-11-09",
+      "status": "DONE",
+      "notes": ""
+    },
+    {
+      "id": 2,
+      "description": "Go to post office",
+      "date": "2025-11-09",
+      "status": "TODO",
+      "notes": ""
+    },
+    {
+      "id": 3,
+      "description": "Go to post office",
+      "date": "2025-11-10",
+      "status": "DONE",
+      "notes": ""
+    },
+    {
+      "id": 4,
+      "description": "Move confluence pages",
+      "date": "2025-11-10",
+      "status": "TODO",
+      "notes": ""
+    },
+    {
+      "id": 5,
+      "description": "Follwup with mike on PPT DEC SSN",
+      "date": "2025-11-10",
+      "status": "IN_PROGRESS",
+      "notes": ""
+    },
+    {
+      "id": 6,
+      "description": "Go to post office",
+      "date": "2025-11-11",
+      "status": "TODO",
+      "notes": ""
+    },
+    {
+      "id": 7,
+      "description": "Move confluence pages",
+      "date": "2025-11-11",
+      "status": "TODO",
+      "notes": ""
+    },
+    {
+      "id": 8,
+      "description": "Follwup with mike on PPT DEC SSN",
+      "date": "2025-11-11",
+      "status": "TODO",
+      "notes": ""
+    },
+    {
+      "id": 9,
+      "description": "Use planner for the day",
+      "date": "2025-11-10",
+      "status": "IN_PROGRESS",
+      "notes": ""
+    },
+    {
+      "id": 10,
+      "description": "Setup something to make sequencing easier",
+      "date": "2025-11-10",
+      "status": "DONE",
+      "notes": ""
+    },
+    {
+      "id": 11,
+      "description": "move planner to internet",
+      "date": "2025-11-10",
+      "status": "TODO",
+      "notes": ""
+    },
+    {
+      "id": 12,
+      "description": "Add in Sandihya's stories",
+      "date": "2025-11-10",
+      "status": "TODO",
+      "notes": ""
+    },
+    {
+      "id": 13,
+      "description": "Add bulk images/details to confluence",
+      "date": "2025-11-10",
+      "status": "TODO",
+      "notes": ""
+    },
+    {
+      "id": 14,
+      "description": "Prep for Demo on Friday",
+      "date": "2025-11-10",
+      "status": "TODO",
+      "notes": ""
+    },
+    {
+      "id": 15,
+      "description": "Use planner for the day",
+      "date": "2025-11-11",
+      "status": "IN_PROGRESS",
+      "notes": ""
+    },
+    {
+      "id": 16,
+      "description": "move planner to internet",
+      "date": "2025-11-11",
+      "status": "TODO",
+      "notes": ""
+    },
+    {
+      "id": 17,
+      "description": "Add in Sandihya's stories",
+      "date": "2025-11-11",
+      "status": "TODO",
+      "notes": ""
+    },
+    {
+      "id": 18,
+      "description": "Add bulk images/details to confluence",
+      "date": "2025-11-11",
+      "status": "TODO",
+      "notes": ""
+    },
+    {
+      "id": 19,
+      "description": "Prep for Demo on Friday",
+      "date": "2025-11-11",
+      "status": "TODO",
+      "notes": ""
+    },
+    {
+      "id": 20,
+      "description": "Go to post office",
+      "date": "2025-11-12",
+      "status": "TODO",
+      "notes": ""
+    },
+    {
+      "id": 21,
+      "description": "Move confluence pages",
+      "date": "2025-11-12",
+      "status": "TODO",
+      "notes": ""
+    },
+    {
+      "id": 22,
+      "description": "Follwup with mike on PPT DEC SSN",
+      "date": "2025-11-12",
+      "status": "TODO",
+      "notes": ""
+    },
+    {
+      "id": 23,
+      "description": "Use planner for the day",
+      "date": "2025-11-12",
+      "status": "IN_PROGRESS",
+      "notes": ""
+    },
+    {
+      "id": 24,
+      "description": "move planner to internet",
+      "date": "2025-11-12",
+      "status": "TODO",
+      "notes": ""
+    },
+    {
+      "id": 25,
+      "description": "Add in Sandihya's stories",
+      "date": "2025-11-12",
+      "status": "TODO",
+      "notes": ""
+    },
+    {
+      "id": 26,
+      "description": "Add bulk images/details to confluence",
+      "date": "2025-11-12",
+      "status": "TODO",
+      "notes": ""
+    },
+    {
+      "id": 27,
+      "description": "Prep for Demo on Friday",
+      "date": "2025-11-12",
+      "status": "TODO",
+      "notes": ""
+    },
+    {
+      "id": 28,
+      "description": "Get estimate from Gowtham",
+      "date": "2025-11-12",
+      "status": "TODO",
+      "notes": ""
+    },
+    {
+      "id": 29,
+      "description": "Talk to Vandana about a Joint Backlog",
+      "date": "2025-11-11",
+      "status": "TODO",
+      "notes": ""
+    }
+  ]
+}
