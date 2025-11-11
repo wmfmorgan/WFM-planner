@@ -3,7 +3,7 @@ import os
 from sqlalchemy import create_engine
 
 # Render auto-injects DATABASE_URL
-engine = create_engine(os.environ[postgresql://wfm_planner_user:Qmd3yAWg9UDByo5f2aNvyrrIjMKERktV@dpg-d4978rh5pdvs73corne0-a/wfm_planner])
+engine = create_engine(os.environ['DATABASE_URL'])
 
 with open('local_db.json') as f:
     data = json.load(f)
