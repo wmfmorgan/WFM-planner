@@ -158,18 +158,24 @@ def year_page(year):
     y_start = datetime(year, 1, 1).date()
     y_end = datetime(year, 12, 31).date()
 
+    parent_id = request.args.get('parent_id', '').strip()
+    if parent_id:
+        try:
+            parent_id = int(parent_id)
+        except ValueError:
+            parent_id = None
+    else:
+        parent_id = None
+
     annual_goals = Goal.query.filter(
         Goal.type == 'annual',
-        db.or_(
-            db.and_(Goal.due_date >= y_start, Goal.due_date <= y_end),
+        or_(
+            and_(Goal.due_date >= y_start, Goal.due_date <= y_end),
             Goal.due_date.is_(None)
         ),
-        db.or_(  # ← ADD THIS
-            Goal.parent_id.is_(None),
-            Goal.parent_id == ''
-        )
+        or_(Goal.parent_id.is_(None), Goal.parent_id == parent_id)
     ).order_by(
-        db.case((Goal.due_date.is_(None), 0), else_=1),
+        case((Goal.due_date.is_(None), 0), else_=1),
         Goal.due_date.asc(),
         Goal.id
     ).all()
