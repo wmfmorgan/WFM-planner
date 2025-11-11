@@ -62,18 +62,18 @@ from sqlalchemy import case as db_case
 @bp.route('/goals', methods=['GET', 'POST'])
 def goals():
     form = GoalForm()
-    print(form)
+    #print(form)
     if request.method == 'POST':
-        print("=== /goals POST DEBUG ===")
-        print("Form data:", dict(request.form))
-        print("Parent ID:", request.form.get('parent_id'))
+        #print("=== /goals POST DEBUG ===")
+        #print("Form data:", dict(request.form))
+        #print("Parent ID:", request.form.get('parent_id'))
         # DEBUG: Check what came in
-        print("Raw type from form:", request.form.get('type'))
+        #print("Raw type from form:", request.form.get('type'))
     
         # FORCE DEFAULT IF BLANK
         if not form.type.data:
             form.type.data = 'annual'
-        print("Forced type to 'annual'")
+        #print("Forced type to 'annual'")
 
         if form.validate_on_submit():
             # === HANDLE parent_id: '' → None ===
@@ -109,7 +109,7 @@ def goals():
                 parent_id=parent_id
             )
 
-            print(goal)
+            #print(goal)
             db.session.add(goal)
             db.session.commit()
             flash('Goal saved!', 'success')
@@ -321,10 +321,10 @@ def month_page(year, month):
     # GET POSSIBLE PARENTS (monthly goals overlapping week, NOT completed)
     m_start_dt = datetime(m_start.year, m_start.month, 1)  # datetime
     m_end_dt = m_start_dt + relativedelta(months=1) - timedelta(days=1)  # datetime
-    print("date")
+    #print("date")
     #today = date.today()  # Nov 10, 2025
     q_start, q_end = quarter_range(year, month)
-    print(f"Start: {q_start} | End: {q_end}")
+    #print(f"Start: {q_start} | End: {q_end}")
     #last_day = last_day_of_month(year, month)
     #print(last_day)  # 2025-11-30
     #m_start_dt = datetime(m_start.year, m_start.month, 1).date()
@@ -336,7 +336,7 @@ def month_page(year, month):
         Goal.completed == False  # ← EXCLUDE COMPLETED
     ).all() 
 
-    print(F"Possbile Parens: {possible_parents}")
+    #print(F"Possbile Parens: {possible_parents}")
 
     #possible_parents = Goal.query.filter(
      #   Goal.type == 'quarterly',
@@ -651,9 +651,9 @@ def update_goal_status(goal_id):
 # app/routes.py — add_subgoal
 @bp.route('/api/goal/<int:parent_id>/subgoal', methods=['POST'])
 def add_subgoal(parent_id):
-    print("=== /api/goal/{parent_id}/subgoal DEBUG ===")
-    print("Parent ID:", parent_id)
-    print("JSON data:", request.json)
+    #print("=== /api/goal/{parent_id}/subgoal DEBUG ===")
+    #print("Parent ID:", parent_id)
+    #print("JSON data:", request.json)
     data = request.json
 
     # ENSURE parent_id IS VALID
@@ -752,7 +752,7 @@ def api_note(key):
     parts = key.split('-')
     if len(parts) < 4 or parts[0] != 'note':
         abort(400)
-    print(key)
+    #print(key)
     scope = parts[1]
     type_ = parts[-1]
     year = None
@@ -810,7 +810,7 @@ def api_note(key):
         'time': time,
         'index': index,
         }
-    print(filters)
+    #print(filters)
     filters = {k: v for k, v in filters.items() if v is not None}
 
     if request.method == 'GET':
@@ -1137,7 +1137,7 @@ def week_range(year: int, month: int, day: int) -> tuple[date, date]:
     Return (week_start_sunday, week_end_saturday) for the given date.
     Week starts on Sunday.
     """
-    print(year, month, day)
+    #print(year, month, day)
     given_date = date(year, month, day)
     
     # weekday(): Mon=0, Tue=1, ..., Sun=6

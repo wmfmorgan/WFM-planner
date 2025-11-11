@@ -46,17 +46,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
     document.addEventListener('click', e => {
         const debugId = ++clickDebugId;
-        console.log(`[DEBUG ${debugId}] Click detected. isProcessingClick = ${isProcessingClick}`);
+        //console.log(`[DEBUG ${debugId}] Click detected. isProcessingClick = ${isProcessingClick}`);
 
         if (isProcessingClick) {
-            console.log(`[DEBUG ${debugId}] BLOCKED – already processing`);
+            //console.log(`[DEBUG ${debugId}] BLOCKED – already processing`);
             return;
         }
 
         // --- 1. EDIT EVENT (badge) ---
         const badge = e.target.closest('.event-badge[data-event-id]');
         if (badge) {
-            console.log(`[DEBUG ${debugId}] EDIT badge clicked (id=${badge.dataset.eventId})`);
+            //console.log(`[DEBUG ${debugId}] EDIT badge clicked (id=${badge.dataset.eventId})`);
             isProcessingClick = true;
             e.stopPropagation();
 
@@ -64,7 +64,7 @@ document.addEventListener('DOMContentLoaded', () => {
             fetch(`${apiBase}/event/${id}`)
                 .then(r => r.json())
                 .then(ev => {
-                    console.log(`[DEBUG ${debugId}] EDIT loaded – opening modal`);
+                    //console.log(`[DEBUG ${debugId}] EDIT loaded – opening modal`);
                     editingEventId = ev.id;
                     titleEl.textContent = 'Edit Event';
 
@@ -113,7 +113,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 .finally(() => {
                     // Re-enable after modal is fully shown
                     modalEl.addEventListener('shown.bs.modal', () => {
-                        console.log(`[DEBUG ${debugId}] Modal shown – re-enabling clicks`);
+                        //console.log(`[DEBUG ${debugId}] Modal shown – re-enabling clicks`);
                         isProcessingClick = false;
                     }, { once: true });
                 });
@@ -123,11 +123,11 @@ document.addEventListener('DOMContentLoaded', () => {
         // --- 2. ADD EVENT (time slot) ---
         const slot = e.target.closest('.schedule-time-slot');
         if (!slot) {
-            console.log(`[DEBUG ${debugId}] No slot or badge – ignoring`);
+            //console.log(`[DEBUG ${debugId}] No slot or badge – ignoring`);
             return;
         }
 
-        console.log(`[DEBUG ${debugId}] ADD slot clicked (${slot.dataset.hour}:${slot.dataset.minutes})`);
+        //console.log(`[DEBUG ${debugId}] ADD slot clicked (${slot.dataset.hour}:${slot.dataset.minutes})`);
         isProcessingClick = true;
         e.stopPropagation();
 
@@ -138,7 +138,7 @@ document.addEventListener('DOMContentLoaded', () => {
         modal.show();
 
         modalEl.addEventListener('shown.bs.modal', function fillForm() {
-            console.log(`[DEBUG ${debugId}] ADD modal shown – filling form`);
+            //console.log(`[DEBUG ${debugId}] ADD modal shown – filling form`);
             document.getElementById('eventDate').value = dayDate;
             document.getElementById('startDate').value = dayDate;
             document.getElementById('endDate').value   = dayDate;
@@ -194,7 +194,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const method = editingEventId ? 'PUT' : 'POST';
             const url    = editingEventId ? `${apiBase}/event/${editingEventId}` : `${apiBase}/event`;
 
-            console.log(`[SUBMIT] ${method} → ${url}`, payload);
+            //console.log(`[SUBMIT] ${method} → ${url}`, payload);
 
             fetch(url, {
                 method,
@@ -203,7 +203,7 @@ document.addEventListener('DOMContentLoaded', () => {
             })
             .then(r => {
                 if (!r.ok) throw r;
-                console.log('[SUBMIT] Success – reloading');
+                //console.log('[SUBMIT] Success – reloading');
                 location.reload();
             })
             .catch(err => {
