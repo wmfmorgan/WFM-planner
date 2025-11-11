@@ -2,6 +2,10 @@
    calendar.js – all day-page logic in ONE place
    -------------------------------------------------------------- */
 document.addEventListener('DOMContentLoaded', () => {
+    // GLOBAL TASK ADD GUARD — BLOCKS DUPES
+
+let isSubmittingTask = false;
+const debugLog = (msg) => console.log(`[TASK ADD] ${msg}`);
     // -----------------------------------------------------------------
     // 1. CONFIG – these values are injected by the Flask template
     // -----------------------------------------------------------------
@@ -258,23 +262,45 @@ document.addEventListener('DOMContentLoaded', () => {
     document.querySelectorAll('.task-card[draggable="true"]')
             .forEach(c => c.addEventListener('dragstart', start));
 
-    // -----------------------------------------------------------------
-    // 10. ADD TASK (Enter key)
-    // -----------------------------------------------------------------
-    document.addEventListener('keypress', e => {
-        if (!e.target.classList.contains('add-task-input') || e.key !== 'Enter') return;
+// ——— REPLACE YOUR CURRENT add-task-form LISTENER WITH THIS ———
+document.querySelectorAll('#add-task-form').forEach((form, index) => {
+    debugLog(`Binding submit listener to form #${index}`);
+
+    form.addEventListener('submit', function(e) {
         e.preventDefault();
-        const desc = e.target.value.trim();
-        if (!desc) return;
+        e.stopImmediatePropagation(); // KILL ANY OTHER LISTENERS
+
+        const input = this.querySelector('.add-task-input');
+        const desc = input?.value.trim() || '';
+        const formId = this.id || 'unknown';
+
+        debugLog(`Form submit triggered: "${desc}" (form: ${formId})`);
+
+        if (!desc) {
+            debugLog('Blocked: empty description');
+            return;
+        }
+        if (isSubmittingTask) {
+            debugLog('BLOCKED: already submitting');
+            alert('Please wait — task is being added.');
+            return;
+        }
+
+        isSubmittingTask = true;
+        debugLog('SUBMITTING TASK...');
 
         const [y, m, d] = dayDate.split('-');
         fetch(`${apiBase}/task`, {
             method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({description: desc, year: +y, month: +m, day: +d})
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ description: desc, year: +y, month: +m, day: +d })
         })
-        .then(r => r.json())
+        .then(r => {
+            if (!r.ok) throw new Error(`HTTP ${r.status}`);
+            return r.json();
+        })
         .then(data => {
+            debugLog(`SUCCESS: Task ID ${data.id}`);
             const list = document.querySelector('[data-status="todo"] .task-list');
             const card = document.createElement('div');
             card.className = 'task-card bg-white p-3 rounded shadow-sm border';
@@ -283,16 +309,24 @@ document.addEventListener('DOMContentLoaded', () => {
             card.innerHTML = `<div class="task-desc fw-medium">${desc}</div>`;
             card.addEventListener('dragstart', start);
             list.appendChild(card);
-            e.target.value = '';
+            input.value = '';
+            input.focus();
         })
         .catch(err => {
+            debugLog(`ERROR: ${err.message}`);
+            alert('Failed to add task. Check console.');
             console.error(err);
-            alert('Failed to add task.');
+        })
+        .finally(() => {
+            setTimeout(() => {
+                isSubmittingTask = false;
+                debugLog('READY FOR NEXT ADD');
+            }, 600);
         });
     });
+});
 
-    // -----------------------------------------------------------------
-    // 11. AUTO-SCROLL TO CURRENT TIME (only on today)
+// 11. AUTO-SCROLL TO CURRENT TIME (only on today)
     // -----------------------------------------------------------------
     const container = document.getElementById('schedule-container');
     if (container && isToday) {
@@ -306,4 +340,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }, 100);
         }
     }
+
+
 });
+

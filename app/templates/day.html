@@ -153,8 +153,10 @@
                 </div>
                 {% endfor %}
                 {% if col == 'todo' %}
-                <input type="text" class="form-control mt-auto add-task-input border-0 shadow-sm"
-                       placeholder="+ Add a task... (hit Enter)" />
+                <form id="add-task-form" class="mt-auto">
+                    <input type="text" class="form-control add-task-input border-0 shadow-sm" 
+                        placeholder="+ Add a task..." autocomplete="off" required />
+                </form>
                 {% endif %}
             </div>
         </div>
