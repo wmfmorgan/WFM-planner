@@ -122,10 +122,7 @@ def goals():
 
     # === GET: LOAD TOP-LEVEL GOALS ===
     goals = Goal.query.filter(
-        db.or_(
-            Goal.parent_id.is_(None),
-            Goal.parent_id == ''
-        )
+        Goal.parent_id.is_(None)
     ).options(
         db.joinedload(Goal.children)
     ).order_by(
