@@ -15,19 +15,23 @@ session = Session()
 with open('local_db.json') as f:
     data = json.load(f)
 
-# Import each table
+# Import each table — IGNORE 'id' FIELD
 for table, rows in data.items():
     Model = {'goal': Goal, 'note': Note, 'event': Event, 'task': Task}[table]
     for row in rows:
+        # REMOVE 'id' — LET POSTGRES ASSIGN IT
+        row.pop('id', None)  # <-- THIS IS THE ELBOW DROP
+
+        # Fix date/time fields
         for k, v in row.items():
             if v and 'date' in k:
                 row[k] = datetime.fromisoformat(v).date()
             elif v and 'time' in k:
-                # Fix: Strip trailing zeros from microseconds
                 clean_time = v.split('.')[0]  # "08:30:00.000000" → "08:30:00"
                 row[k] = datetime.strptime(clean_time, '%H:%M:%S').time()
+
         obj = Model(**row)
         session.add(obj)
     session.commit()
 
-print("All data imported!")
+print("All data imported safely — IDs auto-assigned by Postgres!")
