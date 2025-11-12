@@ -4,8 +4,9 @@
 document.addEventListener('DOMContentLoaded', () => {
     // GLOBAL TASK ADD GUARD — BLOCKS DUPES
 
-let isSubmittingTask = false;
-const debugLog = (msg) => console.log(`[TASK ADD] ${msg}`);
+    let isSubmittingTask = false;
+    //const debugLog = (msg) => console.log(`[TASK ADD] ${msg}`);
+    
     // -----------------------------------------------------------------
     // 1. CONFIG – these values are injected by the Flask template
     // -----------------------------------------------------------------
@@ -121,6 +122,36 @@ const debugLog = (msg) => console.log(`[TASK ADD] ${msg}`);
                         isProcessingClick = false;
                     }, { once: true });
                 });
+            return;
+        }
+
+        // --- 3. ADD EVENT FROM MONTH (+ Add Event) ---
+        const addArea = e.target.closest('.add-event-area');
+        if (addArea) {
+            isProcessingClick = true;
+            e.stopPropagation();
+
+            const cell = addArea.closest('.calendar-day');
+            if (!cell || !cell.dataset.date) {
+                isProcessingClick = false;
+                return;
+            }
+
+            const dateStr = cell.dataset.date;
+
+            resetModal();
+            modal.show();
+
+            modalEl.addEventListener('shown.bs.modal', function fillForm() {
+                document.getElementById('eventDate').value = dateStr;
+                document.getElementById('startDate').value = dateStr;
+                document.getElementById('endDate').value   = dateStr;
+                document.getElementById('startTime').value = '09:00';
+                document.getElementById('endTime').value   = '10:00';
+                this.removeEventListener('shown.bs.modal', fillForm);
+                isProcessingClick = false;
+            }, { once: true });
+
             return;
         }
 
