@@ -581,26 +581,49 @@ def day_page(year, month, day):
             Event.start_time.asc()
         ).all()
         
-    # 1. Carry-forward non-DONE tasks from yesterday
-    yesterday = target_date - timedelta(days=1)
-    prev_tasks = Task.query.filter(
-        Task.date == yesterday,
-        Task.status != TaskStatus.DONE
+
+    # 2. Load tasks
+    # TARGET DATE LOGIC
+    is_today = target_date == date.today()
+    is_past = target_date < date.today()
+    is_future = target_date > date.today()
+
+    # BUILD FILTER
+    filters = []
+    print(target_date)
+    if is_today:
+        print('is_today')
+        # TODAY: Incomplete (any date) + Completed today
+        filters.append(
+            or_(
+                # All incomplete tasks (any date)
+                Task.status.in_([TaskStatus.TODO, TaskStatus.IN_PROGRESS, TaskStatus.BLOCKED]),
+                # Completed TODAY
+                and_(Task.status == TaskStatus.DONE, Task.date == target_date)
+            )
+        )
+    elif is_past:
+        print('is_past')
+        # PAST: Only completed on THAT day
+        filters.append(
+            and_(Task.status == TaskStatus.DONE, Task.date == target_date)
+        )
+    elif is_future:
+        print('is_future')
+        # FUTURE: Only tasks with exact date
+        filters.append(Task.date == target_date)
+
+    # FINAL QUERY
+    today_tasks = Task.query.filter(*filters).order_by(
+        case(
+            (Task.status != TaskStatus.DONE, 0),  # Incomplete first
+            else_=1
+        ),
+        Task.id
     ).all()
 
-    for t in prev_tasks:
-        # avoid duplicates (same description on the same date)
-        if not Task.query.filter_by(description=t.description, date=target_date).first():
-            db.session.add(Task(
-                description=t.description,
-                date=target_date,
-                status=t.status,
-                notes=t.notes
-            ))
-    db.session.commit()
-
-    # 2. Load today’s tasks
-    today_tasks = Task.query.filter_by(date=target_date).order_by(Task.id).all()
+    print(filter)
+    print(today_tasks)
 
     # 3. Group for the Kanban board
     kanban = {
