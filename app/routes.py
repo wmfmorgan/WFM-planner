@@ -592,7 +592,7 @@ def day_page(year, month, day):
     filters = []
     print(target_date)
     if is_today:
-        print('is_today')
+        #print('is_today')
         # TODAY: Incomplete (any date) + Completed today
         filters.append(
             or_(
@@ -603,13 +603,13 @@ def day_page(year, month, day):
             )
         )
     elif is_past:
-        print('is_past')
+        #print('is_past')
         # PAST: Only completed on THAT day
         filters.append(
             and_(Task.status == TaskStatus.DONE, Task.date == target_date)
         )
     elif is_future:
-        print('is_future')
+        #print('is_future')
         # FUTURE: Only tasks with exact date
         filters.append(Task.date == target_date)
 
