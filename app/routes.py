@@ -590,7 +590,7 @@ def day_page(year, month, day):
 
     # BUILD FILTER
     filters = []
-    print(target_date)
+    #print(target_date)
     if is_today:
         #print('is_today')
         # TODAY: Incomplete (any date) + Completed today
@@ -622,8 +622,8 @@ def day_page(year, month, day):
         Task.id
     ).all()
 
-    print(filter)
-    print(today_tasks)
+    #print(filter)
+    #print(today_tasks)
 
     # 3. Group for the Kanban board
     kanban = {
@@ -1073,14 +1073,25 @@ def api_add_task():
 # --------------------------------------------------------------
 @bp.route('/api/task/<int:task_id>/status', methods=['POST'])  # Or @app.route
 def api_update_status(task_id):
-    task = Task.query.get_or_404(task_id)
-    new_status = request.json.get('status')
-    if new_status not in [s.value for s in TaskStatus]:
-        return jsonify({'error': 'Invalid status'}), 400
-    task.status = TaskStatus(new_status)
-    db.session.commit()
-    return jsonify({'success': True})
+    data = request.json
+    status_str = data.get('status', '').strip().upper()  # ← UPPERCASE IT
+    
+    if status_str not in [e.name for e in TaskStatus]:
+        return jsonify(success=False, error="Invalid status"), 400
 
+    task = Task.query.get_or_404(task_id)
+    
+    new_status = TaskStatus[status_str]  # ← Now works with 'BLOCKED'
+    
+    # Set date to today when marked DONE
+    if new_status == TaskStatus.DONE:
+        task.date = date.today()
+        current_app.logger.info(f"Task {task.id}: marked DONE on {task.date}")
+    
+    task.status = new_status
+    db.session.commit()
+    
+    return jsonify(success=True)
 
 @bp.context_processor
 def inject_week_info():

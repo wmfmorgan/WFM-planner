@@ -108,8 +108,3 @@ class Task(db.Model):
     date = db.Column(db.Date, nullable=False)
     status = db.Column(db.Enum(TaskStatus), default=TaskStatus.TODO, nullable=False)
     notes = db.Column(db.Text)
-
-    def set_status(self, status):
-        self.status = status
-        if status == TaskStatus.DONE:
-            self.date = date.today()
