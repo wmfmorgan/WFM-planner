@@ -295,7 +295,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // ——— REPLACE YOUR CURRENT add-task-form LISTENER WITH THIS ———
 document.querySelectorAll('#add-task-form').forEach((form, index) => {
-    debugLog(`Binding submit listener to form #${index}`);
+    //debugLog(`Binding submit listener to form #${index}`);
 
     form.addEventListener('submit', function(e) {
         e.preventDefault();
@@ -305,20 +305,20 @@ document.querySelectorAll('#add-task-form').forEach((form, index) => {
         const desc = input?.value.trim() || '';
         const formId = this.id || 'unknown';
 
-        debugLog(`Form submit triggered: "${desc}" (form: ${formId})`);
+        //debugLog(`Form submit triggered: "${desc}" (form: ${formId})`);
 
         if (!desc) {
-            debugLog('Blocked: empty description');
+            //debugLog('Blocked: empty description');
             return;
         }
         if (isSubmittingTask) {
-            debugLog('BLOCKED: already submitting');
+            //debugLog('BLOCKED: already submitting');
             alert('Please wait — task is being added.');
             return;
         }
 
         isSubmittingTask = true;
-        debugLog('SUBMITTING TASK...');
+        //debugLog('SUBMITTING TASK...');
 
         const [y, m, d] = dayDate.split('-');
         fetch(`${apiBase}/task`, {
@@ -331,7 +331,7 @@ document.querySelectorAll('#add-task-form').forEach((form, index) => {
             return r.json();
         })
         .then(data => {
-            debugLog(`SUCCESS: Task ID ${data.id}`);
+            //debugLog(`SUCCESS: Task ID ${data.id}`);
             const list = document.querySelector('[data-status="todo"] .task-list');
             const card = document.createElement('div');
             card.className = 'task-card bg-white p-3 rounded shadow-sm border';
@@ -344,14 +344,14 @@ document.querySelectorAll('#add-task-form').forEach((form, index) => {
             input.focus();
         })
         .catch(err => {
-            debugLog(`ERROR: ${err.message}`);
+            //debugLog(`ERROR: ${err.message}`);
             alert('Failed to add task. Check console.');
             console.error(err);
         })
         .finally(() => {
             setTimeout(() => {
                 isSubmittingTask = false;
-                debugLog('READY FOR NEXT ADD');
+                //debugLog('READY FOR NEXT ADD');
             }, 600);
         });
     });
