@@ -113,5 +113,3 @@ class Task(db.Model):
         self.status = status
         if status == TaskStatus.DONE:
             self.date = date.today()
-        else:
-            self.date = None
