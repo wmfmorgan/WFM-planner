@@ -597,7 +597,12 @@ def day_page(year, month, day):
         filters.append(
             or_(
                 # All incomplete tasks (any date)
-                Task.status.in_([TaskStatus.TODO, TaskStatus.IN_PROGRESS, TaskStatus.BLOCKED]),
+                Task.status.in_([TaskStatus.IN_PROGRESS, TaskStatus.BLOCKED]),
+                #exclude future todo
+                and_(
+                        Task.status == TaskStatus.TODO,
+                        Task.date <= target_date
+                    ),
                 # Completed TODAY
                 and_(Task.status == TaskStatus.DONE, Task.date == target_date)
             )
