@@ -371,7 +371,18 @@ document.querySelectorAll('#add-task-form').forEach((form, index) => {
             }, 100);
         }
     }
+    // Remember collapse state
+    const scheduleCollapse = document.getElementById('scheduleCollapse');
+    const collapseBtn = document.querySelector('[data-bs-target="#scheduleCollapse"]');
 
+    if (localStorage.getItem('scheduleCollapsed') === 'true') {
+        bootstrap.Collapse.getInstance(scheduleCollapse)?.hide();
+    }
+
+    collapseBtn.addEventListener('click', () => {
+        const collapsed = scheduleCollapse.classList.contains('show');
+        localStorage.setItem('scheduleCollapsed', collapsed ? 'true' : 'false');
+    });
 
 });
 

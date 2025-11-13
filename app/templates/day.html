@@ -72,58 +72,69 @@
             <!-- REPLACE THE ENTIRE SCHEDULE CARD -->
             <div class="col-12">
                 <div class="card">
-                    <div class="card-header">
-                        <h5 class="mb-0">Schedule</h5>
+                    <div class="card-header" id="scheduleHeader">
+                        <h5 class="mb-0">
+                            <button class="btn btn-outline-secondary collapsed" 
+                            type="button" 
+                            data-bs-toggle="collapse" 
+                            data-bs-target="#scheduleCollapse" 
+                            aria-expanded="false" 
+                            aria-controls="scheduleCollapse">
+                            <i class="bi bi-list"></i></button>
+                            Schedule
+                        </h5>
                     </div>
-                    <div class="card-body p-0" id="schedule-container" style="max-height: 600px; overflow-y: auto;">
-                        <table class="table table-bordered table-sm mb-0">
-                            <tbody>
-                                {% for hour in range(0, 24) %}
-                                    {% for half in [0, 30] %}
-                                        {% set minutes = half %}
-                                        {% set time_str = '%02d:%02d'|format(hour, minutes) %}
-                                        {% set hour_12 = ((hour % 12) or 12) %}
-                                        {% set am_pm = 'AM' if hour < 12 else 'PM' %}
-                                        {% set display_time = '%d:%02d %s'|format(hour_12, minutes, am_pm) %}
+                    <div id="scheduleCollapse" class="collapse" aria-labelledby="scheduleHeader">
+                        <div class="card-body p-0" id="schedule-container" style="max-height: 600px; overflow-y: auto;">
+                            <table class="table table-bordered table-sm mb-0">
+                                <tbody>
+                                    {% for hour in range(0, 24) %}
+                                        {% for half in [0, 30] %}
+                                            {% set minutes = half %}
+                                            {% set time_str = '%02d:%02d'|format(hour, minutes) %}
+                                            {% set hour_12 = ((hour % 12) or 12) %}
+                                            {% set am_pm = 'AM' if hour < 12 else 'PM' %}
+                                            {% set display_time = '%d:%02d %s'|format(hour_12, minutes, am_pm) %}
 
-                                        <tr class="schedule-row" data-hour="{{ hour }}" data-minutes="{{ minutes }}">
-                                            <td class="text-left align-middle text-muted small schedule-time-slot" 
-                                                style="width: 90px; font-weight: {% if minutes == 0 %}bold{% else %}normal{% endif %}; cursor: pointer;"
-                                                data-hour="{{ hour }}" 
-                                                data-minutes="{{ minutes }}">
-                                                {{ display_time }}
-                                            </td>
-                                            <td class="p-2 position-relative">
-                                                <div class="events-list h-100">
-                                                    {% for event in events_on_date(year, month, day) %}
-                                                        {% if event.start_time %}
-                                                            {% set start_min = event.start_time.hour * 60 + event.start_time.minute %}
-                                                            {% set slot_min = hour * 60 + minutes %}
-                                                            {% if start_min == slot_min %}
+                                            <tr class="schedule-row" data-hour="{{ hour }}" data-minutes="{{ minutes }}">
+                                                <td class="text-left align-middle text-muted small schedule-time-slot" 
+                                                    style="width: 90px; font-weight: {% if minutes == 0 %}bold{% else %}normal{% endif %}; cursor: pointer;"
+                                                    data-hour="{{ hour }}" 
+                                                    data-minutes="{{ minutes }}">
+                                                    {{ display_time }}
+                                                </td>
+                                                <td class="p-2 position-relative">
+                                                    <div class="events-list h-100">
+                                                        {% for event in events_on_date(year, month, day) %}
+                                                            {% if event.start_time %}
+                                                                {% set start_min = event.start_time.hour * 60 + event.start_time.minute %}
+                                                                {% set slot_min = hour * 60 + minutes %}
+                                                                {% if start_min == slot_min %}
+                                                                    <div class="event-badge bg-primary text-white p-1 mb-1 rounded small" 
+                                                                        data-event-id="{{ event.id }}" style="cursor: pointer;">
+                                                                        {{ event.title }}
+                                                                        {{ event.start_time.strftime('%H:%M') }}-{{ event.end_time.strftime('%H:%M') }}
+                                                                    </div>
+                                                                {% endif %}
+                                                            {% elif event.all_day and hour == 7 and minutes == 0 %}
                                                                 <div class="event-badge bg-primary text-white p-1 mb-1 rounded small" 
                                                                     data-event-id="{{ event.id }}" style="cursor: pointer;">
-                                                                    {{ event.title }}
-                                                                    {{ event.start_time.strftime('%H:%M') }}-{{ event.end_time.strftime('%H:%M') }}
+                                                                    {{ event.title }} (All Day)
                                                                 </div>
                                                             {% endif %}
-                                                        {% elif event.all_day and hour == 7 and minutes == 0 %}
-                                                            <div class="event-badge bg-primary text-white p-1 mb-1 rounded small" 
-                                                                data-event-id="{{ event.id }}" style="cursor: pointer;">
-                                                                {{ event.title }} (All Day)
-                                                            </div>
-                                                        {% endif %}
-                                                    {% endfor %}
-                                                </div>
-                                                <!-- Hidden trigger for backward compatibility -->
-                                                <!--<div class="add-event-area d-none" 
-                                                    data-hour="{{ hour }}" 
-                                                    data-minutes="{{ minutes }}"></div> -->
-                                            </td>
-                                        </tr>
+                                                        {% endfor %}
+                                                    </div>
+                                                    <!-- Hidden trigger for backward compatibility -->
+                                                    <!--<div class="add-event-area d-none" 
+                                                        data-hour="{{ hour }}" 
+                                                        data-minutes="{{ minutes }}"></div> -->
+                                                </td>
+                                            </tr>
+                                        {% endfor %}
                                     {% endfor %}
-                                {% endfor %}
-                            </tbody>
-                        </table>
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
             </div>
