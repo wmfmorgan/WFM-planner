@@ -1,11 +1,35 @@
 # app/models.py
 from enum import Enum as PyEnum
-from datetime import datetime, date
+from datetime import datetime, date, time
 from . import db
 
+# 2. ADDED: ExportableMixin – central to_dict() for all models
+# ──────────────────────────────────────────────────────────────────────────────
+class ExportableMixin:
+    """Add .to_dict() to any model that inherits from this."""
+    def to_dict(self):
+        result = {}
+        for column in self.__table__.columns:
+            value = getattr(self, column.name)
+
+            # ---- Enum ----------------------------------------------------
+            if isinstance(value, PyEnum):
+                result[column.name] = value.value
+
+            # ---- Date / Datetime / Time ----------------------------------
+            elif isinstance(value, (date, datetime)):
+                result[column.name] = value.isoformat() if value else None
+            elif isinstance(value, time):
+                result[column.name] = value.isoformat() if value else None
+
+            # ---- Everything else -----------------------------------------
+            else:
+                result[column.name] = value
+
+        return result
 
 # app/models.py
-class Note(db.Model):
+class Note(ExportableMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
     scope = db.Column(db.String(20), nullable=False, index=True)
     year = db.Column(db.Integer, nullable=False, index=True)
@@ -22,7 +46,7 @@ class Note(db.Model):
         db.UniqueConstraint('scope', 'year', 'quarter', 'month', 'week', 'day', 'time', 'index', 'type', name='uix_note'),
     )
 
-class Goal(db.Model):
+class Goal(ExportableMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(100), nullable=False)
     type = db.Column(db.String(20), default='annual')  # e.g., Annual, Q1, Jan, etc.
@@ -81,7 +105,7 @@ class Goal(db.Model):
         }
 
 
-class Event(db.Model):
+class Event(ExportableMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(100), nullable=False)
     start_date = db.Column(db.Date, nullable=False)
@@ -102,7 +126,8 @@ class TaskStatus(PyEnum):
     BLOCKED = "blocked"
     DONE = "done"
 
-class Task(db.Model):
+
+class Task(ExportableMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
     description = db.Column(db.String(200), nullable=False)
     date = db.Column(db.Date, nullable=False)

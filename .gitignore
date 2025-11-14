@@ -1,3 +1,9 @@
+# SQLite database files
+*.db
+
+# Flask instance folder (contains the DB)
+instance/
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[codz]

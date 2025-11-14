@@ -998,55 +998,98 @@ from flask import send_file, request, flash, redirect, url_for, Response
 
 @bp.route('/export-json')
 def export_json():
-    """Export all DB tables to JSON"""
     data = {}
-    for table in db.metadata.tables.keys():
-        model = globals()[table.capitalize()]
-        data[table] = [row.__dict__ for row in model.query.all()]
-        for row in data[table]:
-            row.pop('_sa_instance_state', None)
-    
-    json_str = json.dumps(data, indent=2, default=str)
-    response = Response(json_str, mimetype='application/json')
-    response.headers['Content-Disposition'] = f'attachment; filename=wfm_planner_{datetime.now().strftime("%Y%m%d_%H%M%S")}.json'
-    return response
+    for table_name in db.metadata.tables.keys():
+        model = globals().get(table_name.capitalize())
+        if not model or not hasattr(model, 'query') or not hasattr(model, 'to_dict'):
+            continue
+        data[table_name] = [row.to_dict() for row in model.query.all()]
 
+    json_str = json.dumps(data, indent=2)
+    resp = Response(json_str, mimetype='application/json')
+    ts = datetime.now().strftime("%Y%m%d_%H%M%S")
+    resp.headers['Content-Disposition'] = f'attachment; filename=wfm_planner_{ts}.json'
+    return resp
+
+
+from flask import request, flash, redirect, url_for, render_template
+from datetime import datetime, date, time
+from app.models import TaskStatus  # ← Make sure this is imported
 
 @bp.route('/import-json', methods=['GET', 'POST'])
 def import_json():
     if request.method == 'POST':
         file = request.files['file']
         if file and file.filename.endswith('.json'):
-            data = json.load(file)
-            for table, rows in data.items():
-                model = globals()[table.capitalize()]
-                db.session.query(model).delete()
-                for row in rows:
-                    # CONVERT DATES
-                    if 'due_date' in row and row['due_date']:
-                        row['due_date'] = datetime.strptime(row['due_date'], '%Y-%m-%d').date()
-                    if 'start_date' in row and row['start_date']:
-                        row['start_date'] = datetime.strptime(row['start_date'], '%Y-%m-%d').date()
-                    if 'end_date' in row and row['end_date']:
-                        row['end_date'] = datetime.strptime(row['end_date'], '%Y-%m-%d').date()
-                    
-                    # CONVERT TIMES
-                    if 'start_time' in row and row['start_time']:
-                        row['start_time'] = datetime.strptime(row['start_time'], '%H:%M:%S').time()
-                    if 'end_time' in row and row['end_time']:
-                        row['end_time'] = datetime.strptime(row['end_time'], '%H:%M:%S').time()
-                    
-                    # CONVERT created_at
-                    if 'created_at' in row and row['created_at']:
-                        row['created_at'] = datetime.fromisoformat(row['created_at'].replace('Z', '+00:00'))
-                    
-                    obj = model(**row)
-                    db.session.add(obj)
-            db.session.commit()
-            flash("Database imported from JSON!", "success")
-            return redirect(url_for('main.index'))
+            try:
+                data = json.load(file)
+
+                for table, rows in data.items():
+                    model_name = table.capitalize()
+                    model = globals().get(model_name)
+                    if not model:
+                        continue
+
+                    # Clear existing data
+                    db.session.query(model).delete()
+
+                    for row in rows:
+                        row.pop('id', None)  # Let DB assign new ID
+
+                        # === DATE CONVERSIONS ===
+                        date_fields = ['due_date', 'start_date', 'end_date', 'date']  # ← ADD 'date'
+                        for field in date_fields:
+                            if field in row and row[field]:
+                                try:
+                                    row[field] = datetime.strptime(row[field], '%Y-%m-%d').date()
+                                except ValueError:
+                                    row[field] = None
+
+                        # === TIME CONVERSIONS ===
+                        time_fields = ['start_time', 'end_time']
+                        for field in time_fields:
+                            if field in row and row[field]:
+                                try:
+                                    row[field] = datetime.strptime(row[field], '%H:%M:%S').time()
+                                except ValueError:
+                                    row[field] = None
+
+                        # === DATETIME CONVERSIONS ===
+                        if 'created_at' in row and row['created_at']:
+                            try:
+                                row['created_at'] = datetime.fromisoformat(
+                                    row['created_at'].replace('Z', '+00:00')
+                                )
+                            except ValueError:
+                                row['created_at'] = datetime.utcnow()
+
+                        # === ENUM CONVERSIONS (Task.status, Goal.status) ===
+                        if table == 'task' and 'status' in row:
+                            try:
+                                row['status'] = TaskStatus(row['status'])
+                            except ValueError:
+                                row['status'] = TaskStatus.TODO
+
+                        if table == 'goal' and 'status' in row:
+                            # Map string → string (since Goal.status is String)
+                            valid = {'todo', 'in_progress', 'blocked', 'done'}
+                            row['status'] = row['status'] if row['status'] in valid else 'todo'
+
+                        # === CREATE OBJECT ===
+                        obj = model(**row)
+                        db.session.add(obj)
+
+                db.session.commit()
+                flash("Database imported successfully!", "success")
+                return redirect(url_for('main.index'))
+
+            except Exception as e:
+                db.session.rollback()
+                flash(f"Import failed: {str(e)}", "danger")
+
         flash("Invalid file", "danger")
-    
+
+    # GET: Show upload form
     today = date.today()
     today_quarter = (today.month - 1) // 3 + 1
     return render_template('import_json.html', today=today, today_quarter=today_quarter)
