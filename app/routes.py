@@ -233,11 +233,6 @@ def quarter_page(year, q_num):
     
     quarterly_goals_grouped = group_goals_by_status(quarterly_goals)
   
-    # GET POSSIBLE PARENTS (weekly goals in same week, NOT completed)
-    #start_month = (q_num - 1) * 3 + 1
-    #day_date = datetime(year, start_month, 1).date()
-    #w_start = day_date - timedelta(days=day_date.weekday())
-    #w_end = w_start + timedelta(days=6)
     w_start = datetime(year,1,1).date()
     w_end = datetime(year,12,31).date()
     possible_parents = Goal.query.filter(
@@ -315,32 +310,15 @@ def month_page(year, month):
     # GET POSSIBLE PARENTS (monthly goals overlapping week, NOT completed)
     m_start_dt = datetime(m_start.year, m_start.month, 1)  # datetime
     m_end_dt = m_start_dt + relativedelta(months=1) - timedelta(days=1)  # datetime
-    #print("date")
-    #today = date.today()  # Nov 10, 2025
+
     q_start, q_end = quarter_range(year, month)
-    #print(f"Start: {q_start} | End: {q_end}")
-    #last_day = last_day_of_month(year, month)
-    #print(last_day)  # 2025-11-30
-    #m_start_dt = datetime(m_start.year, m_start.month, 1).date()
-    #m_end_dt = last_day
     possible_parents = Goal.query.filter(
         Goal.type == 'quarterly',
         Goal.due_date >= q_start,
         Goal.due_date <= q_end,
         Goal.completed == False  # ← EXCLUDE COMPLETED
     ).all() 
-
-    #print(F"Possbile Parens: {possible_parents}")
-
-    #possible_parents = Goal.query.filter(
-     #   Goal.type == 'quarterly',
-      #  or_(
-      #      and_(Goal.due_date >= m_start_dt.date(), Goal.due_date <= m_end_dt.date()),
-      #      Goal.due_date.is_(None)
-    # ),
-    #   Goal.completed == False
-    #).order_by(Goal.due_date.asc(), Goal.id).all()
-  
+ 
     calendar = monthcalendar(year, month)
     month_name = date(year, month, 1).strftime('%B')
 
@@ -403,10 +381,6 @@ def week_page(year, week):
     day_date = w_start
     actual_iso_week = (w_start + timedelta(days=1)).isocalendar()[1]  # Monday of this week
 
-    # GET POSSIBLE PARENTS (monthly goals overlapping week, NOT completed)
-    #m_start_dt = datetime(w_start.year, w_start.month, 1)  # datetime
-    #m_end_dt = m_start_dt + relativedelta(months=1) - timedelta(days=1)  # datetime
-
     m_start, m_end = month_range_from_week(year, week)
 
     possible_parents = Goal.query.filter(
@@ -416,15 +390,6 @@ def week_page(year, week):
         Goal.completed == False  # ← EXCLUDE COMPLETED
     ).order_by(Goal.due_date.asc(), Goal.id).all() 
 
-    #possible_parents = Goal.query.filter(
-     #   Goal.type == 'monthly',
-     #   or_(
-     #       and_(Goal.due_date >= m_start_dt.date(), Goal.due_date <= m_end_dt.date()),
-    #      Goal.due_date.is_(None)
-     #   ),
-    #  Goal.completed == False
-    #).order_by(Goal.due_date.asc(), Goal.id).all()
-
     # GET WEEKLY GOALS
     weekly_goals = Goal.query.filter(
         Goal.type == 'weekly',
@@ -432,7 +397,6 @@ def week_page(year, week):
             and_(Goal.due_date >= w_start, Goal.due_date <= w_end),
             Goal.due_date.is_(None)
         )
-        #or_(Goal.parent_id.is_(None), Goal.parent_id == '')
     ).order_by(
         db_case((Goal.due_date.is_(None), 0), else_=1),
         Goal.due_date.asc(),
