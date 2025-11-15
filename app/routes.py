@@ -10,10 +10,8 @@ from calendar import Calendar, SUNDAY, setfirstweekday
 from sqlalchemy import case
 from sqlalchemy import and_, or_
 import calendar
-from calendar import monthcalendar, day_name
-from calendar import month_name  # ← ADD THIS LINE
+from calendar import monthcalendar, month_name
 import shutil
-from flask import send_file
 import os
 from flask import current_app
 import json
@@ -24,16 +22,6 @@ bp = Blueprint('main', __name__)
 # GLOBAL TODAY FOR NAVBAR
 today = datetime.now().date()
 today_quarter = ((today.month - 1) // 3) + 1
-
-def get_iso_week_for_sunday(sun_date):
-    """
-    Given a Sunday date, find the ISO week number of that week's Monday.
-    Minimal: No state change, just date math for remapping.
-    """
-    if sun_date.weekday() != 6:  # Quick guard (Sun == 6)
-        raise ValueError("Input must be a Sunday")
-    mon_date = sun_date - timedelta(days=6)
-    return mon_date.isocalendar()[1]
 
 # REUSABLE: GROUP GOALS BY STATUS
 def group_goals_by_status(goals):
@@ -1115,25 +1103,6 @@ def api_update_status(task_id):
     db.session.commit()
     
     return jsonify(success=True)
-
-@bp.context_processor
-def inject_week_info():
-    today = date.today()
-    # Calculate days to subtract to get to Sunday (weeks start Sunday)
-    days_to_sunday = (today.weekday() + 1) % 7  # Mon=0 → 1, Sun=6 → 0
-    this_sunday = today - timedelta(days=days_to_sunday)
-    current_week_num = this_sunday.isocalendar()[1]
-    
-    return {
-        'current_week_num': current_week_num,
-        'today': today
-    }
-
-def last_day_of_month(year: int, month: int) -> date:
-    # Next month, day 1
-    next_month = date(year, month, 28) + timedelta(days=4)  # Safe: 28 + 4 always rolls over
-    # Back 1 day = last day of current month
-    return next_month.replace(day=1) - timedelta(days=1)
 
 from typing import Tuple
 
