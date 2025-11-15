@@ -212,7 +212,7 @@
             onEnd: function (evt) {
                 const goalId = evt.item.dataset.goalId;
                 const newStatus = evt.to.dataset.status;
-                fetch(`/api/goal/${goalId}/status`, {
+                fetch(`/api/goals/${goalId}/status`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ status: newStatus })
@@ -261,7 +261,7 @@
                 completed: form.querySelector('.goal-completed-input').checked
             };
 
-            fetch(`/api/goal/${goalId}`, {
+            fetch(`/api/goals/${goalId}`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(data)
@@ -325,7 +325,7 @@ document.addEventListener('click', function(e) {
         if (e.target.classList.contains('delete-goal-btn')) {
             const goalId = e.target.dataset.goalId;
             if (confirm('Delete this goal and all sub-goals? This cannot be undone.')) {
-                fetch(`/api/goal/${goalId}`, {
+                fetch(`/api/goals/${goalId}`, {
                     method: 'DELETE'
                 }).then(() => {
                     location.reload();
@@ -346,7 +346,7 @@ document.getElementById('unified-goal-form').addEventListener('submit', function
 
     let url = '/goals';
     if (parentId && parentId !== '') {
-        url = `/api/goal/${parentId}/subgoal`;
+        url = `/api/goals/${parentId}/subgoal`;
     }
     
     fetch(url, {

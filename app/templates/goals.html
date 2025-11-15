@@ -331,7 +331,7 @@ document.addEventListener('DOMContentLoaded', function () {
             const goalId = target.closest('.delete-goal-btn').dataset.goalId;
 
             if (confirm('Delete this goal and all sub-goals? This cannot be undone.')) {
-                fetch(`/api/goal/${goalId}`, { method: 'DELETE' })
+                fetch(`/api/goals/${goalId}`, { method: 'DELETE' })
                     .then(res => {
                         if (!res.ok) throw new Error(`HTTP ${res.status}`);
                         location.reload();
@@ -394,7 +394,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 completed: form.querySelector('.goal-completed-input').checked
             };
 
-            fetch(`/api/goal/${goalId}`, {
+            fetch(`/api/goals/${goalId}`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(data)
@@ -419,7 +419,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
         const form = e.target;
         const parentId = form.querySelector('[name="parent_id"]').value;
-        const url = parentId ? `/api/goal/${parentId}/subgoal` : '/goals';
+        const url = parentId ? `/api/goals/${parentId}/subgoal` : '/goals';
 
         if (parentId) {
             // SUB-GOAL: Send JSON

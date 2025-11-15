@@ -14,7 +14,7 @@ document.addEventListener('DOMContentLoaded', function () {
             const dueInput = prompt('Due date (YYYY-MM-DD) - optional:');
             const due_date = dueInput || null;
 
-            fetch(`/api/goal/${parentId}/subgoal`, {
+            fetch(`/api/goals/${parentId}/subgoal`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ title, due_date })
@@ -43,7 +43,7 @@ document.addEventListener('DOMContentLoaded', function () {
             const card = e.target.closest('.goal-node') || e.target.closest('.goal-card');
             const progressBar = card.querySelector('.progress-bar');
 
-            fetch(`/api/goal/${goalId}/toggle`, { method: 'POST' })
+            fetch(`/api/goals/${goalId}/toggle`, { method: 'POST' })
                 .then(res => res.json())
                 .then(data => {
                     progressBar.style.width = data.progress + '%';
@@ -89,7 +89,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 due_date: form.querySelector('.goal-due-date-input').value || null
             };
 
-            fetch(`/api/goal/${goalId}`, {
+            fetch(`/api/goals/${goalId}`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(data)
@@ -117,7 +117,7 @@ document.addEventListener('DOMContentLoaded', function () {
             const card = e.target.closest('.goal-node') || e.target.closest('.goal-card');
             if (!confirm('Delete this goal and all sub-goals?')) return;
 
-            fetch(`/api/goal/${goalId}`, { method: 'DELETE' })
+            fetch(`/api/goals/${goalId}`, { method: 'DELETE' })
                 .then(() => {
                     showToast('Goal deleted!', 'danger');
                     card.remove();

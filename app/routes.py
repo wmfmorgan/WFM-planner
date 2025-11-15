@@ -666,7 +666,7 @@ def day_page(year, month, day):
 
 
 # API: UPDATE GOAL STATUS
-@bp.route('/api/goal/<int:goal_id>/status', methods=['POST'])
+@bp.route('/api/goals/<int:goal_id>/status', methods=['POST'])
 def update_goal_status(goal_id):
     goal = Goal.query.get_or_404(goal_id)
     data = request.json
@@ -683,9 +683,9 @@ def update_goal_status(goal_id):
 # ADD SUB-GOAL
 # app/routes.py — add_subgoal
 # app/routes.py — add_subgoal
-@bp.route('/api/goal/<int:parent_id>/subgoal', methods=['POST'])
+@bp.route('/api/goals/<int:parent_id>/subgoal', methods=['POST'])
 def add_subgoal(parent_id):
-    #print("=== /api/goal/{parent_id}/subgoal DEBUG ===")
+    #print("=== /api/goals/{parent_id}/subgoal DEBUG ===")
     #print("Parent ID:", parent_id)
     #print("JSON data:", request.json)
     data = request.json
@@ -711,7 +711,7 @@ def add_subgoal(parent_id):
 
 
 # TOGGLE COMPLETION
-@bp.route('/api/goal/<int:goal_id>/toggle', methods=['POST'])
+@bp.route('/api/goals/<int:goal_id>/toggle', methods=['POST'])
 def toggle_goal(goal_id):
     goal = Goal.query.get_or_404(goal_id)
     goal.completed = not goal.completed
@@ -724,7 +724,7 @@ def toggle_goal(goal_id):
 
 
 # DELETE GOAL
-@bp.route('/api/goal/<int:goal_id>', methods=['DELETE'])
+@bp.route('/api/goals/<int:goal_id>', methods=['DELETE'])
 def delete_goal(goal_id):
     goal = Goal.query.get_or_404(goal_id)
     # Delete all children recursively
@@ -738,13 +738,8 @@ def delete_goal(goal_id):
     db.session.commit()
     return jsonify({'status': 'success'})
 
-@bp.route('/api/goal/<int:goal_id>', methods=['GET'])
-def get_goal(goal_id):
-    goal = Goal.query.get_or_404(goal_id)
-    return jsonify(goal.to_dict())
-
 # EDIT GOAL
-@bp.route('/api/goal/<int:goal_id>', methods=['PUT'])
+@bp.route('/api/goals/<int:goal_id>', methods=['PUT'])
 def edit_goal(goal_id):
     goal = Goal.query.get_or_404(goal_id)
     data = request.json
@@ -760,26 +755,6 @@ def edit_goal(goal_id):
             goal.due_date = None
     db.session.commit()
     return jsonify({'status': 'success'})
-
-@bp.route('/api/goal/<int:goal_id>/reparent', methods=['POST'])
-def reparent_goal(goal_id):
-    goal = Goal.query.get_or_404(goal_id)
-    data = request.json
-    goal.parent_id = data.get('parent_id')
-    db.session.commit()
-    return jsonify({'status': 'success'})
-
-@bp.route('/api/goal/create', methods=['POST'])
-def create_goal():
-    data = request.json
-    goal = Goal(
-        title=data['title'],
-        type=data['type'],
-        due_date=datetime.strptime(data['due_date'], '%Y-%m-%d').date() if data['due_date'] else None
-    )
-    db.session.add(goal)
-    db.session.commit()
-    return jsonify({'status': 'success', 'goal_id': goal.id})
 
 @bp.route('/api/note/<path:key>', methods=['GET', 'POST'])
 def api_note(key):
