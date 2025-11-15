@@ -236,147 +236,194 @@
 
 <!-- FULL JS LOGIC -->
 <script>
+/* --------------------------------------------------------------
+   TOAST – simple Bootstrap toast (used everywhere)
+   -------------------------------------------------------------- */
+function showToast(message, type = 'info') {
+    const toast = document.createElement('div');
+    toast.className = `toast align-items-center text-white bg-${type} border-0 position-fixed`;
+    toast.style.top   = '1rem';
+    toast.style.right = '1rem';
+    toast.style.zIndex = '9999';
+    toast.innerHTML = `
+        <div class="d-flex">
+            <div class="toast-body">${message}</div>
+            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+        </div>
+    `;
+    document.body.appendChild(toast);
+    const bsToast = new bootstrap.Toast(toast, { delay: 3000 });
+    bsToast.show();
+    toast.addEventListener('hidden.bs.toast', () => toast.remove());
+}
+
+/* --------------------------------------------------------------
+   DOM READY
+   -------------------------------------------------------------- */
 document.addEventListener('DOMContentLoaded', function () {
+
     /* ---------- SINGLE CLICK HANDLER — FIXED BUBBLING ---------- */
     document.addEventListener('click', function (e) {
         const target = e.target;
 
-        // ADD TOP-LEVEL GOAL (modal)
-        // ADD TOP-LEVEL GOAL (modal) — FULL RESET
+        /* ---- ADD TOP-LEVEL GOAL (modal) ---- */
         if (target.matches('[data-bs-target="#goalModal"]')) {
             document.getElementById('modalTitle').textContent = 'Create Goal';
             const form = document.getElementById('unified-goal-form');
             form.reset();
-            form.action = '/goals';
-            form.method = 'POST';
-
-            // CLEAR ALL HIDDEN FIELDS
             form.querySelector('[name="parent_id"]').value = '';
-            form.querySelector('[name="goal_id"]').value = '';
-            const hiddenField = document.getElementById('hidden-type-field');
-            if (hiddenField) hiddenField.value = '';
-
-            // RE-ENABLE TYPE SELECT
+            form.querySelector('[name="goal_id"]').value   = '';
+            const hidden = document.getElementById('hidden-type-field');
+            if (hidden) hidden.value = '';
             const typeSelect = form.querySelector('.goal-type-select');
-            typeSelect.value = 'annual';  // default
-            typeSelect.disabled = true;
-            
+            typeSelect.value = 'annual';
+            typeSelect.disabled = false;
             new bootstrap.Modal(document.getElementById('goalModal')).show();
             return;
         }
 
-        // CHEVRON TOGGLE
+        /* ---- CHEVRON TOGGLE ---- */
+        /* ---- CHEVRON TOGGLE + CTRL+CLICK ALL ---- */
         const chevron = target.closest('.toggle-chevron');
         if (chevron) {
             const goalItem = chevron.closest('.goal-item');
             const collapse = goalItem.querySelector('.goal-collapse');
             if (!collapse) return;
 
-            const wasCollapsed = collapse.dataset.collapsed === 'true';
+            const isCollapsed = collapse.dataset.collapsed === 'true';
 
-            // NEW: Ctrl+Click → expand all children
             if (e.ctrlKey || e.metaKey) {
-                toggleAllChildren(goalItem, wasCollapsed);
-                return;
-            }
+                // === CTRL+CLICK: TOGGLE ALL CHILDREN ===
+                const collapses = goalItem.querySelectorAll('.goal-collapse');
+                const allExpanded = Array.from(collapses).every(c => c.dataset.collapsed === 'false');
+                const shouldCollapse = allExpanded;
 
-            collapse.dataset.collapsed = (!wasCollapsed).toString();
+                collapses.forEach(c => {
+                    c.dataset.collapsed = shouldCollapse ? 'true' : 'false';
+                    const childChevron = c.closest('.goal-item')?.querySelector('.toggle-chevron');
+                    if (childChevron) {
+                        childChevron.classList.toggle('bi-chevron-right', shouldCollapse);
+                        childChevron.classList.toggle('bi-chevron-down', !shouldCollapse);
+                    }
+                });
 
-            chevron.classList.replace(
-                wasCollapsed ? 'bi-chevron-right' : 'bi-chevron-down',
-                wasCollapsed ? 'bi-chevron-down' : 'bi-chevron-right'
-            );
+                requestAnimationFrame(() => {
+                    collapses.forEach(c => {
+                        if (c.dataset.collapsed === 'false') {
+                            c.style.maxHeight = c.scrollHeight + 'px';
+                        } else {
+                            c.style.maxHeight = c.scrollHeight + 'px';
+                            requestAnimationFrame(() => c.style.maxHeight = '0');
+                        }
+                    });
+                });
 
-            if (wasCollapsed) {
-                collapse.style.maxHeight = 'none';
-                void collapse.offsetHeight;
-                const full = collapse.scrollHeight + 'px';
-                collapse.style.maxHeight = '0';
-                requestAnimationFrame(() => collapse.style.maxHeight = full);
+                collapses.forEach(c => {
+                    c.addEventListener('transitionend', function handler() {
+                        if (c.dataset.collapsed === 'false') {
+                            c.style.maxHeight = 'none';
+                        }
+                        c.removeEventListener('transitionend', handler);
+                    });
+                });
             } else {
-                collapse.style.maxHeight = collapse.scrollHeight + 'px';
-                requestAnimationFrame(() => collapse.style.maxHeight = '0');
+                // === NORMAL CLICK: TOGGLE SINGLE ===
+                collapse.dataset.collapsed = (!isCollapsed).toString();
+
+                chevron.classList.toggle('bi-chevron-right', !isCollapsed);
+                chevron.classList.toggle('bi-chevron-down', isCollapsed);
+
+                if (isCollapsed) {
+                    collapse.style.maxHeight = collapse.scrollHeight + 'px';
+                } else {
+                    collapse.style.maxHeight = collapse.scrollHeight + 'px';
+                    requestAnimationFrame(() => collapse.style.maxHeight = '0');
+                }
+
+                collapse.addEventListener('transitionend', function handler() {
+                    if (collapse.dataset.collapsed === 'false') {
+                        collapse.style.maxHeight = 'none';
+                    }
+                    collapse.removeEventListener('transitionend', handler);
+                });
             }
 
-            collapse.addEventListener('transitionend', function onEnd(ev) {
-                if (ev.propertyName !== 'max-height') return;
-                if (collapse.dataset.collapsed === 'false') {
-                    collapse.style.maxHeight = 'none';
-                }
-                collapse.removeEventListener('transitionend', onEnd);
-            });
             return;
         }
-
-        // EDIT / CANCEL / DELETE / ADD SUBGOAL
         const card = target.closest('.goal-card');
         if (!card) return;
 
-        // EDIT (inline form)
+        /* ---- EDIT (inline) ---- */
         if (target.closest('.edit-goal-btn')) {
             card.querySelector('.view-mode').classList.add('d-none');
             card.querySelector('.edit-mode').classList.remove('d-none');
             return;
         }
 
-        // CANCEL
+        /* ---- CANCEL EDIT ---- */
         if (target.closest('.cancel-edit')) {
             card.querySelector('.view-mode').classList.remove('d-none');
             card.querySelector('.edit-mode').classList.add('d-none');
             return;
         }
 
-        // DELETE
+        /* ---- DELETE (live remove) ---- */
         if (target.closest('.delete-goal-btn')) {
             const goalId = target.closest('.delete-goal-btn').dataset.goalId;
-
             if (confirm('Delete this goal and all sub-goals? This cannot be undone.')) {
                 fetch(`/api/goals/${goalId}`, { method: 'DELETE' })
-                    .then(res => {
-                        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-                        location.reload();
+                    .then(r => { if (!r.ok) throw new Error(r.status); return r.json(); })
+                    .then(() => {
+                        target.closest('.goal-item').remove();
+                        showToast('Goal deleted!', 'danger');
                     })
                     .catch(err => {
-                        console.error('Delete failed:', err);
-                        alert('Failed to delete.');
+                        console.error(err);
+                        showToast('Failed to delete.', 'danger');
                     });
             }
             return;
         }
 
-        // ADD SUBGOAL
+        /* ---- ADD SUB-GOAL (your existing code) ---- */
         if (target.closest('.add-subgoal-btn')) {
             const button = target.closest('.add-subgoal-btn');
             const parentId = button.dataset.parentId;
             const parentType = card.dataset.goalType || 'annual';
 
-            const goalTitle = card.querySelector('.goal-title-text')?.textContent?.trim().toLowerCase() || '';
-            const typeMap = { 'annual': 'quarterly', 'quarterly': 'monthly', 'monthly': 'weekly', 'weekly': 'daily', 'daily': 'daily' };
+            const typeMap = { 
+                'annual': 'quarterly', 
+                'quarterly': 'monthly', 
+                'monthly': 'weekly', 
+                'weekly': 'daily', 
+                'daily': 'daily' 
+            };
             const childType = typeMap[parentType] || 'daily';
 
             document.getElementById('modalTitle').textContent = 'Add Sub-Goal';
             const form = document.getElementById('unified-goal-form');
             form.reset();
-            form.action = '/goals';
-            form.method = 'POST';
 
             form.querySelector('[name="parent_id"]').value = parentId;
             form.querySelector('[name="goal_id"]').value = '';
 
+            // Use hidden field for type
+            const hiddenType = document.getElementById('hidden-type-field');
+            if (hiddenType) hiddenType.value = childType;
+
+            // Keep select visible but pre-selected
             const typeSelect = form.querySelector('[name="type"]');
             typeSelect.value = childType;
-            typeSelect.disabled = true;
-            const hiddenField = document.getElementById('hidden-type-field');
-            if (hiddenField) hiddenField.value = childType;
-            
+            typeSelect.disabled = false; // Keep enabled so it's sent
+
             new bootstrap.Modal(document.getElementById('goalModal')).show();
             return;
         }
     });
 
-    /* ---------- INLINE EDIT SAVE — UPDATE UI ---------- */
+    /* ---------- INLINE EDIT SAVE (unchanged) ---------- */
     document.addEventListener('submit', function (e) {
-        if (e.target.matches('.edit-goal-form')) {
+        if (e.target.classList.contains('edit-goal-form')) {
             e.preventDefault();
 
             const form = e.target;
@@ -413,101 +460,150 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     });
 
-    /* ---------- MODAL FORM SUBMIT — ADD SUBGOAL ---------- */
+    /* ---------- MODAL FORM SUBMIT – JSON + LIVE APPEND ---------- */
     document.getElementById('unified-goal-form').addEventListener('submit', function (e) {
         e.preventDefault();
-
-        const form = e.target;
-        const parentId = form.querySelector('[name="parent_id"]').value;
+        const form   = e.target;
+        const data   = Object.fromEntries(new FormData(form));
+        data.completed = form.querySelector('[name="completed"]').checked;
+        const parentId = data.parent_id || null;
         const url = parentId ? `/api/goals/${parentId}/subgoal` : '/goals';
 
-        if (parentId) {
-            // SUB-GOAL: Send JSON
-            const data = {
-                title: form.querySelector('[name="title"]').value,
-                type: form.querySelector('[name="hidden_type"]').value || form.querySelector('[name="type"]').value,
-                category: form.querySelector('[name="category"]').value || null,
-                description: form.querySelector('[name="description"]').value || null,
-                motivation: form.querySelector('[name="motivation"]').value || null,
-                due_date: form.querySelector('[name="due_date"]').value || null,
-                status: form.querySelector('[name="status"]').value,
-                completed: form.querySelector('[name="completed"]').checked
-            };
+        fetch(url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+        })
+        .then(r => {
+            if (!r.ok) return r.json().then(err => { throw err; });
+            return r.json();
+            alert(result);
+        })
+        .then(result => {
+            if (result.success && result.goal) {
+                showToast(result.message || 'Goal saved!', 'success');
 
+                const container = document.querySelector('.goal-hierarchy');
+                const newItem = document.createElement('div');
+                newItem.className = 'goal-item';
+                newItem.dataset.goalId = result.goal.id;
+                newItem.style.marginLeft = result.goal.parent_id ? '30px' : '0px';
 
-            fetch(url, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(data)
-            })
-            .then(res => {
-                if (!res.ok) throw new Error(`HTTP ${res.status}`);
-                location.reload();
-            })
-            .catch(err => {
-                console.error('Add sub-goal failed:', err);
-                alert('Failed to add sub-goal.');
-            });
-        } else {
-            // TOP-LEVEL: Send FormData
-            const formData = new FormData(form);
+                newItem.innerHTML = `
+                    <div class="card mb-2 goal-card" data-goal-id="${result.goal.id}" data-goal-type="${result.goal.type}">
+                        <div class="view-mode p-3">
+                            <div class="d-flex align-items-center gap-2">
+                                <i class="bi bi-chevron-right toggle-chevron" style="font-size:0.9rem;cursor:pointer;color:#6c757d;transition:transform .2s ease;"></i>
+                                <div class="flex-grow-1">
+                                    <h6 class="card-title mb-0 goal-title-text">${result.goal.title}</h6>
+                                </div>
+                                <div class="d-flex gap-1">
+                                    <button class="btn btn-sm btn-icon-secondary edit-goal-btn" title="Edit">Edit</button>
+                                    <button class="btn btn-sm btn-icon-primary add-subgoal-btn" data-parent-id="${result.goal.id}" title="Add Sub-Goal">Sub</button>
+                                    <button class="btn btn-sm btn-icon-danger delete-goal-btn" data-goal-id="${result.goal.id}" title="Delete">Delete</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="goal-collapse" data-collapsed="true" style="max-height:0;overflow:hidden;transition:max-height .3s ease;">
+                        <div class="px-3 py-2 text-muted small border-top">
+                            <div><strong>${result.goal.type.charAt(0).toUpperCase() + result.goal.type.slice(1)}</strong></div>
+                            ${result.goal.category ? `<div>${result.goal.category}</div>` : ''}
+                            ${result.goal.due_date ? `<div>${new Date(result.goal.due_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</div>` : ''}
+                        </div>
+                    </div>
+                `;
 
-            // Use hidden_type if exists
-            const hiddenType = document.getElementById('hidden-type-field');
-            if (hiddenType && hiddenType.value) {
-                formData.set('type', hiddenType.value);
+                if (result.goal.parent_id) {
+                    const parentCollapse = document.querySelector(`[data-goal-id="${result.goal.parent_id}"] .goal-collapse`);
+                    if (parentCollapse) {
+                        parentCollapse.appendChild(newItem);
+                        void parentCollapse.offsetHeight;
+
+                        parentCollapse.dataset.collapsed = 'false';
+                        parentCollapse.style.maxHeight = parentCollapse.scrollHeight + 'px';
+
+                        const parentChevron = document.querySelector(`[data-goal-id="${result.goal.parent_id}"] .toggle-chevron`);
+                        if (parentChevron) {
+                            parentChevron.classList.remove('bi-chevron-right');
+                            parentChevron.classList.add('bi-chevron-down');
+                        }
+
+                        parentCollapse.addEventListener('transitionend', function handler() {
+                            parentCollapse.style.maxHeight = 'none';
+                            parentCollapse.removeEventListener('transitionend', handler);
+                        });
+                    }
+                } else {
+                    const allTopLevel = Array.from(container.children).filter(child =>
+                        child.classList.contains('goal-item') &&
+                        !child.style.marginLeft.includes('30px')
+                    );
+                    let insertBefore = null;
+                    const goalDue = result.goal.due_date || '9999-12-31';
+
+                    for (const item of allTopLevel) {
+                        const itemDue = item.querySelector('.goal-due-date-input')?.value || '9999-12-31';
+                        const itemId = parseInt(item.dataset.goalId);
+
+                        if (
+                            goalDue < itemDue ||
+                            (goalDue === itemDue && result.goal.id < itemId)
+                        ) {
+                            insertBefore = item;
+                            break;
+                        }
+                    }
+
+                    if (insertBefore) {
+                        container.insertBefore(newItem, insertBefore);
+                    } else {
+                        container.appendChild(newItem);
+                    }
+                }
             }
-
-            fetch(url, {
-                method: 'POST',
-                body: formData  // ← SEND AS FORM DATA
-                // NO Content-Type!
-            })
-            .then(res => {
-                if (!res.ok) throw new Error(`HTTP ${res.status}`);
-                location.reload();
-            })
-            .catch(err => {
-                console.error('Add top-level failed:', err);
-                alert('Failed to add goal.');
-            });
-        }
+        })
+        .catch(err => {
+            console.error('Create failed:', err);
+            showToast('Failed to save: ' + (err.message || JSON.stringify(err.errors || err)), 'danger');
+        })
+        .finally(() => {
+            const modalEl = form.closest('.modal');
+            if (modalEl) bootstrap.Modal.getInstance(modalEl).hide();
+        });
     });
 
-});
-
+    /* ---------- EXPAND / COLLAPSE HELPERS ---------- */
     function expandAllChildren(goalItem) {
         const collapses = goalItem.querySelectorAll('.goal-collapse');
-        collapses.forEach(collapse => {
-            collapse.dataset.collapsed = 'false';
-            collapse.style.maxHeight = 'none';
-            const chevron = collapse.closest('.goal-item').querySelector('.toggle-chevron');
-            if (chevron) {
-                chevron.classList.replace('bi-chevron-right', 'bi-chevron-down');
-            }
+        collapses.forEach(c => {
+            c.dataset.collapsed = 'false';
+            c.style.maxHeight = 'none';
+            const chevron = c.closest('.goal-item').querySelector('.toggle-chevron');
+            if (chevron) chevron.classList.replace('bi-chevron-right', 'bi-chevron-down');
         });
     }
 
     function toggleAllChildren(goalItem, wasCollapsed) {
         const collapses = goalItem.querySelectorAll('.goal-collapse');
-        const shouldExpand = wasCollapsed;
-        
-        collapses.forEach(collapse => {
-            collapse.dataset.collapsed = shouldExpand ? 'false' : 'true';
-            collapse.style.maxHeight = shouldExpand ? 'none' : '0';
-            const chevron = collapse.closest('.goal-item').querySelector('.toggle-chevron');
+        const expand = wasCollapsed;
+        collapses.forEach(c => {
+            c.dataset.collapsed = expand ? 'false' : 'true';
+            c.style.maxHeight = expand ? 'none' : '0';
+            const chevron = c.closest('.goal-item').querySelector('.toggle-chevron');
             if (chevron) {
                 chevron.classList.replace(
-                    shouldExpand ? 'bi-chevron-right' : 'bi-chevron-down',
-                    shouldExpand ? 'bi-chevron-down' : 'bi-chevron-right'
+                    expand ? 'bi-chevron-right' : 'bi-chevron-down',
+                    expand ? 'bi-chevron-down' : 'bi-chevron-right'
                 );
             }
         });
     }
+});
+
 
 
 </script>
-
 <!-- STYLE BLOCK -->
 <style>
     .goal-collapse {

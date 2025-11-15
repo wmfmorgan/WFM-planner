@@ -15,6 +15,7 @@ import shutil
 import os
 from flask import current_app
 import json
+from sqlalchemy import case as db_case
 
 
 bp = Blueprint('main', __name__)
@@ -44,82 +45,75 @@ def index():
     return render_template('index.html', title="WFM Planner", today=today, today_quarter=today_quarter)
 
 
-from datetime import datetime
-from sqlalchemy import case as db_case
+# POST: Create goal via JSON
+@bp.route('/goals', methods=['POST'])
+def create_goal():
+    data = request.get_json()
+    if not data:
+        return jsonify({'error': 'Invalid JSON'}), 400
 
-@bp.route('/goals', methods=['GET', 'POST'])
-def goals():
-    form = GoalForm()
-    #print(form)
-    if request.method == 'POST':
-        #print("=== /goals POST DEBUG ===")
-        #print("Form data:", dict(request.form))
-        #print("Parent ID:", request.form.get('parent_id'))
-        # DEBUG: Check what came in
-        #print("Raw type from form:", request.form.get('type'))
+    form = GoalForm(data=data)  # Validate JSON as dict
+
+    # FORCE DEFAULT IF BLANK
+    if not form.type.data:
+        form.type.data = 'annual'
     
-        # FORCE DEFAULT IF BLANK
-        if not form.type.data:
-            form.type.data = 'annual'
-        #print("Forced type to 'annual'")
+    if not form.validate():
+        return jsonify({'errors': form.errors}), 400
 
-        if form.validate_on_submit():
-            # === HANDLE parent_id: '' → None ===
-            parent_id = request.form.get('parent_id')
-            if parent_id == '':
-                parent_id = None
-            else:
-                parent_id = int(parent_id) if parent_id else None
+    # HANDLE parent_id: str → int/None
+    parent_id = data.get('parent_id')
+    if parent_id == '':
+        parent_id = None
+    else:
+        parent_id = int(parent_id) if parent_id else None
 
-            # === HANDLE due_date: string → date ===
-            due_date = None
-            if form.due_date.data:
-                if isinstance(form.due_date.data, str):
-                    try:
-                        due_date = datetime.strptime(form.due_date.data, '%Y-%m-%d').date()
-                    except ValueError:
-                        flash('Invalid due date format.', 'danger')
-                        return redirect(url_for('main.goals'))
-                else:
-                    # Already a date object (from DB)
-                    due_date = form.due_date.data
+    # HANDLE due_date: str → date
+    due_date = None
+    if form.due_date.data:
+        try:
+            due_date = form.due_date.data
+        except ValueError:
+            return jsonify({'error': 'Invalid due date format'}), 400
 
-            # === CREATE GOAL ===
-            goal = Goal(
-                title=form.title.data,
-                type=form.type.data or 'annual',
-                category=form.category.data,
-                description=form.description.data,
-                motivation=form.motivation.data,
-                due_date=due_date,
-                status=form.status.data,
-                completed=form.completed.data,
-                parent_id=parent_id
-            )
+    # CREATE GOAL
+    goal = Goal(
+        title=form.title.data,
+        type=form.type.data or 'annual',
+        category=form.category.data,
+        description=form.description.data,
+        motivation=form.motivation.data,
+        due_date=due_date,
+        status=form.status.data,
+        completed=form.completed.data,
+        parent_id=parent_id
+    )
 
-            #print(goal)
-            db.session.add(goal)
-            db.session.commit()
-            flash('Goal saved!', 'success')
-        else:
-            flash('Form validation failed.', 'danger')
-            for field, errors in form.errors.items():
-                for error in errors:
-                    flash(f"{getattr(form, field).label.text}: {error}", 'danger')
-        return redirect(url_for('main.goals'))
+    db.session.add(goal)
+    db.session.commit()
 
+    return jsonify({
+        'success': True,
+        'message': 'Goal saved!',
+        'goal': goal.to_dict()  # Assuming Goal has to_dict() from ExportableMixin
+    }), 200
+
+
+# GET: Render goals page
+@bp.route('/goals', methods=['GET'])
+def get_goals():
     # === GET: LOAD TOP-LEVEL GOALS ===
     goals = Goal.query.filter(
         Goal.parent_id.is_(None)
     ).options(
         db.joinedload(Goal.children)
     ).order_by(
-        db_case((Goal.due_date.is_(None), 0), else_=1),
+        case((Goal.due_date.is_(None), 0), else_=1),
         Goal.due_date.asc(),
         Goal.id
     ).all()
 
-    # === SORT CHILDREN RECURSIVELY ===
+    # SORT CHILDREN RECURSIVELY
     def sort_children(goal):
         if goal.children:
             goal.children.sort(key=lambda x: (x.due_date or datetime.max.date(), x.id))
@@ -128,6 +122,8 @@ def goals():
 
     for goal in goals:
         sort_children(goal)
+
+    form = GoalForm()  # For template if needed
 
     return render_template(
         'goals.html',
@@ -659,7 +655,11 @@ def add_subgoal(parent_id):
     )
     db.session.add(goal)
     db.session.commit()
-    return jsonify({'status': 'success', 'goal_id': goal.id})
+    return jsonify({
+        'success': True,
+        'message': 'Subgoal saved!',
+        'goal': goal.to_dict()
+    })
 
 
 # TOGGLE COMPLETION
