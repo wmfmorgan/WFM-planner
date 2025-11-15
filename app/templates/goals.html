@@ -572,36 +572,7 @@ document.addEventListener('DOMContentLoaded', function () {
             if (modalEl) bootstrap.Modal.getInstance(modalEl).hide();
         });
     });
-
-    /* ---------- EXPAND / COLLAPSE HELPERS ---------- */
-    function expandAllChildren(goalItem) {
-        const collapses = goalItem.querySelectorAll('.goal-collapse');
-        collapses.forEach(c => {
-            c.dataset.collapsed = 'false';
-            c.style.maxHeight = 'none';
-            const chevron = c.closest('.goal-item').querySelector('.toggle-chevron');
-            if (chevron) chevron.classList.replace('bi-chevron-right', 'bi-chevron-down');
-        });
-    }
-
-    function toggleAllChildren(goalItem, wasCollapsed) {
-        const collapses = goalItem.querySelectorAll('.goal-collapse');
-        const expand = wasCollapsed;
-        collapses.forEach(c => {
-            c.dataset.collapsed = expand ? 'false' : 'true';
-            c.style.maxHeight = expand ? 'none' : '0';
-            const chevron = c.closest('.goal-item').querySelector('.toggle-chevron');
-            if (chevron) {
-                chevron.classList.replace(
-                    expand ? 'bi-chevron-right' : 'bi-chevron-down',
-                    expand ? 'bi-chevron-down' : 'bi-chevron-right'
-                );
-            }
-        });
-    }
 });
-
-
 
 </script>
 <!-- STYLE BLOCK -->
