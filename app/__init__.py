@@ -30,7 +30,8 @@ def create_app():
         'sqlite:///' + os.path.join(app.instance_path, 'wfm_planner.db')
     ).replace('postgres://', 'postgresql://', 1)  # Render fix
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-
+    app.jinja_env.autoescape = True
+    
     # INIT
     db.init_app(app)
     migrate.init_app(app, db)

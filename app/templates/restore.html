@@ -14,14 +14,24 @@
 
     <h4 class="mt-5">Available Backups</h4>
     <ul class="list-group">
+        {% if backups %}
         {% for backup in backups %}
-            <li class="list-group-item d-flex justify-content-between">
-                {{ backup | escape }}
-                <a href="{{ url_for('static', filename='backups/' + backup) }}" class="btn btn-sm btn-outline-primary" download>Download</a>
+            <li class="list-group-item d-flex justify-content-between align-items-center">
+            {{ backup | escape }}
+            <div>
+                <small class="text-muted">
+                {{ (os.path.getmtime(os.path.join(current_app.instance_path, 'backups', backup)) | timestamp_to_date) }}
+                </small>
+                <a href="{{ url_for('static', filename='backups/' + backup) }}" 
+                class="btn btn-sm btn-outline-primary ms-2" download>
+                Download
+                </a>
+            </div>
             </li>
-        {% else %}
-            <li class="list-group-item">No backups found</li>
         {% endfor %}
+        {% else %}
+        <li class="list-group-item text-muted">No backups found</li>
+        {% endif %}
     </ul>
 </div>
 {% endblock %}

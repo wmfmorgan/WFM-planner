@@ -903,22 +903,70 @@ import shutil
 @bp.route('/restore', methods=['GET', 'POST'])
 def restore_db():
     if request.method == 'POST':
-        file = request.files['file']
-        if file and file.filename.endswith('.db'):
-            # SAVE TO INSTANCE PATH
+        file = request.files.get('file')
+        if not file or not file.filename:
+            flash("No file selected", "danger")
+            return redirect(request.url)
+
+        # 1. Validate filename
+        if not file.filename.lower().endswith('.db'):
+            flash("File must be a .db SQLite database", "danger")
+            return redirect(request.url)
+
+        # 2. Read & validate size
+        try:
+            file_data = file.read()
+            if len(file_data) > 50 * 1024 * 1024:  # 50MB max
+                flash("File too large (max 50MB)", "danger")
+                return redirect(request.url)
+
+            # 3. Basic SQLite header check
+            if not file_data.startswith(b'SQLite format 3\x00'):
+                flash("Not a valid SQLite database", "danger")
+                return redirect(request.url)
+
+            # 4. Save securely
             db_path = os.path.join(current_app.instance_path, 'wfm_planner.db')
-            file.save(db_path)
+            with open(db_path, 'wb') as f:
+                f.write(file_data)
+
             flash("Database restored successfully!", "success")
             return redirect(url_for('main.index'))
-        flash("Invalid file", "danger")
-    
+
+        except Exception as e:
+            current_app.logger.error(f"Restore failed: {e}")
+            flash("Restore failed. Check server logs.", "danger")
+            return redirect(request.url)
+
+    # === GET: List backups ===
+    backup_dir = os.path.join(current_app.instance_path, 'backups')
+    try:
+        if not os.path.exists(backup_dir):
+            os.makedirs(backup_dir, exist_ok=True)
+            backups = []
+        else:
+            backups = [
+                f for f in os.listdir(backup_dir)
+                if f.endswith('.db') and os.path.isfile(os.path.join(backup_dir, f))
+            ]
+            backups.sort(
+                key=lambda x: os.path.getmtime(os.path.join(backup_dir, x)),
+                reverse=True
+            )
+    except Exception as e:
+        current_app.logger.error(f"Failed to list backups: {e}")
+        backups = []
+        flash("Could not load backup list", "warning")
+
     today = date.today()
     today_quarter = (today.month - 1) // 3 + 1
-    
-    backups = sorted([f for f in os.listdir('backups') if f.endswith('.db')], 
-                     key=lambda x: os.path.getmtime(f'backups/{x}'), reverse=True)
-    
-    return render_template('restore.html', backups=backups, today=today, today_quarter=today_quarter)
+
+    return render_template(
+        'restore.html',
+        backups=backups,
+        today=today,
+        today_quarter=today_quarter
+    )
 
 import json
 from flask import send_file, request, flash, redirect, url_for, Response
