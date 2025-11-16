@@ -886,15 +886,45 @@ def backup_db():
     db_filename = 'wfm_planner.db'
     db_path = os.path.join(current_app.instance_path, db_filename)
     backup_dir = os.path.join(current_app.instance_path, 'backups')
-    os.makedirs(backup_dir, exist_ok=True)
-    backup_path = os.path.join(backup_dir, f"backup_{datetime.now().strftime('%Y%m%d_%H%M%S')}.db")
-    
+
+    # 1. Ensure backup dir exists
+    try:
+        os.makedirs(backup_dir, exist_ok=True)
+    except Exception as e:
+        current_app.logger.error(f"Failed to create backup dir: {e}")
+        flash("Failed to create backup directory", "danger")
+        return redirect(url_for('main.index'))
+
+    # 2. Validate DB exists
     if not os.path.exists(db_path):
         flash("Database file not found!", "danger")
         return redirect(url_for('main.index'))
-    
-    shutil.copy(db_path, backup_path)
-    flash(f"Backup created: {os.path.basename(backup_path)}", "success")
+
+    # 3. Prevent huge files
+    try:
+        db_size = os.path.getsize(db_path)
+        if db_size > 100 * 1024 * 1024:  # 100MB
+            flash("Database too large to backup (>100MB)", "danger")
+            return redirect(url_for('main.index'))
+    except Exception as e:
+        current_app.logger.error(f"Failed to check DB size: {e}")
+        flash("Failed to access database", "danger")
+        return redirect(url_for('main.index'))
+
+    # 4. Generate safe filename
+    timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+    backup_filename = f"backup_{timestamp}.db"
+    backup_path = os.path.join(backup_dir, backup_filename)
+
+    # 5. Copy with error handling
+    try:
+        shutil.copy2(db_path, backup_path)  # copy2 preserves metadata
+        current_app.logger.info(f"Backup created: {backup_filename}")
+        flash(f"Backup created: {backup_filename}", "success")
+    except Exception as e:
+        current_app.logger.error(f"Backup failed: {e}")
+        flash("Backup failed. Check server logs.", "danger")
+
     return redirect(url_for('main.index'))
 
 from flask import current_app
