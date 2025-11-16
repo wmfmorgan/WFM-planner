@@ -16,7 +16,7 @@
     <ul class="list-group">
         {% for backup in backups %}
             <li class="list-group-item d-flex justify-content-between">
-                {{ backup }}
+                {{ backup | escape }}
                 <a href="{{ url_for('static', filename='backups/' + backup) }}" class="btn btn-sm btn-outline-primary" download>Download</a>
             </li>
         {% else %}

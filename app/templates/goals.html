@@ -34,7 +34,7 @@
                                 {% endif %}
 
                                 <div class="flex-grow-1">
-                                    <h6 class="card-title mb-0 goal-title-text">{{ goal.title }}</h6>
+                                    <h6 class="card-title mb-0 goal-title-text">{{ goal.title | escape }}</h6>
                                 </div>
 
                                 <div class="d-flex gap-1">
@@ -60,7 +60,7 @@
 
                                 <div class="mb-2">
                                     <input type="text" class="form-control form-control-sm goal-title-input"
-                                           value="{{ goal.title }}" required>
+                                           value="{{ goal.title | escape }}" required>
                                 </div>
 
                                 <div class="row">
@@ -87,11 +87,11 @@
                                 </div>
 
                                 <div class="mb-2">
-                                    <textarea class="form-control form-control-sm goal-description-input" rows="2">{{ goal.description or '' }}</textarea>
+                                    <textarea class="form-control form-control-sm goal-description-input" rows="2">{{ goal.description | escape or '' }}</textarea>
                                 </div>
 
                                 <div class="mb-2">
-                                    <textarea class="form-control form-control-sm goal-motivation-input" rows="2">{{ goal.motivation or '' }}</textarea>
+                                    <textarea class="form-control form-control-sm goal-motivation-input" rows="2">{{ goal.motivation | escape or '' }}</textarea>
                                 </div>
 
                                 <div class="row">

@@ -112,14 +112,14 @@
                                                                 {% if start_min == slot_min %}
                                                                     <div class="event-badge bg-primary text-white p-1 mb-1 rounded small" 
                                                                         data-event-id="{{ event.id }}" style="cursor: pointer;">
-                                                                        {{ event.title }}
+                                                                        {{ event.title | escape }}
                                                                         {{ event.start_time.strftime('%H:%M') }}-{{ event.end_time.strftime('%H:%M') }}
                                                                     </div>
                                                                 {% endif %}
                                                             {% elif event.all_day and hour == 7 and minutes == 0 %}
                                                                 <div class="event-badge bg-primary text-white p-1 mb-1 rounded small" 
                                                                     data-event-id="{{ event.id }}" style="cursor: pointer;">
-                                                                    {{ event.title }} (All Day)
+                                                                    {{ event.title | escape }} (All Day)
                                                                 </div>
                                                             {% endif %}
                                                         {% endfor %}
@@ -157,9 +157,9 @@
                      draggable="true"
                      data-task-id="{{ task.id }}"
                      ondragstart="dragStart(event)">
-                    <div class="task-desc text-dark fw-medium">{{ task.description }}</div>
+                    <div class="task-desc text-dark fw-medium">{{ task.description | escape }}</div>
                     {% if task.notes %}
-                    <small class="text-muted d-block mt-1">{{ task.notes }}</small>
+                    <small class="text-muted d-block mt-1">{{ task.notes | escape }}</small>
                     {% endif %}
                 </div>
                 {% endfor %}
