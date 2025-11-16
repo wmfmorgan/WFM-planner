@@ -1,4 +1,5 @@
 # app/routes.py
+from functools import wraps
 from flask import Blueprint, render_template, request, jsonify, abort, url_for, flash, redirect, Response
 from . import db
 from .models import Goal, Note, Event
@@ -20,9 +21,18 @@ from sqlalchemy import case as db_case
 
 bp = Blueprint('main', __name__)
 
+@bp.before_request
+def require_auth():
+    auth = request.authorization
+    print(f"→ AUTH CHECK: {request.method} {request.path}")
+    password = os.getenv("WFM_PASSWORD")
+    if not (auth and auth.username == "admin" and auth.password == password):
+        return ("Unauthorized", 401, {'WWW-Authenticate': 'Basic realm="WFM Planner"'})
+
 # GLOBAL TODAY FOR NAVBAR
 today = datetime.now().date()
 today_quarter = ((today.month - 1) // 3) + 1
+
 
 # REUSABLE: GROUP GOALS BY STATUS
 def group_goals_by_status(goals):

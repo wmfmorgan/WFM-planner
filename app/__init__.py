@@ -1,12 +1,26 @@
 # app/__init__.py
+from functools import wraps
 import os
-from flask import Flask
+from flask import Flask, request
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from datetime import datetime, timedelta
 
+from flask_limiter import Limiter
+from flask_limiter.util import get_remote_address
+
 db = SQLAlchemy()
 migrate = Migrate()
+
+
+# Apply to login attempts
+def requires_auth(f):
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        if not check_auth():
+            return ("Unauthorized", 401, {'WWW-Authenticate': 'Basic realm="WFM Planner"'})
+        return f(*args, **kwargs)
+    return decorated
 
 def get_current_sunday_week():
     """Return (year, week) for current Sunday-start week."""
@@ -32,6 +46,22 @@ def create_app():
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
     app.jinja_env.autoescape = True
     
+# === AUTH & LIMITER SETUP ===
+    def check_auth():
+        auth = request.authorization
+        password = os.getenv("WFM_PASSWORD")
+        return auth and auth.username == "admin" and auth.password == password
+
+    limiter = Limiter(
+        app=app,
+       key_func=get_remote_address,
+        default_limits=["200 per day", "50 per hour"]
+    )
+
+    # Attach to app for routes to use
+    app.check_auth = check_auth
+    app.limiter = limiter
+
     # INIT
     db.init_app(app)
     migrate.init_app(app, db)
@@ -40,6 +70,9 @@ def create_app():
     
     # BLUEPRINT
     from . import routes
+    #routes.setup_auth_and_limiter(app)
+
+    limiter.limit("5 per minute", exempt_when=lambda: request.authorization and request.authorization.username == "admin")       
     app.register_blueprint(routes.bp)
 
     # JINJA GLOBAL
