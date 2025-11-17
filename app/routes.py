@@ -112,6 +112,7 @@ def create_goal():
 @bp.route('/api/goals/<int:goal_id>', methods=['GET'])
 def get_goal(goal_id):
     goal = Goal.query.get_or_404(goal_id)
+    print(jsonify(goal.to_dict()))
     return jsonify(goal.to_dict())
 
 # GET: Render goals page
@@ -721,7 +722,10 @@ def edit_goal(goal_id):
         except:
             goal.due_date = None
     db.session.commit()
-    return jsonify({'status': 'success'})
+    return jsonify({
+        "success": True,
+        "goal": goal.to_dict()  # Make sure you have a .to_dict() method on Goal model
+    }), 200
 
 @bp.route('/api/note/<path:key>', methods=['GET', 'POST'])
 def api_note(key):

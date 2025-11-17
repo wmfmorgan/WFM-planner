@@ -110,29 +110,49 @@ export function initKanban() {
   });
 
   // Goal add modal submit (live append, no reload)
-    // Goal add modal submit (live append, no reload)
-    const goalForm = document.getElementById('kanban_unified-goal-form');
-    if (goalForm) {
+  const goalForm = document.getElementById('kanban_unified-goal-form');
+  if (goalForm) {
     goalForm.addEventListener('submit', function(e) {
-        e.preventDefault();
-        e.stopPropagation();  // Prevent bubbling
-        const formData = new FormData(this);
-        const data = Object.fromEntries(formData);
-        data.completed = formData.get('completed') === 'on';
-        const parentId = data.parent_id || null;
-        const url = parentId ? `/api/goals/${parentId}/subgoal` : '/goals';
-        fetch(url, {
-        method: 'POST',
+      e.preventDefault();
+      e.stopPropagation();
+
+      const formData = new FormData(this);
+      const data = Object.fromEntries(formData);
+      data.completed = formData.get('completed') === 'on';
+
+      const goalId = data.goal_id || null;
+      const parentId = data.parent_id || null;
+
+      // EDIT = PUT, ADD = POST
+      let url = '/goals';
+      let method = 'POST';
+
+      if (goalId) {
+        url = `/api/goals/${goalId}`;
+        method = 'PUT';
+      } else if (parentId) {
+        url = `/api/goals/${parentId}/subgoal`;
+      }
+
+      fetch(url, {
+        method: method,
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data)
-        }).then(r => {
-        if (!r.ok) {
-            r.text().then(text => alert(`Error: ${text}`));
-            return;
-        }
+      })
+      .then(r => {
+        if (!r.ok) throw new Error('Save failed');
         return r.json();
-        }).then(result => {
-        if (result.success && result.goal) {
+      })
+      .then(result => {
+        alert('Goal saved successfully.');
+        alert(result.success);
+        if (result.success) {
+          if (goalId) {
+            // EDIT: just reload (simplest) or update card title live
+            alert('Goal updated. Reloading to reflect changes.');
+            location.reload();
+          } else {
+            // ADD: live append
             const list = document.querySelector('.kanban-column[data-status="todo"][data-type="goals"]');
             const card = document.createElement('div');
             card.className = 'kanban-item card mb-2 d-flex align-items-center edit-goal-card';
@@ -148,15 +168,18 @@ export function initKanban() {
             list.appendChild(card);
             const badge = list.closest('.card').querySelector('.badge');
             if (badge) badge.textContent = parseInt(badge.textContent) + 1;
+          }
+          alert('Closing modal.');
+          bootstrap.Modal.getInstance(document.getElementById('goalModal')).hide();
+          this.reset();
         }
-        bootstrap.Modal.getInstance(this.closest('.modal')).hide();
-        this.reset();  // Clear form for next add
-        }).catch(err => {
-        console.error('Add failed', err);
-        alert('Failed to add goal.');
-        });
-    }, { once: true });  // Fire only once per load
-    }
+      })
+      .catch(err => {
+        console.error('Save failed:', err);
+        alert('Failed to save goal.');
+      });
+    });
+  }
 
   // Goal edit (click card to open modal prepopulated)
   document.addEventListener('click', function(e) {
@@ -168,9 +191,21 @@ export function initKanban() {
         .then(goal => {
           const form = document.getElementById('kanban_unified-goal-form');
           form.reset();
+          
+          const typeSelect = form.querySelector('.goal-type-select');
+          if (typeSelect) {
+          typeSelect.value = goal.type;
+          typeSelect.disabled = true;  // Lock to default
+          }
+          const hidden = document.getElementById('kanban-hidden-type');
+          if (hidden) hidden.value = goal.type;
+
+
           document.getElementById('modalTitle').textContent = 'Edit Goal';
           form.querySelector('[name="goal_id"]').value = goalId;  // Fixed: .value assignment
           form.querySelector('[name="title"]').value = goal.title || '';
+          //document.getElementById('kanban-hidden-type').value = goal.type || 'daily';
+          //alert(document.getElementById('kanban-hidden-type').value); alert(goal.type);
           form.querySelector('[name="type"]').value = goal.type || 'daily';
           form.querySelector('[name="type"]').disabled = false;  // Allow change
           form.querySelector('[name="category"]').value = goal.category || '';
