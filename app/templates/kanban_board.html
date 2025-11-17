@@ -17,13 +17,13 @@
                         {% endif %}
                     </div>
                     <div class="card-body p-2 kanban-column" data-status="{{ col.id }}" data-type="{{ type }}">
-                        {% for item in goals[col.id] %}
-                            <div class="kanban-item card mb-2" data-item-id="{{ item.id }}">
-                                <div class="p-2">
-                                    <h6 class="card-title mb-1">{{ item.title | escape or item.description | escape }}</h6>
-                                </div>
+                    {% for item in goals[col.id] %}
+                        <div class="kanban-item card mb-2 {% if type == 'goals' %} edit-goal-card {% endif %}" data-item-id="{{ item.id }}" data-type="{{ type }}">
+                            <div class="p-2">
+                                <h6 class="card-title mb-1">{{ item.title | escape or item.description | escape }}</h6>
                             </div>
-                        {% endfor %}
+                        </div>
+                    {% endfor %}
                         {% if type == 'tasks' and col.id == 'todo' %}
                             <form id="add-task-form" class="mt-auto">
                                 <input type="text" class="form-control add-task-input border-0 shadow-sm"
@@ -50,6 +50,7 @@
                     {{ form.hidden_tag() }}
                     <!-- <input type="hidden" name="parent_id" value=""> -->
                     <!-- IN MODAL, AFTER parent_id -->
+                    <input type="hidden" name="goal_id" value="">
                     <input type="hidden" name="type" id="kanban-hidden-type">
 
                     <div class="mb-3">

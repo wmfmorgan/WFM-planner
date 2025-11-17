@@ -97,7 +97,7 @@ export function initKanban() {
     });
   });
 
-  // Goals add modal submit (live append, no reload)
+  // Goal add modal submit (live append, no reload)
     // Goal add modal submit (live append, no reload)
     const goalForm = document.getElementById('unified-goal-form');
     if (goalForm) {
@@ -138,4 +138,57 @@ export function initKanban() {
         });
     }, { once: true });  // Fire only once per load
     }
+
+  // Goal edit (click card to open modal prepopulated)
+  document.addEventListener('click', function(e) {
+    const card = e.target.closest('.edit-goal-card');
+    if (card) {
+      const goalId = card.dataset.itemId;
+      fetch(`/api/goals/${goalId}`)
+        .then(r => r.json())
+        .then(goal => {
+          const form = document.getElementById('unified-goal-form');
+          form.reset();
+          document.getElementById('modalTitle').textContent = 'Edit Goal';
+          form.querySelector('[name="goal_id"]').value = goalId;  // Fixed: .value assignment
+          form.querySelector('[name="title"]').value = goal.title || '';
+          form.querySelector('[name="type"]').value = goal.type || 'daily';
+          form.querySelector('[name="type"]').disabled = false;  // Allow change
+          form.querySelector('[name="category"]').value = goal.category || '';
+          form.querySelector('[name="description"]').value = goal.description || '';
+          form.querySelector('[name="motivation"]').value = goal.motivation || '';
+          form.querySelector('[name="due_date"]').value = goal.due_date || '';
+          form.querySelector('[name="status"]').value = goal.status || 'todo';
+          form.querySelector('[name="completed"]').checked = goal.completed || false;
+          form.querySelector('[name="parent_id"]').value = goal.parent_id || '';
+          new bootstrap.Modal(document.getElementById('goalModal')).show();
+        }).catch(err => console.error('Fetch goal failed', err));
+    }
+  });
+
+  // Update modal submit to handle edit (PUT) or add (POST)
+  //const goalForm = document.getElementById('unified-goal-form');
+  if (goalForm) {
+    goalForm.addEventListener('submit', function(e) {
+      e.preventDefault();
+      const formData = new FormData(this);
+      const data = Object.fromEntries(formData);
+      data.completed = formData.get('completed') === 'on';
+      const goalId = data.goal_id || null;
+      const parentId = data.parent_id || null;
+      let url = goalId ? `/api/goals/${goalId}` : (parentId ? `/api/goals/${parentId}/subgoal` : '/goals');
+      let method = goalId ? 'PUT' : 'POST';
+      fetch(url, {
+        method: method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+      }).then(r => r.json()).then(result => {
+        if (result.success) {
+          // Live update or reload — for simplicity, reload for now
+          location.reload();
+        }
+      }).catch(err => console.error('Save failed', err));
+    });
+  }
+
 }

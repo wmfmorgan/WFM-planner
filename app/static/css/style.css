@@ -233,6 +233,21 @@ small {
     box-shadow: 0 4px 12px rgba(0,0,0,0.15);
     transition: all 0.2s ease;
     }
-    .kanban-item {
+ 
+    /*.kanban-item {
     touch-action: none;  // For mobile touch drag
+    }*/
+
+    /* Kanban Card Cursor */
+    .kanban-item {
+    cursor: pointer;  /* Hover: open hand pointer */
+    user-select: none;  /* No text selection on hover/drag */
+    -webkit-user-select: none;  /* Safari */
+    -moz-user-select: none;  /* Firefox */
+    -ms-user-select: none;  /* IE/Edge */
+    }
+
+    .kanban-item:active,
+    .sortable-chosen {  /* Drag/active: closed grabbing hand */
+    cursor: grabbing;
     }
