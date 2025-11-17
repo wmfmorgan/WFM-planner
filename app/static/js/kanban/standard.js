@@ -144,12 +144,9 @@ export function initKanban() {
         return r.json();
       })
       .then(result => {
-        alert('Goal saved successfully.');
-        alert(result.success);
         if (result.success) {
           if (goalId) {
             // EDIT: just reload (simplest) or update card title live
-            alert('Goal updated. Reloading to reflect changes.');
             location.reload();
           } else {
             // ADD: live append
@@ -169,7 +166,6 @@ export function initKanban() {
             const badge = list.closest('.card').querySelector('.badge');
             if (badge) badge.textContent = parseInt(badge.textContent) + 1;
           }
-          alert('Closing modal.');
           bootstrap.Modal.getInstance(document.getElementById('goalModal')).hide();
           this.reset();
         }
