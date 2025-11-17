@@ -16,6 +16,10 @@ export function initKanban() {
       preventOnFilter: false,  // Allow click on filter
       ghostClass: 'sortable-ghost',
       chosenClass: 'sortable-chosen',
+
+      delay: 100,                 // 100ms delay before drag starts
+      //delayOnTouchOnly: true,     // only on touch devices (optional but nice)
+      
       onEnd: function (evt) {
         if (evt.newIndex === evt.oldIndex && evt.from === evt.to) {
           //console.log('No move detected - skipping POST');
