@@ -24,7 +24,7 @@ bp = Blueprint('main', __name__)
 @bp.before_request
 def require_auth():
     auth = request.authorization
-    print(f"→ AUTH CHECK: {request.method} {request.path}")
+    #print(f"→ AUTH CHECK: {request.method} {request.path}")
     password = os.getenv("WFM_PASSWORD")
     if not (auth and auth.username == "admin" and auth.password == password):
         return ("Unauthorized", 401, {'WWW-Authenticate': 'Basic realm="WFM Planner"'})
@@ -673,16 +673,16 @@ def add_subgoal(parent_id):
 
 
 # TOGGLE COMPLETION
-@bp.route('/api/goals/<int:goal_id>/toggle', methods=['POST'])
-def toggle_goal(goal_id):
-    goal = Goal.query.get_or_404(goal_id)
-    goal.completed = not goal.completed
-    db.session.commit()
-    return jsonify({
-        'status': 'success',
-        'completed': goal.completed,
-        'progress': goal.progress()
-    })
+#@bp.route('/api/goals/<int:goal_id>/toggle', methods=['POST'])
+#def toggle_goal(goal_id):
+#    goal = Goal.query.get_or_404(goal_id)
+#    goal.completed = not goal.completed
+#    db.session.commit()
+#    return jsonify({
+#        'status': 'success',
+#        'completed': goal.completed,
+#        'progress': goal.progress()
+#    })
 
 
 # DELETE GOAL

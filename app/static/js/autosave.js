@@ -37,7 +37,8 @@ document.addEventListener('DOMContentLoaded', function () {
     // ========================================
     // 2. TOGGLE GOAL COMPLETION
     // ========================================
-    goalsContainer.addEventListener('change', function (e) {
+    
+    /*goalsContainer.addEventListener('change', function (e) {
         if (e.target.classList.contains('complete-goal')) {
             const goalId = e.target.dataset.goalId;
             const card = e.target.closest('.goal-node') || e.target.closest('.goal-card');
@@ -54,7 +55,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     showToast('Failed to update.', 'danger');
                 });
         }
-    });
+    }); */
 
     // ========================================
     // 3. EDIT GOAL — EXPAND + INLINE FORM
