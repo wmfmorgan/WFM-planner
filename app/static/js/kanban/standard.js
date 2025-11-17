@@ -97,7 +97,7 @@ export function initKanban() {
       }).then(r => r.json()).then(data => {
         const list = document.querySelector('[data-status="todo"][data-type="tasks"]');
         const card = document.createElement('div');
-        card.className = 'kanban-item card mb-2';
+        card.className = 'kanban-item card mb-2 d-flex align-items-center edit-goal-card';
         card.dataset.itemId = data.id;
         card.innerHTML = `<div class="p-2"><h6 class="card-title mb-1">${desc}</h6></div>`;
         list.appendChild(card);
@@ -135,7 +135,7 @@ export function initKanban() {
         if (result.success && result.goal) {
             const list = document.querySelector('.kanban-column[data-status="todo"][data-type="goals"]');
             const card = document.createElement('div');
-            card.className = 'kanban-item card mb-2';
+            card.className = 'kanban-item card mb-2 d-flex align-items-center edit-goal-card';
             card.dataset.itemId = result.goal.id;
             card.innerHTML = `
               <div class="drag-handle text-muted flex-shrink-0 d-flex align-items-center justify-content-center px-3">
