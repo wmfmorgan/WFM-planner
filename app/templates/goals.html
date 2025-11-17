@@ -519,11 +519,17 @@ document.addEventListener('DOMContentLoaded', function () {
                                 <div class="flex-grow-1">
                                     <h6 class="card-title mb-0 goal-title-text">${result.goal.title}</h6>
                                 </div>
-                                <div class="d-flex gap-1">
-                                    <button class="btn btn-sm btn-icon-secondary edit-goal-btn" title="Edit">Edit</button>
-                                    <button class="btn btn-sm btn-icon-primary add-subgoal-btn" data-parent-id="${result.goal.id}" title="Add Sub-Goal">Sub</button>
-                                    <button class="btn btn-sm btn-icon-danger delete-goal-btn" data-goal-id="${result.goal.id}" title="Delete">Delete</button>
-                                </div>
+                                    <div class="d-flex gap-1">
+                                        <button class="btn btn-sm btn-icon-secondary edit-goal-btn" title="Edit">
+                                            <i class="bi bi-pencil"></i>
+                                        </button>
+                                        <button class="btn btn-sm btn-icon-primary add-subgoal-btn" data-parent-id="${result.goal.id}" title="Add Sub-Goal">
+                                            <i class="bi bi-plus-circle"></i>
+                                        </button>
+                                        <button class="btn btn-sm btn-icon-danger delete-goal-btn" data-goal-id="${result.goal.id}" title="Delete">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </div>
                             </div>
                         </div>
                     </div>
