@@ -17,8 +17,16 @@ export function initKanban() {
       ghostClass: 'sortable-ghost',
       chosenClass: 'sortable-chosen',
 
-      delay: 100,                 // 100ms delay before drag starts
-      //delayOnTouchOnly: true,     // only on touch devices (optional but nice)
+      // ONLY DRAG FROM THE GRIP ICON
+      handle: '.drag-handle',   // ← THIS IS THE KEY
+
+      // Optional: visual feedback
+      /*onStart: function (evt) {
+        evt.item.querySelector('.drag-handle i').classList.replace('bi-grip-vertical', 'bi-grip-horizontal');
+      },
+      onEnd: function (evt) {
+        evt.item.querySelector('.drag-handle i').classList.replace('bi-grip-horizontal', 'bi-grip-vertical');
+      },*/
       
       onEnd: function (evt) {
         if (evt.newIndex === evt.oldIndex && evt.from === evt.to) {
@@ -144,7 +152,7 @@ export function initKanban() {
     }
 
   // Goal edit (click card to open modal prepopulated)
-  document.addEventListener('dblclick', function(e) {
+  document.addEventListener('click', function(e) {
     const card = e.target.closest('.edit-goal-card');
     if (card) {
       const goalId = card.dataset.itemId;

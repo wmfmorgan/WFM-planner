@@ -18,8 +18,9 @@ html, body, .container, .card, .card-body, .card-header, .navbar, .progress {
 }
 
 body {
-    color: #ffffff !important;
+    color: #1a1a1a !important;   /* Dark text on white background */
     line-height: 1.6;
+    background: #ffffff !important;
 }
 
 h1, h2, h3, h4, h5, h6 {
@@ -239,15 +240,74 @@ small {
     }*/
 
     /* Kanban Card Cursor */
-    .kanban-item {
+   
+    /*.kanban-item:active,
+    .sortable-chosen {  /* Drag/active: closed grabbing hand */
+    /*cursor: grabbing;
+    }*/
+
+
+
+    /* Kanban Card: Drag handle + text on same row */
+.kanban-item {
+    display: flex !important;          /* Horizontal flex layout */
+  flex-direction: row !important;    /* Ensure row direction */
+  align-items: center !important;    /* Vertically center drag + title */
+  justify-content: flex-start !important; /* Keep everything left-aligned */  
     cursor: pointer;  /* Hover: open hand pointer */
     user-select: none;  /* No text selection on hover/drag */
     -webkit-user-select: none;  /* Safari */
     -moz-user-select: none;  /* Firefox */
     -ms-user-select: none;  /* IE/Edge */
-    }
+  min-height: 48px;
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  transition: all 0.15s ease;
+  user-select: none;
+  
+  /* THIS IS THE FIX */
+  display: flex !important;
+  justify-content: flex-start !important;   /* ← Forces left alignment */
+  padding: 0 !important;                   /* ← Removes card's default padding */
+}
 
-    .kanban-item:active,
-    .sortable-chosen {  /* Drag/active: closed grabbing hand */
-    cursor: grabbing;
-    }
+.kanban-item:hover {
+  box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+}
+
+/* Drag handle — left side, centered vertically */
+.drag-handle {
+  opacity: 0.5;
+  cursor: grab;
+  height: 100%;
+  width: 40px;                    /* Fixed width so text never bumps it */
+}
+
+.drag-handle:hover {
+  opacity: 1;
+}
+
+.drag-handle:active {
+  cursor: grabbing;
+}
+
+/* Title text — takes all remaining space */
+.kanban-item .flex-grow-1 {
+  min-width: 0;                   /* Required for text-truncate */
+  font-size: 0.95rem;
+  line-height: 1.4;
+}
+
+.kanban-item .card-title {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Drag visual feedback */
+.sortable-chosen {
+  opacity: 0.9;
+  transform: scale(1.02);
+  box-shadow: 0 10px 25px rgba(0,0,0,0.18);
+}
