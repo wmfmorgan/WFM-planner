@@ -67,7 +67,7 @@ export function initKanban() {
         'day': 'daily'
         };
         const childType = typeMap[parentType || pageType] || 'daily';  // Prefer parentType if set, fallback to pageType
-        const form = document.getElementById('unified-goal-form');
+        const form = document.getElementById('kanban_unified-goal-form');
         form.reset();
         document.getElementById('modalTitle').textContent = `Add ${childType.charAt(0).toUpperCase() + childType.slice(1)} Goal`;
         const typeSelect = form.querySelector('.goal-type-select');
@@ -111,7 +111,7 @@ export function initKanban() {
 
   // Goal add modal submit (live append, no reload)
     // Goal add modal submit (live append, no reload)
-    const goalForm = document.getElementById('unified-goal-form');
+    const goalForm = document.getElementById('kanban_unified-goal-form');
     if (goalForm) {
     goalForm.addEventListener('submit', function(e) {
         e.preventDefault();
@@ -159,7 +159,7 @@ export function initKanban() {
       fetch(`/api/goals/${goalId}`)
         .then(r => r.json())
         .then(goal => {
-          const form = document.getElementById('unified-goal-form');
+          const form = document.getElementById('kanban_unified-goal-form');
           form.reset();
           document.getElementById('modalTitle').textContent = 'Edit Goal';
           form.querySelector('[name="goal_id"]').value = goalId;  // Fixed: .value assignment

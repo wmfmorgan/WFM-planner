@@ -574,7 +574,33 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 });
 
+    /* --------------------------------------------------------------
+    PERSISTENT COLLAPSE STATE
+    -------------------------------------------------------------- */
+    document.addEventListener('DOMContentLoaded', function () {
+    // Restore expanded state from localStorage
+    document.querySelectorAll('.goal-collapse').forEach(collapse => {
+        const goalId = collapse.dataset.goalId || collapse.id;
+        if (localStorage.getItem('expanded-goal-' + goalId) === 'true') {
+        const bsCollapse = new bootstrap.Collapse(collapse, { toggle: false });
+        bsCollapse.show();
+        }
+    });
+
+    // Save expanded/collapsed state when user clicks
+    document.querySelectorAll('.goal-collapse').forEach(collapse => {
+        collapse.addEventListener('shown.bs.collapse', function () {
+        const goalId = this.dataset.goalId || this.id;
+        localStorage.setItem('expanded-goal-' + goalId, 'true');
+        });
+        collapse.addEventListener('hidden.bs.collapse', function () {
+        const goalId = this.dataset.goalId || this.id;
+        localStorage.removeItem('expanded-goal-' + goalId);
+        });
+    });
+    });
 </script>
+
 <!-- STYLE BLOCK -->
 <style>
     .goal-collapse {
