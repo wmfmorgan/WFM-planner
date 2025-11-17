@@ -178,29 +178,4 @@ export function initKanban() {
     }
   });
 
-  // Update modal submit to handle edit (PUT) or add (POST)
-  //const goalForm = document.getElementById('unified-goal-form');
-  if (goalForm) {
-    goalForm.addEventListener('submit', function(e) {
-      e.preventDefault();
-      const formData = new FormData(this);
-      const data = Object.fromEntries(formData);
-      data.completed = formData.get('completed') === 'on';
-      const goalId = data.goal_id || null;
-      const parentId = data.parent_id || null;
-      let url = goalId ? `/api/goals/${goalId}` : (parentId ? `/api/goals/${parentId}/subgoal` : '/goals');
-      let method = goalId ? 'PUT' : 'POST';
-      fetch(url, {
-        method: method,
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data)
-      }).then(r => r.json()).then(result => {
-        if (result.success) {
-          // Live update or reload — for simplicity, reload for now
-          location.reload();
-        }
-      }).catch(err => console.error('Save failed', err));
-    });
-  }
-
 }
