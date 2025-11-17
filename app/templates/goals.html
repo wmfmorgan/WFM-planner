@@ -234,6 +234,28 @@
     </div>
 </div>
 
+<script>
+// GLOBAL TOAST — ONLY FOR GOALS PAGE (fast, clean, no external dependency)
+function showToast(message, type = 'info') {
+    const toast = document.createElement('div');
+    toast.className = `toast align-items-center text-bg-${type} border-0 position-fixed`;
+    toast.style.top = '1rem';
+    toast.style.right = '1rem';
+    toast.style.zIndex = '9999';
+    toast.style.minWidth = '200px';
+    toast.innerHTML = `
+        <div class="d-flex">
+            <div class="toast-body">${message}</div>
+            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+        </div>
+    `;
+    document.body.appendChild(toast);
+    const bsToast = new bootstrap.Toast(toast, { delay: 3000 });
+    bsToast.show();
+    toast.addEventListener('hidden.bs.toast', () => toast.remove());
+}
+</script>
+
 <!-- FULL JS LOGIC -->
 <script>
 /* --------------------------------------------------------------
@@ -599,6 +621,8 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     });
     });
+
+    
 </script>
 
 <!-- STYLE BLOCK -->
