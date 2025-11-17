@@ -140,7 +140,7 @@ export function initKanban() {
     }
 
   // Goal edit (click card to open modal prepopulated)
-  document.addEventListener('click', function(e) {
+  document.addEventListener('dblclick', function(e) {
     const card = e.target.closest('.edit-goal-card');
     if (card) {
       const goalId = card.dataset.itemId;
