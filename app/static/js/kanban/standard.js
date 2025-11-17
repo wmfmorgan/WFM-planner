@@ -137,7 +137,14 @@ export function initKanban() {
             const card = document.createElement('div');
             card.className = 'kanban-item card mb-2';
             card.dataset.itemId = result.goal.id;
-            card.innerHTML = `<div class="p-2"><h6 class="card-title mb-1">${result.goal.title}</h6></div>`;
+            card.innerHTML = `
+              <div class="drag-handle text-muted flex-shrink-0 d-flex align-items-center justify-content-center px-3">
+                <i class="bi bi-grip-vertical fs-5"></i>
+              </div>
+              <div class="flex-grow-1 text-truncate pe-3">
+                <h6 class="card-title mb-0 fw-medium">${result.goal.title}</h6>
+              </div>
+            `;
             list.appendChild(card);
             const badge = list.closest('.card').querySelector('.badge');
             if (badge) badge.textContent = parseInt(badge.textContent) + 1;
