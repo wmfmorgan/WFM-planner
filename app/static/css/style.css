@@ -261,7 +261,7 @@ small {
     -ms-user-select: none;  /* IE/Edge */
   min-height: 48px;
   background: white;
-  border: 1px solid #e5e7eb;
+  border: 1px solid #bcc5d1 !important;
   border-radius: 8px;
   transition: all 0.15s ease;
   user-select: none;
