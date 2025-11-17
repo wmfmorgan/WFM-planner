@@ -1,38 +1,40 @@
-// static/js/kanban/tasks.js
 let isSubmittingTask = false;
 
 export function initTaskKanban() {
-  let dragged = null;
+  const allowDrop = (e) => e.preventDefault();
 
-  const allow = e => e.preventDefault();
-  const start = e => {
-    dragged = e.target;
+  const dragStart = (e) => {
     e.dataTransfer.setData('text/plain', e.target.dataset.taskId);
     setTimeout(() => e.target.classList.add('dragging'), 0);
   };
 
-  document.addEventListener('dragover', allow);
-  document.addEventListener('drop', e => {
+  const drop = (e) => {
     e.preventDefault();
-    if (!dragged) return;
+    const taskId = e.dataTransfer.getData('text/plain');
+    const task = document.querySelector(`[data-task-id="${taskId}"]`);
+    if (!task) return;
     const col = e.target.closest('.kanban-col');
     if (!col) return;
-
-    const taskId = dragged.dataset.taskId;
+    col.querySelector('.task-list').appendChild(task);
+    task.classList.remove('dragging');
     const status = col.dataset.status;
-
-    dragged.classList.remove('dragging');
-    col.querySelector('.task-list').appendChild(dragged);
-
     fetch(`/api/task/${taskId}/status`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ status })
     }).catch(console.error);
+  };
+
+  // Attach listeners dynamically
+  document.querySelectorAll('.kanban-col').forEach(col => {
+    col.addEventListener('dragover', allowDrop);
+    col.addEventListener('drop', drop);
   });
 
-  document.querySelectorAll('.task-card[draggable="true"]')
-    .forEach(c => c.addEventListener('dragstart', start));
+  document.querySelectorAll('.task-card[draggable="true"]').forEach(card => {
+    card.addEventListener('dragstart', dragStart);
+    card.addEventListener('dragend', () => card.classList.remove('dragging'));
+  });
 }
 
 export function initAddTaskForm() {
@@ -40,11 +42,9 @@ export function initAddTaskForm() {
     form.addEventListener('submit', function(e) {
       e.preventDefault();
       e.stopImmediatePropagation();
-
       const input = this.querySelector('.add-task-input');
       const desc = input?.value.trim();
       if (!desc || isSubmittingTask) return;
-
       isSubmittingTask = true;
       const [y, m, d] = (document.getElementById('dayDateData')?.textContent.trim() || '').split('-');
       fetch('/api/task', {
@@ -63,10 +63,8 @@ export function initAddTaskForm() {
         card.draggable = true;
         card.dataset.taskId = data.id;
         card.innerHTML = `<div class="task-desc fw-medium">${desc}</div>`;
-        card.addEventListener('dragstart', e => {
-          e.dataTransfer.setData('text/plain', data.id);
-          setTimeout(() => card.classList.add('dragging'), 0);
-        });
+        card.addEventListener('dragstart', dragStart);
+        card.addEventListener('dragend', () => card.classList.remove('dragging'));
         list.appendChild(card);
         input.value = '';
         input.focus();

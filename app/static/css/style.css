@@ -48,7 +48,7 @@ h1, h2, h3, h4, h5, h6 {
 .nav-link:hover {
     color: #3182ce !important;
 }
-
+/*
 .card {
     border: 1px solid #e2e8f0 !important;
     border-radius: 0.5rem !important;
@@ -65,7 +65,7 @@ h1, h2, h3, h4, h5, h6 {
     font-weight: 600;
     color: #2d3748;
     font-size: 0.95rem;
-}
+}*/
 
 .form-control, .form-select {
     border: 1px solid #cbd5e0 !important;
@@ -140,11 +140,11 @@ small {
     font-size: 0.85rem;
 }
 
-/* FULL WIDTH CARDS */
-.goal-card, .card {
+/*/* FULL WIDTH CARDS */
+/*.goal-card, .card {
     width: 100% !important;
     max-width: none !important;
-}
+}*/
 
 /* TOASTS */
 .toast {
@@ -203,4 +203,36 @@ small {
         border: none !important;
         padding: .25rem .5rem;
         border-radius: .25rem;
+    }
+
+    .kanban-column {
+    min-height: 200px;  // Ensure height for drop detection
+    position: relative;
+    }
+    .kanban-board .row {
+    flex-wrap: nowrap;  // Prevent wrapping
+    }
+    .kanban-board {
+    overflow-x: auto;  // Allow horizontal scroll if needed
+    }
+    /* Kanban Drag Ghost Fix */
+    .sortable-ghost {
+    opacity: 0.4;
+    background: #f0f0f0;
+    border: 1px dashed #ccc;
+    width: 100% !important;  /* Match column width */
+    max-width: 280px !important;  /* Match your column style="width: 280px" */
+    padding: 1rem !important;  /* Match card padding */
+    margin-bottom: 0.5rem !important;  /* Match mb-2 */
+    box-shadow: none !important;  /* Remove extra shadows */
+    }
+
+    .sortable-chosen {
+    opacity: 0.6;
+    transform: rotate(3deg) scale(1.02);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    transition: all 0.2s ease;
+    }
+    .kanban-item {
+    touch-action: none;  // For mobile touch drag
     }

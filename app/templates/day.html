@@ -52,16 +52,11 @@
     </div>
 
     <!-- DAILY GOAL CARDS -->
+    <!-- Daily Goals -->
     <h5 class="mb-3">Daily Goals</h5>
-    {% set columns = [
-        {'id': 'todo', 'label': 'To Do'},
-        {'id': 'in_progress', 'label': 'In Progress'},
-        {'id': 'blocked', 'label': 'Blocked'},
-        {'id': 'done', 'label': 'Done'}
-    ] %}
-
-    {% with goals=daily_goals_grouped, columns=columns %}
-        {% include 'kanban_board.html' %}
+    {% set columns = [{'id': 'todo', 'label': 'To Do'}, {'id': 'in_progress', 'label': 'In Progress'}, {'id': 'blocked', 'label': 'Blocked'}, {'id': 'done', 'label': 'Done'}] %}
+    {% with goals=daily_goals_grouped, columns=columns, type="goals", parent_type="weekly", page_type="day" %}
+    {% include 'kanban_board.html' %}
     {% endwith %}
 
 
@@ -142,37 +137,12 @@
     </div>
 
 <!-- ==== TASK KANBAN BOARD (Independent of Goals/Events) ==== -->
+<!-- Daily Tasks -->
 <section class="kanban-section mt-4">
-    <h2>Daily Tasks</h2>
-    <div class="kanban-board d-flex gap-3 overflow-auto pb-3">
-        {% for col in ['todo', 'in_progress', 'blocked', 'done'] %}
-        <div class="kanban-col flex-shrink-0 bg-light rounded" style="width: 280px;" data-status="{{ col }}">
-            <h5 class="p-2 mb-0 text-uppercase text-muted border-bottom">
-                {{ col.replace('_', ' ')|title }} ({{ kanban[col]|length }})
-            </h5>
-            <div class="task-list p-3 min-vh-50 d-flex flex-column gap-2" 
-                 ondrop="drop(event)" ondragover="allowDrop(event)">
-                {% for task in kanban[col] %}
-                <div class="task-card bg-white p-3 rounded shadow-sm border"
-                     draggable="true"
-                     data-task-id="{{ task.id }}"
-                     ondragstart="dragStart(event)">
-                    <div class="task-desc text-dark fw-medium">{{ task.description | escape }}</div>
-                    {% if task.notes %}
-                    <small class="text-muted d-block mt-1">{{ task.notes | escape }}</small>
-                    {% endif %}
-                </div>
-                {% endfor %}
-                {% if col == 'todo' %}
-                <form id="add-task-form" class="mt-auto">
-                    <input type="text" class="form-control add-task-input border-0 shadow-sm" 
-                        placeholder="+ Add a task..." autocomplete="off" required />
-                </form>
-                {% endif %}
-            </div>
-        </div>
-        {% endfor %}
-    </div>
+  <h2>Daily Tasks</h2>
+  {% with goals=kanban, columns=columns, type="tasks" %}
+    {% include 'kanban_board.html' %}
+  {% endwith %}
 </section>
 
     <!-- NOTES — FULL WIDTH -->
@@ -284,12 +254,13 @@
 {{ day_date.strftime('%Y-%m-%d') }}
 </script>
 
+<!--
 <style>
 .kanban-board { max-width: 100vw; }
 .task-card { cursor: grab; user-select: none; transition: all 0.2s; }
 .task-card:active { cursor: grabbing; }
 .task-card.dragging { opacity: 0.6; transform: rotate(3deg) scale(1.02); box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
 .add-task-input:focus { box-shadow: 0 0 0 0.2rem rgba(13,110,253,0.25); }
-</style>
+</style> -->
 
 {% endblock %}

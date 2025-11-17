@@ -64,17 +64,10 @@
 
     <!-- QUARTERLY GOAL CARDS — FULL WIDTH -->
     <h5 class="mb-3">Quarterly Goals</h5>
-
-{% set columns = [
-    {'id': 'todo', 'label': 'To Do'},
-    {'id': 'in_progress', 'label': 'In Progress'},
-    {'id': 'blocked', 'label': 'Blocked'},
-    {'id': 'done', 'label': 'Done'}
-] %}
-
-{% with goals=quarterly_goals_grouped, columns=columns %}
+    {% set columns = [{'id': 'todo', 'label': 'To Do'}, {'id': 'in_progress', 'label': 'In Progress'}, {'id': 'blocked', 'label': 'Blocked'}, {'id': 'done', 'label': 'Done'}] %}
+    {% with goals=quarterly_goals_grouped, columns=columns, type="goals", parent_type="annual", page_type="quarter" %}
     {% include 'kanban_board.html' %}
-{% endwith %}
+    {% endwith %}
 
     <!-- NOTES -->
     <div class="card border-light mt-5">

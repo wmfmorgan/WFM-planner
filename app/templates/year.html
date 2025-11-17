@@ -61,15 +61,9 @@
 
     <!-- ANNUAL GOAL CARDS — FULL WIDTH -->
     <h5 class="mb-3">Annual Goals</h5>
-    {% set columns = [
-        {'id': 'todo', 'label': 'To Do'},
-        {'id': 'in_progress', 'label': 'In Progress'},
-        {'id': 'blocked', 'label': 'Blocked'},
-        {'id': 'done', 'label': 'Done'}
-    ] %}
-
-    {% with goals=annual_goals_grouped, columns=columns %}
-        {% include 'kanban_board.html' %}
+    {% set columns = [{'id': 'todo', 'label': 'To Do'}, {'id': 'in_progress', 'label': 'In Progress'}, {'id': 'blocked', 'label': 'Blocked'}, {'id': 'done', 'label': 'Done'}] %}
+    {% with goals=annual_goals_grouped, columns=columns, type="goals", parent_type="year", page_type="year" %}
+    {% include 'kanban_board.html' %}
     {% endwith %}
 
     <!-- NOTES -->
