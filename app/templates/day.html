@@ -83,7 +83,7 @@
                         <div class="card-body p-0" id="schedule-container" style="max-height: 600px; overflow-y: auto;">
                             <table class="table table-bordered table-sm mb-0">
                                 <tbody>
-                                    {% for hour in range(0, 24) %}
+                                    {% for hour in range(5, 23) %}
                                         {% for half in [0, 30] %}
                                             {% set minutes = half %}
                                             {% set time_str = '%02d:%02d'|format(hour, minutes) %}
