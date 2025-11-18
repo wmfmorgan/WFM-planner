@@ -212,20 +212,18 @@ small {
         max-width: 300px !important;
         flex: 0 0 300px !important;
         padding: 0 8px !important;
-
-        /* Remove max-height — let it grow! */
+        
+        /* Grow tall naturally — no max-height */
         height: auto !important;
-        min-height: 70vh !important;           /* Minimum tall */
-
+        min-height: 65vh !important;
+        
         overflow-y: auto !important;
         overflow-x: visible !important;
-
-        /* Extra space at bottom for dragging */
-        padding-bottom: 120px !important;
-
-        /* Nice scrollbar */
+        
+        /* Only a tiny bit of breathing room — no more 120px void */
+        padding-bottom: 2rem !important;
+        
         scrollbar-width: thin;
-        scrollbar-color: #cbd5e0 transparent;
     }
 
     /* Optional: Center columns on wide screens */
@@ -241,6 +239,7 @@ small {
         align-items: stretch !important;
         overflow-x: visible !important;  /* Allow horizontal scroll if needed */
     }
+    
     /* Kanban Drag Ghost Fix */
     .sortable-ghost {
         opacity: 0.4;
@@ -406,4 +405,18 @@ small {
 .kanban-column::-webkit-scrollbar-thumb {
     background: #cbd5e0;
     border-radius: 4px;
+}
+
+/* TASKS KANBAN — COMFORTABLE BOTTOM SPACE */
+section.kanban-section .kanban-column {
+    padding-bottom: 80px !important;   /* Perfect for + input + dragging */
+}
+
+/* Optional: Slightly more space before the next section */
+section.kanban-section {
+    margin-bottom: 3rem !important;
+}
+/* KANBAN — SPACE BETWEEN HEADER AND FIRST CARD */
+.kanban-column {
+    padding-top: 0.75rem !important;   /* Perfect gap — clean & balanced */
 }
