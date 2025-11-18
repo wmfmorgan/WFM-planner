@@ -1241,3 +1241,78 @@ def week_range(year: int, month: int, day: int) -> tuple[date, date]:
     week_end = week_start + timedelta(days=6)
     
     return week_start, week_end
+
+from flask import jsonify
+from datetime import datetime, time
+import requests
+from dateutil.parser import parse  # Handles ICS dates perfectly
+from icalendar import Calendar  # pip install icalendar
+
+from datetime import datetime, timedelta
+
+@bp.route('/api/import-calendar')
+def import_calendar():
+    ics_url = os.getenv('ICS_CALENDAR_URL')
+        if not ics_url:
+            return jsonify({'success': False, 'error': 'ICS URL not configured'}), 500
+
+    try:
+        response = requests.get(ics_url, timeout=15)    
+    # DEFINE SAFE RANGE
+    today = datetime.now().date()
+    start_cutoff = today - timedelta(days=90)   # Last 3 months
+    end_cutoff = today + timedelta(days=365)    # Next 12 months
+
+    try:
+        response = requests.get(ics_url, timeout=15)
+        response.raise_for_status()
+        cal = Calendar.from_ical(response.content)
+        
+        imported = 0
+        for component in cal.walk():
+            if component.name != "VEVENT":
+                continue
+
+            dtstart_raw = component.get('dtstart').dt
+            dtend_raw = component.get('dtend').dt
+
+            # Handle both datetime and date objects
+            start_dt = dtstart_raw if isinstance(dtstart_raw, datetime) else datetime.combine(dtstart_raw, datetime.min.time())
+            end_dt = dtend_raw if isinstance(dtend_raw, datetime) else datetime.combine(dtend_raw, datetime.min.time())
+
+            start_date = start_dt.date()
+            end_date = end_dt.date()
+
+            # FILTER: Only import events in our window
+            if not (start_cutoff <= start_date <= end_cutoff):
+                continue  # Skip old/far future events
+
+            # Optional: Skip if already exists (by UID + date)
+            #uid = str(component.get('uid', ''))
+            #existing = Event.query.filter_by(uid=uid, start_date=start_date).first()
+            #if existing:
+            #    continue
+
+            event = Event(
+                #uid=uid,
+                title=str(component.get('summary', 'Untitled')),
+                start_date=start_date,
+                end_date=end_date,
+                #all_day=isinstance(dtstart_raw, date) and not isinstance(dtstart_raw, datetime),
+                start_time=start_dt.time() if isinstance(dtstart_raw, datetime) else None,
+                end_time=end_dt.time() if isinstance(dtend_raw, datetime) else None,
+                #recurring='RRULE' in component
+            )
+            db.session.add(event)
+            imported += 1
+
+        db.session.commit()
+        return jsonify({
+            'success': True,
+            'imported': imported,
+            'range': f'{start_cutoff} to {end_cutoff}'
+        })
+
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'success': False, 'error': str(e)}), 500
