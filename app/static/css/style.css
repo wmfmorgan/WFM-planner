@@ -211,16 +211,17 @@ small {
         min-width: 300px !important;        /* Slightly wider than card */
         flex: 0 0 300px !important;
         padding: 0 8px !important;
+        overflow-x: visible !important;
     }
 
     /* Optional: Center columns on wide screens */
     .kanban-board .row {
         justify-content: center !important;
-        overflow-x: hidden !important;
+        overflow-x: visible !important;
     }
 
     .kanban-board {
-        overflow-x: auto;  /* Allow horizontal scroll if needed */
+        overflow-x: visible !important;  /* Allow horizontal scroll if needed */
     }
     /* Kanban Drag Ghost Fix */
     .sortable-ghost {
