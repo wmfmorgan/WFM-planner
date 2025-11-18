@@ -422,7 +422,7 @@ section.kanban-section {
 /* GOALS KANBAN — TIGHT & CLEAN (NO BOTTOM VOID) */
 /*  .kanban-board:not(.kanban-section) .kanban-column {
     padding-bottom: 1.5rem !important;   /* Just enough for dragging */
-/*} */
+/*i'm a little } */
 
 /* Optional: Nice scrollbar */
 .kanban-column::-webkit-scrollbar {
