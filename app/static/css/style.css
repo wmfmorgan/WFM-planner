@@ -211,19 +211,20 @@ small {
         min-width: 300px !important;
         max-width: 300px !important;
         flex: 0 0 300px !important;
-        padding: 0 8px !important;
+        /*  padding: 0 8px !important;
         
         /* Grow tall naturally — no max-height */
         height: auto !important;
-        min-height: 65vh !important;
-        
-        overflow-y: visible !important;
+        min-height: 250px !important;
+        padding: 0.75rem 0.75rem 4rem 0.75rem !important;  /* top/right/bottom/left */
+        overflow-y: auto !important;
         overflow-x: visible !important;
         
         /* Only a tiny bit of breathing room — no more 120px void */
         /*padding-bottom: 2rem !important;*/
         
         scrollbar-width: thin;
+        scrollbar-color: #cbd5e0 transparent;
     }
 
     /* Optional: Center columns on wide screens */
@@ -235,9 +236,10 @@ small {
     }
 
     .kanban-board {
-        min-height: 70vh !important;     /* Forces full height */
+        /*min-height: 70vh !important;     /* Forces full height */
         align-items: stretch !important;
         overflow-x: visible !important;  /* Allow horizontal scroll if needed */
+        margin-bottom: 3rem !important;
     }
     
     /* Kanban Drag Ghost Fix */
@@ -407,14 +409,10 @@ small {
     border-radius: 4px;
 }
 
-/* TASKS KANBAN — COMFORTABLE BOTTOM SPACE */
-section.kanban-section .kanban-column {
-    padding-bottom: 80px !important;   /* Perfect for + input + dragging */
-}
-
 /* Optional: Slightly more space before the next section */
 section.kanban-section {
-    margin-bottom: 3rem !important;
+    margin-bottom: 6rem !important;     /* Big clean gap */
+
 }
 /* KANBAN — SPACE BETWEEN HEADER AND FIRST CARD */
 .kanban-column {
@@ -422,6 +420,18 @@ section.kanban-section {
 }
 
 /* GOALS KANBAN — TIGHT & CLEAN (NO BOTTOM VOID) */
-.kanban-board:not(.kanban-section) .kanban-column {
+/*  .kanban-board:not(.kanban-section) .kanban-column {
     padding-bottom: 1.5rem !important;   /* Just enough for dragging */
+/*} */
+
+/* Optional: Nice scrollbar */
+.kanban-column::-webkit-scrollbar {
+    width: 6px;
+}
+.kanban-column::-webkit-scrollbar-track {
+    background: transparent;
+}
+.kanban-column::-webkit-scrollbar-thumb {
+    background: #cbd5e0;
+    border-radius: 3px;
 }
