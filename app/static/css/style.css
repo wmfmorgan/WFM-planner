@@ -208,38 +208,56 @@ small {
 
     /* Make sure the column doesn’t stretch */
     .kanban-column {
-        min-width: 300px !important;        /* Slightly wider than card */
+        min-width: 300px !important;
+        max-width: 300px !important;
         flex: 0 0 300px !important;
         padding: 0 8px !important;
+
+        /* Remove max-height — let it grow! */
+        height: auto !important;
+        min-height: 70vh !important;           /* Minimum tall */
+
+        overflow-y: auto !important;
         overflow-x: visible !important;
+
+        /* Extra space at bottom for dragging */
+        padding-bottom: 120px !important;
+
+        /* Nice scrollbar */
+        scrollbar-width: thin;
+        scrollbar-color: #cbd5e0 transparent;
     }
 
     /* Optional: Center columns on wide screens */
     .kanban-board .row {
-        justify-content: center !important;
-        overflow-x: visible !important;
+        justify-content: flex-start !important; /* Left-align columns */
+        overflow: visible !important;
+        gap: 1rem;
+        flex-wrap: nowrap;
     }
 
     .kanban-board {
+        min-height: 70vh !important;     /* Forces full height */
+        align-items: stretch !important;
         overflow-x: visible !important;  /* Allow horizontal scroll if needed */
     }
     /* Kanban Drag Ghost Fix */
     .sortable-ghost {
-    opacity: 0.4;
-    background: #f0f0f0;
-    border: 1px dashed #ccc;
-    width: 100% !important;  /* Match column width */
-    max-width: 280px !important;  /* Match your column style="width: 280px" */
-    padding: 1rem !important;  /* Match card padding */
-    margin-bottom: 0.5rem !important;  /* Match mb-2 */
-    box-shadow: none !important;  /* Remove extra shadows */
+        opacity: 0.4;
+        background: #f0f0f0;
+        border: 1px dashed #ccc;
+        width: 100% !important;  /* Match column width */
+        max-width: 280px !important;  /* Match your column style="width: 280px" */
+        padding: 1rem !important;  /* Match card padding */
+        margin-bottom: 0.5rem !important;  /* Match mb-2 */
+        box-shadow: none !important;  /* Remove extra shadows */
     }
 
     .sortable-chosen {
-    opacity: 0.6;
-    transform: rotate(3deg) scale(1.02);
-    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-    transition: all 0.2s ease;
+        opacity: 0.6;
+        transform: rotate(3deg) scale(1.02);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        transition: all 0.2s ease;
     }
  
 
@@ -376,4 +394,16 @@ small {
 
 .kanban-item:hover::after {
     transform: translateX(-50%) translateY(-4px);
+}
+
+/* Optional: Smooth scroll + visible drop zone */
+.kanban-column::-webkit-scrollbar {
+    width: 8px;
+}
+.kanban-column::-webkit-scrollbar-track {
+    background: transparent;
+}
+.kanban-column::-webkit-scrollbar-thumb {
+    background: #cbd5e0;
+    border-radius: 4px;
 }

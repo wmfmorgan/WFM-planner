@@ -1253,11 +1253,9 @@ from datetime import datetime, timedelta
 @bp.route('/api/import-calendar')
 def import_calendar():
     ics_url = os.getenv('ICS_CALENDAR_URL')
-        if not ics_url:
-            return jsonify({'success': False, 'error': 'ICS URL not configured'}), 500
+    if not ics_url:
+        return jsonify({'success': False, 'error': 'ICS URL not configured'}), 500
 
-    try:
-        response = requests.get(ics_url, timeout=15)    
     # DEFINE SAFE RANGE
     today = datetime.now().date()
     start_cutoff = today - timedelta(days=90)   # Last 3 months
