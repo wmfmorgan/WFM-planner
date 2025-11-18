@@ -112,7 +112,7 @@ def create_goal():
 @bp.route('/api/goals/<int:goal_id>', methods=['GET'])
 def get_goal(goal_id):
     goal = Goal.query.get_or_404(goal_id)
-    print(jsonify(goal.to_dict()))
+    #print(jsonify(goal.to_dict()))
     return jsonify(goal.to_dict())
 
 # GET: Render goals page

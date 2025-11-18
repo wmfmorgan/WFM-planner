@@ -19,8 +19,9 @@
                     <div class="card-body p-2 kanban-column" data-status="{{ col.id }}" data-type="{{ type }}">
                         {% for item in goals[col.id] %}
                             <div class="kanban-item card mb-2 d-flex align-items-center {% if type == 'goals' %}edit-goal-card{% endif %}"
-                                data-item-id="{{ item.id }}">
-                                
+                                data-item-id="{{ item.id }}"
+                                data-full-title="{{ item.title|escape or item.description|escape }}">
+
                                 <!-- DRAG HANDLE (left side) -->
                                 <div class="drag-handle text-muted flex-shrink-0 d-flex align-items-center justify-content-center px-3">
                                     <i class="bi bi-grip-vertical fs-5"></i>
