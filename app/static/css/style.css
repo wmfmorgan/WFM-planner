@@ -217,11 +217,11 @@ small {
         height: auto !important;
         min-height: 65vh !important;
         
-        overflow-y: auto !important;
+        overflow-y: visible !important;
         overflow-x: visible !important;
         
         /* Only a tiny bit of breathing room — no more 120px void */
-        padding-bottom: 2rem !important;
+        /*padding-bottom: 2rem !important;*/
         
         scrollbar-width: thin;
     }
@@ -419,4 +419,9 @@ section.kanban-section {
 /* KANBAN — SPACE BETWEEN HEADER AND FIRST CARD */
 .kanban-column {
     padding-top: 0.75rem !important;   /* Perfect gap — clean & balanced */
+}
+
+/* GOALS KANBAN — TIGHT & CLEAN (NO BOTTOM VOID) */
+.kanban-board:not(.kanban-section) .kanban-column {
+    padding-bottom: 1.5rem !important;   /* Just enough for dragging */
 }
