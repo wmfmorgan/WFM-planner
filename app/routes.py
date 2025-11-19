@@ -18,6 +18,8 @@ from flask import current_app
 import json
 from sqlalchemy import case as db_case
 
+# Force Sunday as the first day of the week globally
+calendar.setfirstweekday(calendar.SUNDAY)
 
 bp = Blueprint('main', __name__)
 
@@ -291,7 +293,7 @@ def month_page(year, month):
         Goal.due_date >= m_start,
         Goal.due_date <= m_end,
         Goal.parent_id.isnot(None)
-    ).order_by(Goal.due_date.asc(), Goal.rank.asc(),Goal.id).all()
+    ).order_by(Goal.due_date.asc(), Goal.rank.asc(), Goal.id).all()
 
     prev_year = year - 1 if month == 1 else year
     prev_month = 12 if month == 1 else month - 1
@@ -300,10 +302,13 @@ def month_page(year, month):
 
     # --- SUNDAY-FIRST CALENDAR WITH 100% CORRECT ISO WEEK NUMBERS ---
     calendar_with_weeks = []
-    cal = Calendar(firstweekday=SUNDAY)
 
-    for week in cal.monthcalendar(year, month):
-        sunday_day = week[0]  # First day = Sunday (0 if padding)
+    # Force Sunday as first day of week globally
+    calendar.setfirstweekday(calendar.SUNDAY)
+
+    # Use the module function — this works and respects setfirstweekday
+    for week in calendar.monthcalendar(year, month):
+        sunday_day = week[0]  # First element is now Sunday
 
         if sunday_day != 0:
             sun_date = date(year, month, sunday_day)
@@ -312,40 +317,28 @@ def month_page(year, month):
             days_back = (first_of_month.weekday() + 1) % 7
             sun_date = first_of_month - timedelta(days=days_back)
 
-        # CORRECT: Monday = Sunday + 1 day
         monday = sun_date + timedelta(days=1)
         iso_week = monday.isocalendar()[1]
+        calendar_with_weeks.append((iso_week, week))
 
-        calendar_with_weeks.append((iso_week, week))        
     monthly_goals_grouped = group_goals_by_status(monthly_goals)
-    # GET POSSIBLE PARENTS (weekly goals in same week, NOT completed)
-    # GET POSSIBLE PARENTS (monthly goals overlapping week, NOT completed)
-    m_start_dt = datetime(m_start.year, m_start.month, 1)  # datetime
-    m_end_dt = m_start_dt + relativedelta(months=1) - timedelta(days=1)  # datetime
 
     q_start, q_end = quarter_range(year, month)
     possible_parents = Goal.query.filter(
         Goal.type == 'quarterly',
         Goal.due_date >= q_start,
         Goal.due_date <= q_end,
-        Goal.completed == False  # ← EXCLUDE COMPLETED
+        Goal.completed == False
     ).order_by(Goal.rank.asc(), Goal.id.asc()).all() 
  
-    calendar = monthcalendar(year, month)
     month_name = date(year, month, 1).strftime('%B')
 
-
-    def events_on_date(year, month, day):
-        date = datetime(year, month, day).date()
+    def events_on_date(y, m, d):
+        d = datetime(y, m, d).date()
         return Event.query.filter(
-            Event.start_date <= date,
-            Event.end_date >= date
-        ).order_by(
-            Event.all_day.desc(),  # All day first
-            Event.start_time.asc()   # Then by time
-        ).all()
-
- 
+            Event.start_date <= d,
+            Event.end_date >= d
+        ).order_by(Event.all_day.desc(), Event.start_time.asc()).all()
 
     form = GoalForm()
     return render_template(
@@ -358,7 +351,6 @@ def month_page(year, month):
         monthly_goals_grouped=monthly_goals_grouped,
         prev_url=f"/month/{prev_year}/{prev_month}",
         next_url=f"/month/{next_year}/{next_month}",
-        #weeks=weeks,
         today=today,
         page_type='month',
         parent_type='quarterly',
@@ -366,9 +358,8 @@ def month_page(year, month):
         possible_parents=possible_parents,
         today_quarter=today_quarter,
         events_on_date=events_on_date,
-        calendar=calendar,  # ← ADD THIS
         calendar_with_weeks=calendar_with_weeks,
-        month_name=month_name  # ← ADD THIS
+        month_name=month_name
     )
 
 
