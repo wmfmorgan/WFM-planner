@@ -435,3 +435,169 @@ section.kanban-section {
     background: #cbd5e0;
     border-radius: 3px;
 }
+
+/* ——— NEW PERFECT GRID — CLEAN, NO OVERLAP, NO MERCY ——— */
+#scheduleGrid {
+    position: relative;
+    min-height: 1140px !important;
+    background: white;
+    overflow-y: auto;
+    overflow-x: hidden;
+    overflow: 0;
+}
+
+.time-slot-clickable[data-minutes="0"] {
+    border-bottom: 1px solid #ccc !important;
+}
+
+.time-slot-clickable[data-minutes="30"] {
+    border-bottom: 1px dashed #ddd !important;
+}
+
+.time-slot-clickable .hover-bg {
+    position: absolute;
+    inset: 0;
+    background: rgba(59, 130, 246, 0.12);
+    opacity: 0;
+    transition: opacity 0.2s ease;
+    pointer-events: none;
+    border-radius: 4px;
+}
+
+.time-slot-clickable:hover .hover-bg {
+    opacity: 1;
+}
+
+/* Invisible full-area click target — NEVER blocks events */
+.time-slot-clickable .inset-0 {
+  position: absolute;
+  inset: 0;
+  pointer-events: auto;
+  height: 30px !important;
+  box-sizing: border-box !important;
+}
+
+/* FINAL EVENT ALIGNMENT — PIXEL-PERFECT, NO MERCY */
+[data-event-id] {
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: center !important;
+  padding: 6px 10px !important;
+  font-size: 0.85rem !important;
+  line-height: 1.3 !important;
+  cursor: pointer !important;
+  transition: all 0.2s ease !important;
+}
+
+[data-event-id]:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 30px rgba(0,0,0,0.3) !important;
+    z-index: 50 !important;
+}
+
+/* Keep text from ever spilling out */
+[data-event-id] .fw-bold,
+[data-event-id] small {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: block;
+}
+
+/* ALL-DAY BANNER — DOMINATES THE TOP */
+.bg-info {
+  background: #1e3a8a !important; /* Darker, more dominant */
+}
+
+/* ULTIMATE OVERLAP SCHEDULING — NO MERCY EDITION */
+.event-container {
+    position: absolute;
+    top: 0;
+    left: 90px;
+    right: 16px;
+    pointer-events: none;
+    z-index: 10;
+}
+
+.schedule-event {
+    position: absolute !important;
+    pointer-events: all;
+    background: #1e40af;
+    color: white;
+    border-left: 6px solid #1e3a8a;
+    border-radius: 6px;
+    padding: 6px 8px;
+    font-size: 0.82rem;
+    line-height: 1.3;
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+    min-height: 0px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    overflow: hidden;
+    transition: all 0.2s ease;
+}
+.schedule-event { transform: translateY(-1px); }
+
+.schedule-event:hover {
+    transform: translateY(-3px) scale(1.02);
+    box-shadow: 0 12px 30px rgba(0,0,0,0.4) !important;
+    z-index: 100 !important;
+}
+
+.schedule-event .fw-bold,
+.schedule-event small {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* THE MAGIC: Group events by time → layout in columns */
+.event-group {
+    position: absolute;
+    left: 0;
+    right: 0;
+    display: flex;
+    flex-direction: row;
+}
+
+/* Kill the gap under All-Day banner */
+#scheduleGrid > .bg-primary + div {
+    /* margin-top: 0 !important; */
+    padding-top: 0 !important;
+}
+
+/* Make sure the first time-slot starts right at the top */
+.time-slot-clickable {
+    margin-top: 0 !important;
+}
+
+
+.sticky-top {
+    position: sticky !important;
+    top: 0;
+    background: #1d4ed8 !important;   /* keeps solid color when scrolling */
+}
+
+/* FINAL FOREVER FIX — 5AM START, ZERO GAP, STICKY ALL-DAY */
+#scheduleGrid {
+    position: relative !important;
+    min-height: 1140px !important;important;
+    padding: 0 !important;
+    margin: 0 !important;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+}
+
+.bg-primary.sticky-top {
+    position: sticky !important;
+    top: 0 !important;
+    z-index: 40 !important;
+    margin: 0 !important;
+    border-bottom: none !important;
+}
+
+#scheduleGrid {
+    padding-top: 0 !important;
+}

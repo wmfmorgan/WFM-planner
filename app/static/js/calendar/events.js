@@ -10,6 +10,11 @@ export function initEventModal() {
   if (!modalEl) return;
 
   const modal = new bootstrap.Modal(modalEl);
+  modal._element.addEventListener('click', e => {
+  if (e.target === modal._element || e.target.classList.contains('btn-close') || e.target.hasAttribute('data-bs-dismiss')) {
+    modal.hide();
+  }
+  });
   const form = document.getElementById('eventForm');
   const titleEl = document.getElementById('eventModalLabel');
   const allDayCheckbox = document.getElementById('allDay');
@@ -116,7 +121,7 @@ document.addEventListener('click', (e) => {
   }
 
   // === 2. EDIT EXISTING EVENT ===
-  const badge = e.target.closest('.event-badge[data-event-id]');
+  const badge = e.target.closest('[data-event-id]');
   if (!badge) {
     //console.log(`[EVENT CLICK ${debugId}] No badge or add-area`);
     return;
@@ -172,13 +177,19 @@ document.addEventListener('click', (e) => {
     });
 });
 
-  // Modal cleanup
+  // Modal cleanup — THE FINAL SOLUTION
   modalEl.addEventListener('hidden.bs.modal', () => {
     resetModal();
     isProcessingClick = false;
+
+    // KILL THE GHOST BACKDROP — NO MERCY
     document.querySelectorAll('.modal-backdrop').forEach(b => b.remove());
     document.body.classList.remove('modal-open');
     document.body.style.overflow = '';
     document.body.style.paddingRight = '';
+
+    // Extra insurance — destroy any leftover modal instances
+    const existingModal = bootstrap.Modal.getInstance(modalEl);
+    if (existingModal) existingModal.dispose();
   });
 }

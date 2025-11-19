@@ -64,76 +64,105 @@
     <div class="row mb-4">
         <!-- LEFT: 24-HOUR SCHEDULE (SPACED OUT) -->
     
-            <!-- REPLACE THE ENTIRE SCHEDULE CARD -->
+            <!-- NUCLEAR SCHEDULE — FINAL, ETERNAL, PERFECT -->
             <div class="col-12">
-                <div class="card">
-                    <div class="card-header" id="scheduleHeader">
-                        <h5 class="mb-0">
-                            <button class="btn btn-outline-secondary collapsed" 
-                            type="button" 
-                            data-bs-toggle="collapse" 
-                            data-bs-target="#scheduleCollapse" 
-                            aria-expanded="false" 
-                            aria-controls="scheduleCollapse">
-                            <i class="bi bi-list"></i></button>
-                            Schedule
-                        </h5>
-                    </div>
-                    <div id="scheduleCollapse" class="collapse" aria-labelledby="scheduleHeader">
-                        <div class="card-body p-0" id="schedule-container" style="max-height: 600px; overflow-y: auto;">
-                            <table class="table table-bordered table-sm mb-0">
-                                <tbody>
-                                    {% for hour in range(5, 23) %}
-                                        {% for half in [0, 30] %}
-                                            {% set minutes = half %}
-                                            {% set time_str = '%02d:%02d'|format(hour, minutes) %}
-                                            {% set hour_12 = ((hour % 12) or 12) %}
-                                            {% set am_pm = 'AM' if hour < 12 else 'PM' %}
-                                            {% set display_time = '%d:%02d %s'|format(hour_12, minutes, am_pm) %}
+            <div class="card">
+                <div class="card-header bg-dark text-white">
+                    <h5 class="mb-0">
+                        <i class="bi bi-calendar4-week me-2"></i>
+                        {{ day_date.strftime('%A, %B %d, %Y') }}
+                    </h5>
+                </div>
 
-                                            <tr class="schedule-row" data-hour="{{ hour }}" data-minutes="{{ minutes }}">
-                                                <td class="text-left align-middle text-muted small schedule-time-slot" 
-                                                    style="width: 90px; font-weight: {% if minutes == 0 %}bold{% else %}normal{% endif %}; cursor: pointer;"
-                                                    data-hour="{{ hour }}" 
-                                                    data-minutes="{{ minutes }}">
-                                                    {{ display_time }}
-                                                </td>
-                                                <td class="p-2 position-relative">
-                                                    <div class="events-list h-100">
-                                                        {% for event in events_on_date(year, month, day) %}
-                                                            {% if event.start_time %}
-                                                                {% set start_min = event.start_time.hour * 60 + event.start_time.minute %}
-                                                                {% set slot_min = hour * 60 + minutes %}
-                                                                {% if start_min == slot_min %}
-                                                                    <div class="event-badge bg-primary text-white p-1 mb-1 rounded small" 
-                                                                        data-event-id="{{ event.id }}" style="cursor: pointer;">
-                                                                        {{ event.title | escape }}
-                                                                        {{ event.start_time.strftime('%H:%M') }}-{{ event.end_time.strftime('%H:%M') }}
-                                                                    </div>
-                                                                {% endif %}
-                                                            {% elif event.all_day and hour == 7 and minutes == 0 %}
-                                                                <div class="event-badge bg-primary text-white p-1 mb-1 rounded small" 
-                                                                    data-event-id="{{ event.id }}" style="cursor: pointer;">
-                                                                    {{ event.title | escape }} (All Day)
-                                                                </div>
-                                                            {% endif %}
-                                                        {% endfor %}
-                                                    </div>
-                                                    <!-- Hidden trigger for backward compatibility -->
-                                                    <!--<div class="add-event-area d-none" 
-                                                        data-hour="{{ hour }}" 
-                                                        data-minutes="{{ minutes }}"></div> -->
-                                                </td>
-                                            </tr>
-                                        {% endfor %}
-                                    {% endfor %}
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
+                <div class="position-relative {% if all_day_events %}has-all-day{% else %}no-all-day{% endif %}" style="min-height: 1440px;" id="scheduleGrid">
+
+                        <!-- ALL-DAY EVENTS -->
+{% set all_day_events = events_on_date(year, month, day) | selectattr('all_day') | list %}
+{% if all_day_events %}
+<div class="bg-primary text-white py-3 px-4 sticky-top" style="top:0; z-index:30; margin-bottom:0;">
+    <strong>All Day:</strong>
+    <div class="d-flex flex-wrap gap-3 mt-2 ps-2">
+        {% for event in all_day_events %}
+            <span class="badge bg-white text-primary px-4 py-2 rounded-pill shadow-sm fw-bold"
+                  data-event-id="{{ event.id }}" style="cursor:pointer; font-size:0.875rem;">
+                {{ event.title }}
+            </span>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+
+                        <!-- TIME SLOTS — 5:00 AM → 10:59 PM, 30-MINUTE BLOCKS, PIXEL-PERFECT -->
+                        {% for hour24 in range(5, 23) %}
+                            {% for half in [0, 30] %}
+                                {% set total_minutes = hour24 * 60 + half %}
+                                {% set display_hour = (hour24 % 12) or 12 %}
+                                {% set ampm = 'AM' if hour24 < 12 else 'PM' %}
+
+                                <div class="position-absolute time-slot-clickable"
+                                    style="
+                                        top: {{ total_minutes }}px;
+                                        height: 30px;
+                                        left: 80px;
+                                        right: 0;
+                                        border-bottom: {% if half == 30 %}1px dashed #e0e0e0{% else %}1px solid #ddd{% endif %};
+                                        cursor: pointer;
+                                        user-select: none;
+                                    "
+                                    data-hour="{{ hour24 }}"
+                                    data-minutes="{{ half }}"
+                                    title="Click to add event at {{ display_hour }}:{{ "%02d"|format(half) }} {{ ampm }}">
+
+                                    <!-- Time label on the left -->
+                                    {% if half == 0 %}
+                                    <div class="position-absolute text-muted fw-bold"
+                                        style="left: -78px; width: 70px; text-align: right; top: 6px; font-size: 0.9rem;">
+                                        {{ display_hour }}:00 {{ ampm }}
+                                    </div>
+                                    {% else %}
+                                    <div class="position-absolute text-muted small"
+                                        style="left: -78px; width: 70px; text-align: right; top: 8px; font-size: 0.75rem; opacity: 0.7;">
+                                        :30
+                                    </div>
+                                    {% endif %}
+
+                                    <!-- Hover highlight -->
+                                    <div class="position-absolute inset-0 hover-bg" 
+                                        style="background: rgba(59, 130, 246, 0.1); opacity: 0; transition: opacity 0.2s;"></div>
+                                </div>
+                            {% endfor %}
+                        {% endfor %}
+{% set timed_events = events_on_date(year, month, day) | selectattr('start_time') | rejectattr('all_day') | list %}
+
+{% if timed_events %}
+<div class="event-container" id="eventContainer">
+  {% for event in timed_events %}
+    {% set start_min = event.start_time.hour * 60 + event.start_time.minute %}
+    {% set end_min = (event.end_time.hour * 60 + event.end_time.minute) if event.end_time else start_min + 60 %}
+    {% if end_min <= start_min %}{% set end_min = start_min + 60 %}{% endif %}
+
+    <div class="schedule-event raw-event"
+         data-start="{{ start_min }}"
+         data-end="{{ end_min }}"
+         data-id="{{ event.id }}">
+        {% set duration = end_min - start_min %}
+        {% if duration <= 30 %}
+            <div class="fw-bold text-truncate">{{ event.title }}</div>
+        {% else %}
+            <div class="fw-bold text-truncate">{{ event.title }}</div>
+            <small class="opacity-90 text-truncate">
+            {{ event.start_time.strftime('%I:%M %p') | trim | lower | replace(' 0', ' ') }}
+            {% if event.end_time %}– {{ event.end_time.strftime('%I:%M %p') | trim | lower | replace(' 0', ' ') }}{% endif %}
+            </small>
+        {% endif %}
+    </div>
+  {% endfor %}
+</div>
+{% endif %}
+
                 </div>
             </div>
-
+        </div>
     </div>
 
 
@@ -287,17 +316,62 @@
     </div>
 </div>
 
-<script id="dayDateData" type="application/json">
-{{ day_date.strftime('%Y-%m-%d') }}
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  const container = document.getElementById('eventContainer');
+  if (!container) return;
+
+  const events = Array.from(container.querySelectorAll('.raw-event'));
+
+  events.forEach(ev => {
+    ev.start = parseInt(ev.dataset.start);
+    ev.end = parseInt(ev.dataset.end);
+    ev.eventId = ev.dataset.id;
+  });
+
+  const columns = [];
+  events.forEach(event => {
+    let placed = false;
+    for (let col of columns) {
+      const overlaps = col.some(e => event.start < e.end && event.end > e.start);
+      if (!overlaps) {
+        col.push(event);
+        placed = true;
+        break;
+      }
+    }
+    if (!placed) columns.push([event]);
+  });
+
+  const colCount = columns.length;
+  if (colCount === 0) return;
+  const width = 100 / colCount;
+
+  columns.forEach((col, colIdx) => {
+    col.forEach(eventEl => {
+    const duration = eventEl.end - eventEl.start;
+
+    eventEl.style.position = 'absolute';
+    eventEl.style.top = eventEl.start + 'px';
+    
+    eventEl.style.height = Math.max(duration, 30) + 'px';   // ← THIS LINE
+    eventEl.style.left = (colIdx * width + 1) + '%';
+    eventEl.style.width = (width - 2) + '%';
+    eventEl.style.zIndex = '20';
+
+    // Optional: make text smaller on short events
+    if (duration < 50) {
+        eventEl.style.padding = '3px 8px';
+        eventEl.style.fontSize = '0.75rem';
+    }
+
+    eventEl.setAttribute('data-event-id', eventEl.eventId);
+    eventEl.classList.remove('raw-event');
+    });
+  });
+});
 </script>
 
-<!--
-<style>
-.kanban-board { max-width: 100vw; }
-.task-card { cursor: grab; user-select: none; transition: all 0.2s; }
-.task-card:active { cursor: grabbing; }
-.task-card.dragging { opacity: 0.6; transform: rotate(3deg) scale(1.02); box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
-.add-task-input:focus { box-shadow: 0 0 0 0.2rem rgba(13,110,253,0.25); }
-</style> -->
+
 
 {% endblock %}
