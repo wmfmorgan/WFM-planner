@@ -58,7 +58,8 @@ class Goal(ExportableMixin, db.Model):
     parent_id = db.Column(db.Integer, db.ForeignKey('goal.id'), nullable=True)
     status = db.Column(db.String(20), default='todo', nullable=False, server_default='todo')  # 'todo', 'in_progress', 'blocked', 'done'
     category = db.Column(db.String(20))
-    
+    rank = db.Column(db.Integer, default=0, nullable=False, server_default="0", index=True)
+
     # Self-referencing relationship
     children = db.relationship(
         'Goal',
@@ -134,3 +135,4 @@ class Task(ExportableMixin, db.Model):
     date = db.Column(db.Date, nullable=True)
     status = db.Column(db.Enum(TaskStatus), default=TaskStatus.TODO, nullable=False)
     notes = db.Column(db.Text)
+    rank = db.Column(db.Integer, default=0, nullable=False, server_default="0", index=True)

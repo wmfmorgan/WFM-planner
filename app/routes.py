@@ -127,7 +127,7 @@ def get_goals():
         case((Goal.due_date.is_(None), 0), else_=1),
         Goal.due_date.asc(),
         Goal.id
-    ).all()
+    ).order_by(Goal.rank.asc(), Goal.id.asc()).all()
 
     # SORT CHILDREN RECURSIVELY
     def sort_children(goal):
@@ -178,7 +178,7 @@ def year_page(year):
         case((Goal.due_date.is_(None), 0), else_=1),
         Goal.due_date.asc(),
         Goal.id
-    ).all()
+    ).order_by(Goal.rank.asc(), Goal.id.asc()).all()
 
     quarters = []
     for q in range(1, 5):
@@ -226,7 +226,7 @@ def quarter_page(year, q_num):
         Goal.due_date >= q_start,
         Goal.due_date <= q_end,
         Goal.parent_id.isnot(None)
-    ).order_by(Goal.due_date.asc(), Goal.id).all()
+    ).order_by(Goal.due_date.asc(), Goal.rank.asc(), Goal.id).all()
 
     prev_year = year - 1 if q_num == 1 else year
     prev_q = 4 if q_num == 1 else q_num - 1
@@ -252,7 +252,7 @@ def quarter_page(year, q_num):
         Goal.due_date >= w_start,
         Goal.due_date <= w_end,
         Goal.completed == False  # ← EXCLUDE COMPLETED
-    ).all() 
+    ).order_by(Goal.rank.asc(), Goal.id.asc()).all() 
 
     form = GoalForm()
     return render_template(
@@ -291,7 +291,7 @@ def month_page(year, month):
         Goal.due_date >= m_start,
         Goal.due_date <= m_end,
         Goal.parent_id.isnot(None)
-    ).order_by(Goal.due_date.asc(), Goal.id).all()
+    ).order_by(Goal.due_date.asc(), Goal.rank.asc(),Goal.id).all()
 
     prev_year = year - 1 if month == 1 else year
     prev_month = 12 if month == 1 else month - 1
@@ -302,7 +302,7 @@ def month_page(year, month):
     calendar_with_weeks = []
     cal = Calendar(firstweekday=SUNDAY)
 
-    for week in cal.monthdayscalendar(year, month):
+    for week in cal.monthcalendar(year, month):
         sunday_day = week[0]  # First day = Sunday (0 if padding)
 
         if sunday_day != 0:
@@ -329,7 +329,7 @@ def month_page(year, month):
         Goal.due_date >= q_start,
         Goal.due_date <= q_end,
         Goal.completed == False  # ← EXCLUDE COMPLETED
-    ).all() 
+    ).order_by(Goal.rank.asc(), Goal.id.asc()).all() 
  
     calendar = monthcalendar(year, month)
     month_name = date(year, month, 1).strftime('%B')
@@ -400,7 +400,7 @@ def week_page(year, week):
         Goal.due_date >= m_start,
         Goal.due_date <= m_end,
         Goal.completed == False  # ← EXCLUDE COMPLETED
-    ).order_by(Goal.due_date.asc(), Goal.id).all() 
+    ).order_by(Goal.due_date.asc(), Goal.rank.asc(), Goal.id).all() 
 
     # GET WEEKLY GOALS
     weekly_goals = Goal.query.filter(
@@ -413,7 +413,7 @@ def week_page(year, week):
         db_case((Goal.due_date.is_(None), 0), else_=1),
         Goal.due_date.asc(),
         Goal.id
-    ).all()
+    ).order_by(Goal.rank.asc(), Goal.id.asc()).all()
 
     weekly_goals_grouped = group_goals_by_status(weekly_goals)
     
@@ -516,7 +516,7 @@ def day_page(year, month, day):
         Goal.type == 'daily',
         Goal.due_date == day_date,
         Goal.parent_id.isnot(None)
-    ).order_by(Goal.due_date).all()
+    ).order_by(Goal.due_date, Goal.rank.asc(), Goal.id.asc()).all()
 
     prev_date = day_date - timedelta(days=1)
     next_date = day_date + timedelta(days=1)
@@ -589,13 +589,13 @@ def day_page(year, month, day):
             else_=1
         ),
         Task.id
-    ).all()
+    ).order_by(Task.rank.asc(), Task.id.asc()).all()
 
     # ——— BACKLOG TASKS (date = NULL + not done) ———
     backlog_tasks = Task.query.filter(
         Task.date.is_(None),
         Task.status != TaskStatus.DONE
-    ).order_by(Task.id).all()
+    ).order_by(Task.rank.asc(), Task.id.asc()).all()
 
     #print(filter)
     #print(today_tasks)
@@ -1340,5 +1340,21 @@ def pull_task_to_today(task_id):
     task = Task.query.get_or_404(task_id)
     task.date = date.today()
     task.status = TaskStatus.TODO # Reset to TODO when pulled to today
+    db.session.commit()
+    return jsonify({'success': True})
+
+@bp.route('/api/task/<int:task_id>/rank', methods=['POST'])
+def update_task_rank(task_id):
+    task = Task.query.get_or_404(task_id)
+    data = request.get_json() or {}
+    task.rank = data.get('rank', 0)
+    db.session.commit()
+    return jsonify({'success': True})
+
+@bp.route('/api/goals/<int:goal_id>/rank', methods=['POST'])
+def update_goal_rank(goal_id):
+    goal = Goal.query.get_or_404(goal_id)
+    data = request.get_json() or {}
+    goal.rank = data.get('rank', 0)
     db.session.commit()
     return jsonify({'success': True})

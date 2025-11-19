@@ -11,24 +11,14 @@ export function initKanban() {
     Sortable.create(col, {
       group: col.dataset.type === 'tasks' ? 'tasks' : 'goals',
       animation: 150,
-      forceFallback: true,  // Force native drag ghost for browser issues
-      fallbackTolerance: 3,  // Increase sensitivity for drop
-      filter: '.mt-auto',  // Ignore add form during drag
-      preventOnFilter: false,  // Allow click on filter
+      forceFallback: true,
+      fallbackTolerance: 3,
+      filter: '.mt-auto',
+      preventOnFilter: false,
       ghostClass: 'sortable-ghost',
       chosenClass: 'sortable-chosen',
-
-      // ONLY DRAG FROM THE GRIP ICON
       handle: '.drag-handle',   // ← THIS IS THE KEY
 
-      // Optional: visual feedback
-      /*onStart: function (evt) {
-        evt.item.querySelector('.drag-handle i').classList.replace('bi-grip-vertical', 'bi-grip-horizontal');
-      },
-      onEnd: function (evt) {
-        evt.item.querySelector('.drag-handle i').classList.replace('bi-grip-horizontal', 'bi-grip-vertical');
-      },*/
-      
       onEnd: function (evt) {
         if (evt.newIndex === evt.oldIndex && evt.from === evt.to) return;
 
@@ -36,33 +26,49 @@ export function initKanban() {
         const newStatus = evt.to.dataset.status;
         const type = evt.to.dataset.type || 'goals';
 
-        // Special case: dragged FROM backlog INTO any today column
+        let handled = false;
+
+        // 1. Backlog → Today
         if (evt.from.dataset.status === 'backlog' && type === 'tasks' && newStatus !== 'backlog') {
           fetch(`/api/task/${itemId}/today`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' }
-          }).then(() => location.reload()); // or live-update without reload
-          return;
+          }).then(() => {
+            location.reload();
+          });
+          handled = true;
         }
 
-        const url = type === 'goals' 
-          ? `/api/goals/${itemId}/status` 
-          : `/api/task/${itemId}/status`;
-
-        fetch(url, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ status: newStatus })
-        }).then(() => {
-          document.querySelectorAll(`.kanban-column[data-type="${type}"]`).forEach(c => {
-            const badge = c.closest('.card')?.querySelector('.badge');
-            if (badge) badge.textContent = c.children.length;
+        // 2. Normal status change
+        if (!handled) {
+          fetch(`/api/${type === 'goals' ? 'goals' : 'task'}/${itemId}/status`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ status: newStatus })
           });
-        }).catch(console.error);
-      }
-    });
-  });
+        }
 
+        // 3. Priority ranking — always runs
+        const items = Array.from(evt.to.children).filter(el => el.dataset.itemId);
+        items.forEach((item, index) => {
+          const id = item.dataset.itemId;
+          fetch(`/api/${type === 'goals' ? 'goals' : 'task'}/${id}/rank`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ rank: index })
+          }).catch(() => {});
+        });
+
+        // Update badges
+        document.querySelectorAll(`.kanban-column[data-type="${type}"]`).forEach(c => {
+          const badge = c.closest('.card')?.querySelector('.badge');
+          if (badge) badge.textContent = c.children.length;
+        });
+      } // ← closes onEnd    
+
+    });  // ← THIS CLOSES Sortable.create()
+
+  }); // ← closes forEach column
     // Goals add (modal trigger)
     document.addEventListener('click', function(e) {
     if (e.target.closest('.add-kanban-item-btn')) {
