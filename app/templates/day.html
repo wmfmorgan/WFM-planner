@@ -136,14 +136,51 @@
 
     </div>
 
+
 <!-- ==== TASK KANBAN BOARD (Independent of Goals/Events) ==== -->
 <!-- Daily Tasks -->
-<section class="kanban-section mt-4">
-  <h2>Daily Tasks</h2>
-  {% with goals=kanban, columns=columns, type="tasks" %}
-    {% include 'kanban_board.html' %}
-  {% endwith %}
-</section>
+    <section class="kanban-section mt-4">
+    <h2>Daily Tasks</h2>
+    {% with goals=kanban, columns=columns, type="tasks" %}
+        {% include 'kanban_board.html' %}
+    {% endwith %}
+    </section>
+
+    <!-- 1. MASTER BACKLOG (floating sidebar or collapsible panel) -->
+    <div class="card border-light mb-4">
+    <div class="card-header bg-light d-flex justify-content-between align-items-center">
+        <h2>Master Backlog</h2>
+        <button class="btn btn-sm btn-outline-primary" data-bs-toggle="collapse" data-bs-target="#backlogCollapse">
+        <i class="bi bi-chevron-down"></i>
+        </button>
+    </div>
+    <div class="collapse show" id="backlogCollapse">
+        <div class="card-body p-2">
+        <div class="kanban-column" data-status="backlog" data-type="tasks">
+            {% for task in backlog_tasks %}
+                <div class="kanban-item card mb-2 d-flex align-items-center"
+                    data-item-id="{{ task.id }}">
+                <div class="drag-handle text-muted flex-shrink-0 d-flex align-items-center justify-content-center px-3">
+                    <i class="bi bi-grip-vertical fs-5"></i>
+                </div>
+                <div class="flex-grow-1 text-truncate pe-3">
+                    <h6 class="card-title mb-0 fw-medium">{{ task.description }}</h6>
+                </div>
+                </div>
+            {% endfor %}
+        </div>
+            <!-- BACKLOG INPUT — NEW FORM WITH UNIQUE ID -->
+            <form id="add-backlog-task-form" class="mt-2">
+            <input 
+                type="text" 
+                class="form-control form-control-sm add-task-input" 
+                placeholder="+ Add to backlog (someday)" 
+                autocomplete="off"
+                required />
+            </form>
+        </div>
+    </div>
+    </div>
 
     <!-- NOTES — FULL WIDTH -->
     <div class="card border-light mb-4">

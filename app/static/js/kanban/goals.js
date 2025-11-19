@@ -1,3 +1,4 @@
+// app/static/js/kanban/goals.js
 export function initGoalsKanban() {
   // Sortable is now global from script tag
   if (!window.Sortable) {

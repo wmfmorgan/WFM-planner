@@ -1,3 +1,4 @@
+// app/static/js/init.js
 import { initEventModal } from './calendar/events.js';
 import { initTimeSlotClicks } from './calendar/time-slots.js';
 import { initScheduleCollapse, autoScrollToNow } from './calendar/schedule.js';

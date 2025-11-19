@@ -591,6 +591,12 @@ def day_page(year, month, day):
         Task.id
     ).all()
 
+    # ——— BACKLOG TASKS (date = NULL + not done) ———
+    backlog_tasks = Task.query.filter(
+        Task.date.is_(None),
+        Task.status != TaskStatus.DONE
+    ).order_by(Task.id).all()
+
     #print(filter)
     #print(today_tasks)
 
@@ -625,7 +631,8 @@ def day_page(year, month, day):
         events_on_date=events_on_date,
         today_quarter=today_quarter,
         date=target_date,
-        kanban=kanban
+        kanban=kanban,
+        backlog_tasks=backlog_tasks
     )
 
 
@@ -1124,17 +1131,23 @@ def import_json():
 @bp.route('/api/task', methods=['POST'])  # Or @app.route if not Blueprint
 def api_add_task():
     data = request.get_json()
-    task_date = date(
-        year=int(data['year']),
-        month=int(data['month']),
-        day=int(data['day'])
-    )
+    backlog = data.get('backlog', False)
+    print (backlog)
+    if backlog == True:
+        task_date = None # Backlog task
+    else:
+        task_date = date(
+            year=int(data['year']),
+            month=int(data['month']), 
+            day=int(data['day'])
+        )
     task = Task(
         description=data['description'],
         date=task_date,
         status=TaskStatus.TODO,
         notes=data.get('notes', '')
     )
+    print(task)
     db.session.add(task)
     db.session.commit()
     return jsonify({'id': task.id, 'description': task.description})
@@ -1158,7 +1171,14 @@ def api_update_status(task_id):
     # Set date to today when marked DONE
     if new_status == TaskStatus.DONE:
         task.date = date.today()
-        current_app.logger.info(f"Task {task.id}: marked DONE on {task.date}")
+        #current_app.logger.info(f"Task {task.id}: marked DONE on {task.date}")
+    elif data['status'] == 'backlog':
+        task.date = None                       # ← CLEAR THE DATE
+    else:
+        # Any other status change on a dated task → keep today's date
+        if task.date is None:
+            task.date = date.today()       # ← was in backlog, now pulled to today
+    
     
     task.status = new_status
     db.session.commit()
@@ -1314,3 +1334,11 @@ def import_calendar():
     except Exception as e:
         db.session.rollback()
         return jsonify({'success': False, 'error': str(e)}), 500
+    
+@bp.route('/api/task/<int:task_id>/today', methods=['POST'])
+def pull_task_to_today(task_id):
+    task = Task.query.get_or_404(task_id)
+    task.date = date.today()
+    task.status = TaskStatus.TODO # Reset to TODO when pulled to today
+    db.session.commit()
+    return jsonify({'success': True})

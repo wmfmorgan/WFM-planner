@@ -1,3 +1,4 @@
+// app/static/js/kanban/standard.js
 let isSubmittingItem = false;
 
 export function initKanban() {
@@ -8,7 +9,7 @@ export function initKanban() {
 
   document.querySelectorAll('.kanban-column').forEach(col => {
     Sortable.create(col, {
-      group: col.dataset.type || 'goals',
+      group: col.dataset.type === 'tasks' ? 'tasks' : 'goals',
       animation: 150,
       forceFallback: true,  // Force native drag ghost for browser issues
       fallbackTolerance: 3,  // Increase sensitivity for drop
@@ -29,25 +30,35 @@ export function initKanban() {
       },*/
       
       onEnd: function (evt) {
-        if (evt.newIndex === evt.oldIndex && evt.from === evt.to) {
-          //console.log('No move detected - skipping POST');
-          return;  // Don't POST if not moved to new column
-        }
+        if (evt.newIndex === evt.oldIndex && evt.from === evt.to) return;
+
         const itemId = evt.item.dataset.itemId;
         const newStatus = evt.to.dataset.status;
         const type = evt.to.dataset.type || 'goals';
-        //console.log('Move detected - POST to', type, newStatus);
-        const url = type === 'goals' ? `/api/goals/${itemId}/status` : `/api/task/${itemId}/status`;
+
+        // Special case: dragged FROM backlog INTO any today column
+        if (evt.from.dataset.status === 'backlog' && type === 'tasks' && newStatus !== 'backlog') {
+          fetch(`/api/task/${itemId}/today`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' }
+          }).then(() => location.reload()); // or live-update without reload
+          return;
+        }
+
+        const url = type === 'goals' 
+          ? `/api/goals/${itemId}/status` 
+          : `/api/task/${itemId}/status`;
+
         fetch(url, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ status: newStatus })
         }).then(() => {
           document.querySelectorAll(`.kanban-column[data-type="${type}"]`).forEach(c => {
-            const badge = c.closest('.card').querySelector('.badge');
+            const badge = c.closest('.card')?.querySelector('.badge');
             if (badge) badge.textContent = c.children.length;
           });
-        }).catch(err => console.error('Update failed:', err));
+        }).catch(console.error);
       }
     });
   });
@@ -214,6 +225,46 @@ export function initKanban() {
           new bootstrap.Modal(document.getElementById('goalModal')).show();
         }).catch(err => console.error('Fetch goal failed', err));
     }
+  });
+
+  // ——— BACKLOG: ADD TASK ———
+  document.getElementById('add-backlog-task-form')?.addEventListener('submit', function(e) {
+    e.preventDefault();
+    const input = this.querySelector('.add-task-input');
+    const desc = input.value.trim();
+    if (!desc) return;
+
+    fetch('/api/task', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        description: desc,
+        backlog: true          // ← this sends it to backlog
+      })
+    })
+    .then(r => r.json())
+    .then(task => {
+      // Live-append to backlog column
+      const backlogCol = document.querySelector('.kanban-column[data-status="backlog"]');
+      const card = document.createElement('div');
+      card.className = 'kanban-item card mb-2 d-flex align-items-center';
+      card.dataset.itemId = task.id;
+      card.innerHTML = `
+        <div class="drag-handle text-muted flex-shrink-0 d-flex align-items-center justify-content-center px-3">
+          <i class="bi bi-grip-vertical fs-5"></i>
+        </div>
+        <div class="flex-grow-1 text-truncate pe-3">
+          <h6 class="card-title mb-0 fw-medium">${task.description}</h6>
+        </div>
+      `;
+      backlogCol.appendChild(card);
+      input.value = '';
+      input.focus();
+    })
+    .catch(err => {
+      console.error('Failed to add backlog task:', err);
+      alert('Failed to add task');
+    });
   });
 
 }

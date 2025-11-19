@@ -125,11 +125,12 @@ class TaskStatus(PyEnum):
     IN_PROGRESS = "in_progress"
     BLOCKED = "blocked"
     DONE = "done"
+    BACKLOG = "backlog"
 
 
 class Task(ExportableMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
     description = db.Column(db.String(200), nullable=False)
-    date = db.Column(db.Date, nullable=False)
+    date = db.Column(db.Date, nullable=True)
     status = db.Column(db.Enum(TaskStatus), default=TaskStatus.TODO, nullable=False)
     notes = db.Column(db.Text)

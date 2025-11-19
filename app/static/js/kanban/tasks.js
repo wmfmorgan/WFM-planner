@@ -1,3 +1,4 @@
+// app/static/js/kanban/tasks.js
 let isSubmittingTask = false;
 
 export function initTaskKanban() {
