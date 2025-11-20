@@ -1258,64 +1258,137 @@ def week_range(year: int, month: int, day: int) -> tuple[date, date]:
     return week_start, week_end
 
 from flask import jsonify
-from datetime import datetime, time
+from datetime import datetime, date, timedelta
 import requests
-from dateutil.parser import parse  # Handles ICS dates perfectly
-from icalendar import Calendar  # pip install icalendar
+from icalendar import Calendar
+import pytz
 
-from datetime import datetime, timedelta
+# ——— THE EXPANDER — DEFINED ONCE, AT THE TOP — LIKE A TRUE CHAMPION ———
+def expand_recurring_event(base_start_utc, base_end_utc, rrule_str, target_date):
+    occurrences = []
+    params = {}
+    for part in rrule_str.upper().split(';'):
+        if '=' not in part:
+            continue
+        k, v = part.split('=', 1)
+        params[k] = v
 
-@bp.route('/api/import-calendar')
-def import_calendar():
-    ics_url = os.getenv('ICS_CALENDAR_URL')
-    if not ics_url:
-        return jsonify({'success': False, 'error': 'ICS URL not configured'}), 500
+    if params.get('FREQ') != 'WEEKLY':
+        return []
 
-    # DEFINE SAFE RANGE
-    today = datetime.now().date()
-    start_cutoff = today #- timedelta(days=90)   # Last 3 months
-    end_cutoff = today #+ timedelta(days=365)    # Next 12 months
+    interval = int(params.get('INTERVAL', '1'))
+    until_str = params.get('UNTIL')
+    byday = params.get('BYDAY', '')
+
+    duration = base_end_utc - base_start_utc
+
+    # Parse UNTIL
+    until_dt = None
+    if until_str and len(until_str) >= 15:
+        try:
+            until_dt = datetime.strptime(until_str[:15], "%Y%m%dT%H%M%S")
+            if until_str.endswith('Z'):
+                until_dt = until_dt.replace(tzinfo=None)
+        except:
+            pass
+
+    # Map BYDAY
+    weekday_map = {"MO": 0, "TU": 1, "WE": 2, "TH": 3, "FR": 4, "SA": 5, "SU": 6}
+    target_weekdays = [weekday_map[d.strip()] for d in byday.split(',') if d.strip() in weekday_map]
+    if not target_weekdays:
+        target_weekdays = [base_start_utc.weekday()]
+
+    # Find Monday of original week
+    week_monday = base_start_utc - timedelta(days=base_start_utc.weekday())
+    current_week_monday = week_monday
+
+    while current_week_monday.date() <= target_date + timedelta(days=365):
+        if until_dt and current_week_monday >= until_dt:
+            break
+
+        for wd in target_weekdays:
+            candidate = current_week_monday + timedelta(days=wd)
+            if candidate.date() < base_start_utc.date():
+                continue
+            if until_dt and candidate >= until_dt:
+                continue
+            if candidate.date() == target_date:
+                start_time = base_start_utc.time()
+                end_time = (base_start_utc + duration).time()
+                occurrences.append((start_time, end_time))
+
+        current_week_monday += timedelta(days=7 * interval)
+
+    return occurrences
+
+
+@bp.route('/api/import-calendar', defaults={'datestr': None})
+@bp.route('/api/import-calendar/<datestr>')
+def import_calendar(datestr):
+    # THIS IS THE KEY — FORCE FULL RANGE
+    base_url = os.getenv('ICS_CALENDAR_URL', '').split('?')[0]
+    ics_url = base_url #f"{base_url}?st=20250101&et=20261231"
+
+    target_date = date.today()
+    if datestr and len(datestr) == 8 and datestr.isdigit():
+        try:
+            target_date = date(int(datestr[:4]), int(datestr[4:6]), int(datestr[6:8]))
+        except:
+            return jsonify({'success': False, 'error': 'Bad date'}), 400
+
+    central = pytz.timezone('US/Central')
 
     try:
-        response = requests.get(ics_url, timeout=15)
+        response = requests.get(ics_url, timeout=30)
         response.raise_for_status()
         cal = Calendar.from_ical(response.content)
-        
+
         imported = 0
         for component in cal.walk():
+
             if component.name != "VEVENT":
                 continue
 
-            dtstart_raw = component.get('dtstart').dt
-            dtend_raw = component.get('dtend').dt
+            dtstart_prop = component.get('dtstart')
+            if not dtstart_prop:
+                continue
 
-            # Handle both datetime and date objects
-            start_dt = dtstart_raw if isinstance(dtstart_raw, datetime) else datetime.combine(dtstart_raw, datetime.min.time())
-            end_dt = dtend_raw if isinstance(dtend_raw, datetime) else datetime.combine(dtend_raw, datetime.min.time())
+            # Skip all-day
+            if isinstance(dtstart_prop.dt, date) and not isinstance(dtstart_prop.dt, datetime):
+                continue
 
-            start_date = start_dt.date()
-            end_date = end_dt.date()
-            #print(str(component.get('summary', 'Untitled')))
-            #print(start_date, end_date)
-            # FILTER: Only import events in our window
-            if not (start_cutoff <= start_date <= end_cutoff):
-                continue  # Skip old/far future events
-            
-            # Optional: Skip if already exists (by UID + date)
-            #uid = str(component.get('uid', ''))
-            #existing = Event.query.filter_by(uid=uid, start_date=start_date).first()
-            #if existing:
-            #    continue
-            #print(str(component.get('summary', 'Untitled')))
+            # Use RECURRENCE-ID if present — that's the real date
+            date_prop = component.get('recurrence-id') or dtstart_prop
+            raw_date = date_prop.dt
+
+            if isinstance(raw_date, datetime):
+                if raw_date.tzinfo is None:
+                    raw_date = raw_date.replace(tzinfo=pytz.UTC)
+                event_date = raw_date.astimezone(central).date()
+            else:
+                event_date = raw_date
+
+            if event_date != target_date:
+                continue
+
+            # Now get actual times from DTSTART/DTEND
+            start_raw = dtstart_prop.dt
+            end_raw = component.get('dtend').dt if component.get('dtend') else start_raw + timedelta(minutes=30)
+
+            if isinstance(start_raw, datetime) and start_raw.tzinfo is None:
+                start_raw = start_raw.replace(tzinfo=pytz.UTC)
+            if isinstance(end_raw, datetime) and end_raw.tzinfo is None:
+                end_raw = end_raw.replace(tzinfo=pytz.UTC)
+
+            start_central = start_raw.astimezone(central)
+            end_central = end_raw.astimezone(central)
+
             event = Event(
-                #uid=uid,
                 title=str(component.get('summary', 'Untitled')),
-                start_date=start_date,
-                end_date=end_date,
-                #all_day=isinstance(dtstart_raw, date) and not isinstance(dtstart_raw, datetime),
-                start_time=start_dt.time() if isinstance(dtstart_raw, datetime) else None,
-                end_time=end_dt.time() if isinstance(dtend_raw, datetime) else None,
-                #recurring='RRULE' in component
+                start_date=target_date,
+                end_date=target_date,
+                start_time=start_central.time(),
+                end_time=end_central.time(),
             )
             db.session.add(event)
             imported += 1
@@ -1323,14 +1396,14 @@ def import_calendar():
         db.session.commit()
         return jsonify({
             'success': True,
-            'imported': imported,
-            'range': f'{start_cutoff} to {end_cutoff}'
+            'date': target_date.strftime('%Y-%m-%d'),
+            'imported': imported
         })
 
     except Exception as e:
         db.session.rollback()
         return jsonify({'success': False, 'error': str(e)}), 500
-    
+            
 @bp.route('/api/task/<int:task_id>/today', methods=['POST'])
 def pull_task_to_today(task_id):
     task = Task.query.get_or_404(task_id)
