@@ -135,7 +135,7 @@ export function initKanban() {
             <div class="task-text card-title mb-0 fw-medium">${desc}</div>
             <input type="text" class="task-edit form-control form-control-sm d-none" value="${desc}">
           </div>
-          <button type="button" class="btn btn-icon-danger btn-sm position-absolute top-0 end-0 m-1 opacity-0">
+          <button type="button" class="btn btn-icon-danger btn-sm m-1 opacity-0">
             <i class="bi bi-trash"></i>
           </button>
         `;
