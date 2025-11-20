@@ -574,7 +574,7 @@ def day_page(year, month, day):
         filters.append(Task.date == target_date)
 
     
-    today_tasks = Task.query.filter(*filters, Task.status != TaskStatus.BACKLOG.value).order_by(
+    today_tasks = Task.query.filter(*filters, Task.status != 'backlog').order_by(
         case(
             (Task.status != TaskStatus.DONE, 0),  # Incomplete first
             else_=1
