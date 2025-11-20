@@ -1123,15 +1123,17 @@ def import_json():
 def api_add_task():
     data = request.get_json()
     backlog = data.get('backlog', False)
-    #print (backlog)
-    if backlog == True:
-         task_date = None # Backlog task
-    else:
-        task_date = date(
-            year=int(data['year']),
-            month=int(data['month']), 
-            day=int(data['day'])
-        )
+
+    task_date = None
+    if not backlog:
+        # Only require year/month/day if NOT backlog
+        try:
+            year = int(data['year'])
+            month = int(data['month'])
+            day = int(data['day'])
+            task_date = date(year=year, month=month, day=day)
+        except (KeyError, TypeError, ValueError) as e:
+            return jsonify({'error': 'Invalid or missing date for non-backlog task'}), 400
     task = Task(
         description=data['description'],
         date=task_date,

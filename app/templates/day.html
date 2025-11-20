@@ -8,6 +8,10 @@
         <h1 class="display-5 fw-bold text-center">{{ title }}</h1>
         <a href="{{ next_url }}" class="btn btn-outline-dark">Next Day</a>
     </div>
+    <!-- HIDDEN DATE DATA FOR JS -->
+    <div id="dayDateData" class="d-none" data-year="{{ year }}" data-month="{{ month }}" data-day="{{ day }}">
+        {{ year }}-{{ month }}-{{ day }}
+    </div>
 
     <!-- BREADCRUMBS -->
         <nav aria-label="breadcrumb" class="mb-4">
