@@ -217,7 +217,7 @@ small {
         height: auto !important;
         min-height: 250px !important;
         padding: 0.75rem 0.75rem 4rem 0.75rem !important;  /* top/right/bottom/left */
-        overflow-y: auto !important;
+        overflow-y: visible !important;
         overflow-x: visible !important;
         
         /* Only a tiny bit of breathing room — no more 120px void */
