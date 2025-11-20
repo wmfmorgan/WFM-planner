@@ -573,8 +573,8 @@ def day_page(year, month, day):
         # FUTURE: Only tasks with exact date
         filters.append(Task.date == target_date)
 
-    # FINAL QUERY
-    today_tasks = Task.query.filter(*filters).order_by(
+    
+    today_tasks = Task.query.filter(*filters, Task.status != TaskStatus.BACKLOG).order_by(
         case(
             (Task.status != TaskStatus.DONE, 0),  # Incomplete first
             else_=1
@@ -584,8 +584,8 @@ def day_page(year, month, day):
 
     # ——— BACKLOG TASKS (date = NULL + not done) ———
     backlog_tasks = Task.query.filter(
-        Task.date.is_(None),
-        Task.status != TaskStatus.DONE
+        #Task.date.is_(None),
+        Task.status == TaskStatus.BACKLOG
     ).order_by(Task.rank.asc(), Task.id.asc()).all()
 
     #print(filter)
@@ -1123,9 +1123,9 @@ def import_json():
 def api_add_task():
     data = request.get_json()
     backlog = data.get('backlog', False)
-    print (backlog)
+    #print (backlog)
     if backlog == True:
-        task_date = None # Backlog task
+         task_date = None # Backlog task
     else:
         task_date = date(
             year=int(data['year']),
@@ -1135,10 +1135,12 @@ def api_add_task():
     task = Task(
         description=data['description'],
         date=task_date,
-        status=TaskStatus.TODO,
+        status = TaskStatus.BACKLOG if backlog else TaskStatus.TODO,
         notes=data.get('notes', '')
     )
-    print(task)
+  
+
+    #print(task)
     db.session.add(task)
     db.session.commit()
     return jsonify({'id': task.id, 'description': task.description})
