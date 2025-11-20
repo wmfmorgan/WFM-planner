@@ -1269,8 +1269,8 @@ def import_calendar():
 
     # DEFINE SAFE RANGE
     today = datetime.now().date()
-    start_cutoff = today - timedelta(days=90)   # Last 3 months
-    end_cutoff = today + timedelta(days=365)    # Next 12 months
+    start_cutoff = today #- timedelta(days=90)   # Last 3 months
+    end_cutoff = today #+ timedelta(days=365)    # Next 12 months
 
     try:
         response = requests.get(ics_url, timeout=15)
@@ -1291,17 +1291,18 @@ def import_calendar():
 
             start_date = start_dt.date()
             end_date = end_dt.date()
-
+            print(str(component.get('summary', 'Untitled')))
+            print(start_date, end_date)
             # FILTER: Only import events in our window
             if not (start_cutoff <= start_date <= end_cutoff):
                 continue  # Skip old/far future events
-
+            
             # Optional: Skip if already exists (by UID + date)
             #uid = str(component.get('uid', ''))
             #existing = Event.query.filter_by(uid=uid, start_date=start_date).first()
             #if existing:
             #    continue
-
+            print(str(component.get('summary', 'Untitled')))
             event = Event(
                 #uid=uid,
                 title=str(component.get('summary', 'Untitled')),

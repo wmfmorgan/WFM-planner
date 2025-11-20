@@ -601,3 +601,9 @@ section.kanban-section {
 #scheduleGrid {
     padding-top: 0 !important;
 }
+
+#scheduleGrid > .time-slot-clickable,
+#eventContainer,
+#scheduleGrid > div[class*="bg-primary"] + div {
+    transform: translateY(-300px) !important;
+}

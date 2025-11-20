@@ -53,114 +53,134 @@
 
     <!-- DAILY GOAL CARDS -->
     <!-- Daily Goals -->
-    <h5 class="mb-3">Daily Goals</h5>
-    {% set columns = [{'id': 'todo', 'label': 'To Do'}, {'id': 'in_progress', 'label': 'In Progress'}, {'id': 'blocked', 'label': 'Blocked'}, {'id': 'done', 'label': 'Done'}] %}
-    {% with goals=daily_goals_grouped, columns=columns, type="goals", parent_type="weekly", page_type="day" %}
-    {% include 'kanban_board.html' %}
-    {% endwith %}
-
-
-
-    <div class="row mb-4">
-        <!-- LEFT: 24-HOUR SCHEDULE (SPACED OUT) -->
-    
-            <!-- NUCLEAR SCHEDULE — FINAL, ETERNAL, PERFECT -->
-            <div class="col-12">
-            <div class="card">
-                <div class="card-header bg-dark text-white">
-                    <h5 class="mb-0">
-                        <i class="bi bi-calendar4-week me-2"></i>
-                        {{ day_date.strftime('%A, %B %d, %Y') }}
-                    </h5>
-                </div>
-
-                <div class="position-relative {% if all_day_events %}has-all-day{% else %}no-all-day{% endif %}" style="min-height: 1440px;" id="scheduleGrid">
-
-                        <!-- ALL-DAY EVENTS -->
-{% set all_day_events = events_on_date(year, month, day) | selectattr('all_day') | list %}
-{% if all_day_events %}
-<div class="bg-primary text-white py-3 px-4 sticky-top" style="top:0; z-index:30; margin-bottom:0;">
-    <strong>All Day:</strong>
-    <div class="d-flex flex-wrap gap-3 mt-2 ps-2">
-        {% for event in all_day_events %}
-            <span class="badge bg-white text-primary px-4 py-2 rounded-pill shadow-sm fw-bold"
-                  data-event-id="{{ event.id }}" style="cursor:pointer; font-size:0.875rem;">
-                {{ event.title }}
-            </span>
-        {% endfor %}
+    <div class="card border-light mb-4">
+        <div class="card-header bg-light d-flex justify-content-between align-items-center">
+            <h5 class="mb-3">Daily Goals</h5>
+        </div>
     </div>
-</div>
-{% endif %}
+    <div>
+        {% set columns = [{'id': 'todo', 'label': 'To Do'}, {'id': 'in_progress', 'label': 'In Progress'}, {'id': 'blocked', 'label': 'Blocked'}, {'id': 'done', 'label': 'Done'}] %}
+        {% with goals=daily_goals_grouped, columns=columns, type="goals", parent_type="weekly", page_type="day" %}
+        {% include 'kanban_board.html' %}
+        {% endwith %}
+    </div>
 
-                        <!-- TIME SLOTS — 5:00 AM → 10:59 PM, 30-MINUTE BLOCKS, PIXEL-PERFECT -->
-                        {% for hour24 in range(5, 23) %}
-                            {% for half in [0, 30] %}
-                                {% set total_minutes = hour24 * 60 + half %}
-                                {% set display_hour = (hour24 % 12) or 12 %}
-                                {% set ampm = 'AM' if hour24 < 12 else 'PM' %}
+    <!-- Schedule (collapsible panel) -->
+    <div class="card border-light mb-4">
+    <div class="card-header bg-light d-flex justify-content-between align-items-center">
+        <h5>Daily Schedule</h5>
+        <button class="btn btn-sm btn-outline-primary" data-bs-toggle="collapse" data-bs-target="#scheduleCollapse">
+        <i class="bi bi-chevron-down"></i>
+        </button>
+    </div>
+        <div class="collapse show" id="scheduleCollapse">
+            <div class="card-body p-2">
 
-                                <div class="position-absolute time-slot-clickable"
-                                    style="
-                                        top: {{ total_minutes }}px;
-                                        height: 30px;
-                                        left: 80px;
-                                        right: 0;
-                                        border-bottom: {% if half == 30 %}1px dashed #e0e0e0{% else %}1px solid #ddd{% endif %};
-                                        cursor: pointer;
-                                        user-select: none;
-                                    "
-                                    data-hour="{{ hour24 }}"
-                                    data-minutes="{{ half }}"
-                                    title="Click to add event at {{ display_hour }}:{{ "%02d"|format(half) }} {{ ampm }}">
-
-                                    <!-- Time label on the left -->
-                                    {% if half == 0 %}
-                                    <div class="position-absolute text-muted fw-bold"
-                                        style="left: -78px; width: 70px; text-align: right; top: 6px; font-size: 0.9rem;">
-                                        {{ display_hour }}:00 {{ ampm }}
-                                    </div>
-                                    {% else %}
-                                    <div class="position-absolute text-muted small"
-                                        style="left: -78px; width: 70px; text-align: right; top: 8px; font-size: 0.75rem; opacity: 0.7;">
-                                        :30
-                                    </div>
-                                    {% endif %}
-
-                                    <!-- Hover highlight -->
-                                    <div class="position-absolute inset-0 hover-bg" 
-                                        style="background: rgba(59, 130, 246, 0.1); opacity: 0; transition: opacity 0.2s;"></div>
+                    <div class="row mb-4">
+                        <!-- LEFT: 24-HOUR SCHEDULE (SPACED OUT) -->
+                    
+                            <!-- NUCLEAR SCHEDULE — FINAL, ETERNAL, PERFECT -->
+                            <div class="col-12">
+                            <div class="card">
+                                <div class="card-header bg-dark text-white">
+                                    <h5 class="mb-0">
+                                        <i class="bi bi-calendar4-week me-2"></i>
+                                        {{ day_date.strftime('%A, %B %d, %Y') }}
+                                    </h5>
                                 </div>
-                            {% endfor %}
-                        {% endfor %}
-{% set timed_events = events_on_date(year, month, day) | selectattr('start_time') | rejectattr('all_day') | list %}
 
-{% if timed_events %}
-<div class="event-container" id="eventContainer">
-  {% for event in timed_events %}
-    {% set start_min = event.start_time.hour * 60 + event.start_time.minute %}
-    {% set end_min = (event.end_time.hour * 60 + event.end_time.minute) if event.end_time else start_min + 60 %}
-    {% if end_min <= start_min %}{% set end_min = start_min + 60 %}{% endif %}
+                                <div class="position-relative {% if all_day_events %}has-all-day{% else %}no-all-day{% endif %}" style="min-height: 1440px;" id="scheduleGrid">
 
-    <div class="schedule-event raw-event"
-         data-start="{{ start_min }}"
-         data-end="{{ end_min }}"
-         data-id="{{ event.id }}">
-        {% set duration = end_min - start_min %}
-        {% if duration <= 30 %}
-            <div class="fw-bold text-truncate">{{ event.title }}</div>
-        {% else %}
-            <div class="fw-bold text-truncate">{{ event.title }}</div>
-            <small class="opacity-90 text-truncate">
-            {{ event.start_time.strftime('%I:%M %p') | trim | lower | replace(' 0', ' ') }}
-            {% if event.end_time %}– {{ event.end_time.strftime('%I:%M %p') | trim | lower | replace(' 0', ' ') }}{% endif %}
-            </small>
-        {% endif %}
-    </div>
-  {% endfor %}
-</div>
-{% endif %}
+                                        <!-- ALL-DAY EVENTS -->
+                                        {% set all_day_events = events_on_date(year, month, day) | selectattr('all_day') | list %}
+                                        {% if all_day_events %}
+                                        <div class="bg-primary text-white py-3 px-4 sticky-top" style="top:0; z-index:30; margin-bottom:0;">
+                                            <strong>All Day:</strong>
+                                            <div class="d-flex flex-wrap gap-3 mt-2 ps-2">
+                                                {% for event in all_day_events %}
+                                                    <span class="badge bg-white text-primary px-4 py-2 rounded-pill shadow-sm fw-bold"
+                                                        data-event-id="{{ event.id }}" style="cursor:pointer; font-size:0.875rem;">
+                                                        {{ event.title }}
+                                                    </span>
+                                                {% endfor %}
+                                            </div>
+                                        </div>
+                                        {% endif %}
 
-                </div>
+                                        <!-- TIME SLOTS — 5:00 AM → 10:59 PM, 30-MINUTE BLOCKS, PIXEL-PERFECT -->
+                                        {% for hour24 in range(5, 23) %}
+                                            {% for half in [0, 30] %}
+                                                {% set total_minutes = hour24 * 60 + half %}
+                                                {% set display_hour = (hour24 % 12) or 12 %}
+                                                {% set ampm = 'AM' if hour24 < 12 else 'PM' %}
+
+                                                <div class="position-absolute time-slot-clickable"
+                                                    style="
+                                                        top: {{ total_minutes }}px;
+                                                        height: 30px;
+                                                        left: 80px;
+                                                        right: 0;
+                                                        border-bottom: {% if half == 30 %}1px dashed #e0e0e0{% else %}1px solid #ddd{% endif %};
+                                                        cursor: pointer;
+                                                        user-select: none;
+                                                    "
+                                                    data-hour="{{ hour24 }}"
+                                                    data-minutes="{{ half }}"
+                                                    title="Click to add event at {{ display_hour }}:{{ "%02d"|format(half) }} {{ ampm }}">
+
+                                                    <!-- Time label on the left -->
+                                                    {% if half == 0 %}
+                                                    <div class="position-absolute text-muted fw-bold"
+                                                        style="left: -78px; width: 70px; text-align: right; top: 6px; font-size: 0.9rem;">
+                                                        {{ display_hour }}:00 {{ ampm }}
+                                                    </div>
+                                                    {% else %}
+                                                    <div class="position-absolute text-muted small"
+                                                        style="left: -78px; width: 70px; text-align: right; top: 8px; font-size: 0.75rem; opacity: 0.7;">
+                                                        :30
+                                                    </div>
+                                                    {% endif %}
+
+                                                    <!-- Hover highlight -->
+                                                    <div class="position-absolute inset-0 hover-bg" 
+                                                        style="background: rgba(59, 130, 246, 0.1); opacity: 0; transition: opacity 0.2s;"></div>
+                                                </div>
+                                            {% endfor %}
+                                        {% endfor %}
+
+                                        {% set timed_events = events_on_date(year, month, day) | selectattr('start_time') | rejectattr('all_day') | list %}
+
+                                        {% if timed_events %}
+                                            <div class="event-container" id="eventContainer">
+                                                {% for event in timed_events %}
+                                                    {% set start_min = event.start_time.hour * 60 + event.start_time.minute %}
+                                                    {% set end_min = (event.end_time.hour * 60 + event.end_time.minute) if event.end_time else start_min + 60 %}
+                                                    {% if end_min <= start_min %}{% set end_min = start_min + 60 %}{% endif %}
+
+                                                    <div class="schedule-event raw-event"
+                                                        data-start="{{ start_min }}"
+                                                        data-end="{{ end_min }}"
+                                                        data-id="{{ event.id }}">
+                                                        {% set duration = end_min - start_min %}
+                                                        {% if duration <= 30 %}
+                                                            <div class="fw-bold text-truncate">{{ event.title }}</div>
+                                                        {% else %}
+                                                            <div class="fw-bold text-truncate">{{ event.title }}</div>
+                                                            <small class="opacity-90 text-truncate">
+                                                            {{ event.start_time.strftime('%I:%M %p') | trim | lower | replace(' 0', ' ') }}
+                                                            {% if event.end_time %}– {{ event.end_time.strftime('%I:%M %p') | trim | lower | replace(' 0', ' ') }}{% endif %}
+                                                            </small>
+                                                        {% endif %}
+                                                    </div>
+                                                {% endfor %}
+                                            </div>
+                                        {% endif %}
+
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
             </div>
         </div>
     </div>
@@ -168,47 +188,52 @@
 
 <!-- ==== TASK KANBAN BOARD (Independent of Goals/Events) ==== -->
 <!-- Daily Tasks -->
-    <section class="kanban-section mt-4">
-    <h2>Daily Tasks</h2>
-    {% with goals=kanban, columns=columns, type="tasks" %}
-        {% include 'kanban_board.html' %}
-    {% endwith %}
-    </section>
-
-    <!-- 1. MASTER BACKLOG (floating sidebar or collapsible panel) -->
+     <div class="card border-light mb-4">
+        <div class="card-header bg-light d-flex justify-content-between align-items-center">
+            <h5>Daily Tasks</h5>
+        </div>
+    </div>
+    <div>
+        <section class="kanban-section mt-4">
+            {% with goals=kanban, columns=columns, type="tasks" %}
+            {% include 'kanban_board.html' %}
+            {% endwith %}
+        </section>
+    </div>
+    <!-- 1. Task BACKLOG (floating sidebar or collapsible panel) -->
     <div class="card border-light mb-4">
-    <div class="card-header bg-light d-flex justify-content-between align-items-center">
-        <h2>Master Backlog</h2>
-        <button class="btn btn-sm btn-outline-primary" data-bs-toggle="collapse" data-bs-target="#backlogCollapse">
-        <i class="bi bi-chevron-down"></i>
-        </button>
-    </div>
-    <div class="collapse show" id="backlogCollapse">
-        <div class="card-body p-2">
-        <div class="kanban-column" data-status="backlog" data-type="tasks">
-            {% for task in backlog_tasks %}
-                <div class="kanban-item card mb-2 d-flex align-items-center"
-                    data-item-id="{{ task.id }}">
-                <div class="drag-handle text-muted flex-shrink-0 d-flex align-items-center justify-content-center px-3">
-                    <i class="bi bi-grip-vertical fs-5"></i>
-                </div>
-                <div class="flex-grow-1 text-truncate pe-3">
-                    <h6 class="card-title mb-0 fw-medium">{{ task.description }}</h6>
-                </div>
-                </div>
-            {% endfor %}
+        <div class="card-header bg-light d-flex justify-content-between align-items-center">
+            <h5>Task Backlog</h5>
+            <button class="btn btn-sm btn-outline-primary" data-bs-toggle="collapse" data-bs-target="#backlogCollapse">
+            <i class="bi bi-chevron-down"></i>
+            </button>
         </div>
-            <!-- BACKLOG INPUT — NEW FORM WITH UNIQUE ID -->
-            <form id="add-backlog-task-form" class="mt-2">
-            <input 
-                type="text" 
-                class="form-control form-control-sm add-task-input" 
-                placeholder="+ Add to backlog (someday)" 
-                autocomplete="off"
-                required />
-            </form>
+        <div class="collapse show" id="backlogCollapse">
+            <div class="card-body p-2">
+            <div class="kanban-column" data-status="backlog" data-type="tasks">
+                {% for task in backlog_tasks %}
+                    <div class="kanban-item card mb-2 d-flex align-items-center"
+                        data-item-id="{{ task.id }}">
+                    <div class="drag-handle text-muted flex-shrink-0 d-flex align-items-center justify-content-center px-3">
+                        <i class="bi bi-grip-vertical fs-5"></i>
+                    </div>
+                    <div class="flex-grow-1 text-truncate pe-3">
+                        <h6 class="card-title mb-0 fw-medium">{{ task.description }}</h6>
+                    </div>
+                    </div>
+                {% endfor %}
+            </div>
+                <!-- BACKLOG INPUT — NEW FORM WITH UNIQUE ID -->
+                <form id="add-backlog-task-form" class="mt-2">
+                <input 
+                    type="text" 
+                    class="form-control form-control-sm add-task-input" 
+                    placeholder="+ Add to backlog (someday)" 
+                    autocomplete="off"
+                    required />
+                </form>
+            </div>
         </div>
-    </div>
     </div>
 
     <!-- NOTES — FULL WIDTH -->
@@ -315,63 +340,5 @@
         </div>
     </div>
 </div>
-
-<script>
-document.addEventListener('DOMContentLoaded', function () {
-  const container = document.getElementById('eventContainer');
-  if (!container) return;
-
-  const events = Array.from(container.querySelectorAll('.raw-event'));
-
-  events.forEach(ev => {
-    ev.start = parseInt(ev.dataset.start);
-    ev.end = parseInt(ev.dataset.end);
-    ev.eventId = ev.dataset.id;
-  });
-
-  const columns = [];
-  events.forEach(event => {
-    let placed = false;
-    for (let col of columns) {
-      const overlaps = col.some(e => event.start < e.end && event.end > e.start);
-      if (!overlaps) {
-        col.push(event);
-        placed = true;
-        break;
-      }
-    }
-    if (!placed) columns.push([event]);
-  });
-
-  const colCount = columns.length;
-  if (colCount === 0) return;
-  const width = 100 / colCount;
-
-  columns.forEach((col, colIdx) => {
-    col.forEach(eventEl => {
-    const duration = eventEl.end - eventEl.start;
-
-    eventEl.style.position = 'absolute';
-    eventEl.style.top = eventEl.start + 'px';
-    
-    eventEl.style.height = Math.max(duration, 30) + 'px';   // ← THIS LINE
-    eventEl.style.left = (colIdx * width + 1) + '%';
-    eventEl.style.width = (width - 2) + '%';
-    eventEl.style.zIndex = '20';
-
-    // Optional: make text smaller on short events
-    if (duration < 50) {
-        eventEl.style.padding = '3px 8px';
-        eventEl.style.fontSize = '0.75rem';
-    }
-
-    eventEl.setAttribute('data-event-id', eventEl.eventId);
-    eventEl.classList.remove('raw-event');
-    });
-  });
-});
-</script>
-
-
 
 {% endblock %}
