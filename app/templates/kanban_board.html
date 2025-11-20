@@ -29,12 +29,29 @@
                                 
                                 <!-- TITLE TEXT (right next to handle) -->
                                 <div class="flex-grow-1 text-truncate pe-3">
-                                    <h6 class="card-title mb-0 fw-medium">
-                                        {{ item.title | escape or item.description | escape }}
-                                    </h6>
+                                    <div class="task-text card-title mb-0 fw-medium">
+                                        {{ item.title | default(item.description) | escape }}
+                                    </div>
+
+                                    {% if type == 'tasks' %}
+                                        <input type="text"
+                                            class="task-edit form-control form-control-sm d-none"
+                                            value="{{ item.description | escape }}"
+                                            style="height: 38px;">
+                                    {% endif %}
                                 </div>
+
+                                <!-- DELETE BUTTON — TASKS ONLY -->
+                                {% if type == 'tasks' %}
+                                <button type="button"
+                                        class="btn btn-icon-danger btn-sm m-1 opacity-0"
+                                        title="Delete task">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                                {% endif %}
                             </div>
                         {% endfor %}
+
                         {% if type == 'tasks' and col.id == 'todo' %}
                             <form id="add-task-form" class="mt-auto">
                                 <input type="text" class="form-control add-task-input border-0 shadow-sm"

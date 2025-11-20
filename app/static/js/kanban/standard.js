@@ -116,7 +116,18 @@ export function initKanban() {
         const card = document.createElement('div');
         card.className = 'kanban-item card mb-2 d-flex align-items-center edit-goal-card';
         card.dataset.itemId = data.id;
-        card.innerHTML = `<div class="p-2"><h6 class="card-title mb-1">${desc}</h6></div>`;
+        card.innerHTML = `
+        <div class="drag-handle text-muted flex-shrink-0 d-flex align-items-center justify-content-center px-3">
+          <i class="bi bi-grip-vertical fs-5"></i>
+        </div>
+        <div class="flex-grow-1 pe-3 py-2">
+          <div class="task-text card-title mb-0 fw-medium">${desc}</div>
+          <input type="text" class="task-edit form-control form-control-sm d-none" value="${desc}">
+        </div>
+        <button type="button" class="btn btn-icon-danger btn-sm position-absolute top-0 end-0 m-1 opacity-0 opacity-0">
+          <i class="bi bi-x-lg"></i>
+        </button>
+        `;
         list.appendChild(card);
         input.value = '';
         input.focus();
@@ -272,5 +283,105 @@ export function initKanban() {
       alert('Failed to add task');
     });
   });
+
+  // ——— TASK INLINE EDITING + DELETE — MACHO MADNESS EDITION ———
+  document.addEventListener('click', (e) => {
+    const item = e.target.closest('.kanban-item[data-item-id]');
+    if (!item || item.querySelector('.edit-goal-card')) return; // Skip goals
+
+    // Ignore clicks on drag handle or delete button
+    if (e.target.closest('.drag-handle') || e.target.closest('.btn-icon-danger')) return;
+
+    const textDiv = item.querySelector('.task-text');
+    const input = item.querySelector('.task-edit');
+    if (!textDiv || !input) return;
+
+    // Enter edit mode
+    
+    if (!item.classList.contains('editing')) {
+      item.classList.add('editing');
+      textDiv.classList.add('d-none');
+      input.classList.remove('d-none');
+      input.focus();
+      input.select();
+    }
+  });
+
+  // Save on Enter / Cancel on Escape
+  document.addEventListener('keydown', (e) => {
+    if (!e.target.classList.contains('task-edit')) return;
+
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      saveTaskEdit(e.target);
+    } else if (e.key === 'Escape') {
+      cancelTaskEdit(e.target);
+    }
+  });
+
+  // Save on blur too
+  document.addEventListener('focusout', (e) => {
+    if (e.target.classList.contains('task-edit')) {
+      saveTaskEdit(e.target);
+    }
+  });
+
+  function saveTaskEdit(input) {
+    const item = input.closest('.kanban-item');
+    const newText = input.value.trim();
+    const oldText = item.querySelector('.task-text').textContent.trim();
+    const taskId = item.dataset.itemId;
+
+    // If no change or empty → revert
+    if (!newText || newText === oldText) {
+      cancelTaskEdit(input);
+      return;
+    }
+
+    fetch(`/api/task/${taskId}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ description: newText })
+    })
+    .then(r => {
+      if (!r.ok) throw new Error();
+      item.querySelector('.task-text').textContent = newText;
+      cancelTaskEdit(input);
+    })
+    .catch(() => {
+      alert('Save failed, brother! Try again.');
+      cancelTaskEdit(input);
+    });
+  }
+
+  function cancelTaskEdit(input) {
+    const item = input.closest('.kanban-item');
+    input.classList.add('d-none');
+    item.querySelector('.task-text').classList.remove('d-none');
+    item.classList.remove('editing');
+    input.value = item.querySelector('.task-text').textContent.trim();
+  }
+
+  // ——— DELETE TASK — SAY YOUR PRAYERS! ———
+  document.addEventListener('click', (e) => {
+    const btn = e.target.closest('.btn-icon-danger');
+    if (!btn) return;
+
+    if (!confirm('Delete this task? NO TURNING BACK, BROTHER!')) return;
+
+    const item = btn.closest('.kanban-item');
+    const taskId = item.dataset.itemId;
+
+    fetch(`/api/task/${taskId}`, { method: 'DELETE' })
+      .then(r => {
+        if (r.ok) {
+          item.style.transition = 'all 0.3s ease';
+          item.style.opacity = '0';
+          item.style.transform = 'scale(0.8)';
+          setTimeout(() => item.remove(), 300);
+        }
+      });
+  });
+
 
 }

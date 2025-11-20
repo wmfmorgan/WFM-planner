@@ -1427,3 +1427,19 @@ def update_goal_rank(goal_id):
     goal.rank = data.get('rank', 0)
     db.session.commit()
     return jsonify({'success': True})
+
+@bp.route('/api/task/<int:task_id>', methods=['DELETE'])
+def delete_task(task_id):
+    task = Task.query.get_or_404(task_id)  
+    db.session.delete(task)
+    db.session.commit()
+    return jsonify(success=True), 200
+
+# routes/task.py or wherever your task API lives
+@bp.route('/api/task/<int:task_id>', methods=['PUT'])
+def update_task(task_id):
+    task = Task.query.get_or_404(task_id)
+    data = request.get_json()
+    task.description = data.get('description', task.description).strip()
+    db.session.commit()
+    return jsonify(success=True)

@@ -215,16 +215,33 @@
         <div class="collapse show" id="backlogCollapse">
             <div class="card-body p-2">
             <div class="kanban-column" data-status="backlog" data-type="tasks">
-                {% for task in backlog_tasks %}
-                    <div class="kanban-item card mb-2 d-flex align-items-center"
-                        data-item-id="{{ task.id }}">
+            {% for task in backlog_tasks %}
+                <div class="kanban-item position-relative card mb-2 d-flex align-items-center"
+                    data-item-id="{{ task.id }}"
+                    data-full-title="{{ task.description }}">
+                    <!-- Drag Handle -->
                     <div class="drag-handle text-muted flex-shrink-0 d-flex align-items-center justify-content-center px-3">
                         <i class="bi bi-grip-vertical fs-5"></i>
                     </div>
-                    <div class="flex-grow-1 text-truncate pe-3">
-                        <h6 class="card-title mb-0 fw-medium">{{ task.description }}</h6>
+
+                    <!-- Editable Text + Hidden Input -->
+                    <div class="flex-grow-1 pe-3 py-2">
+                        <div class="task-text card-title mb-0 fw-medium">
+                            {{ task.description }}
+                        </div>
+                        <input type="text"
+                            class="task-edit form-control form-control-sm d-none"
+                            value="{{ task.description }}"
+                            style="height: 38px;">
                     </div>
-                    </div>
+
+                    <!-- Delete Button -->
+                    <button type="button"
+                            class="btn btn-icon-danger btn-sm m-1 opacity-0"
+                            title="Delete task">
+                        <i class="bi bi-trash"></i>
+                    </button>
+                </div>
                 {% endfor %}
             </div>
                 <!-- BACKLOG INPUT — NEW FORM WITH UNIQUE ID -->

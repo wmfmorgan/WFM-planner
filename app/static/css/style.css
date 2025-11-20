@@ -607,3 +607,21 @@ section.kanban-section {
 #scheduleGrid > div[class*="bg-primary"] + div {
     transform: translateY(-300px) !important;
 }
+
+/* TASK INLINE EDIT MODE — HULKAMANIA RUNNING WILD */
+.kanban-item.editing {
+    border-color: #3182ce !important;
+    box-shadow: 0 0 0 3px rgba(49,130,206,0.25);
+    z-index: 20;
+    border-radius: 8px;
+}
+
+.kanban-item:hover .btn-icon-danger {
+    opacity: 1 !important;
+    transition: opacity 0.2s ease;
+}
+
+.task-edit {
+    background: white;
+    border: 2px solid #3182ce;
+}
