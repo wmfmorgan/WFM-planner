@@ -103,36 +103,48 @@ export function initKanban() {
     form.addEventListener('submit', function(e) {
       e.preventDefault();
       const input = this.querySelector('.add-task-input');
-      const desc = input?.value.trim();
+      const desc = input.value.trim();
+      
       if (!desc || isSubmittingItem) return;
       isSubmittingItem = true;
+      
       const [y, m, d] = (document.getElementById('dayDateData')?.textContent.trim() || '').split('-');
+      
       fetch('/api/task', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ description: desc, year: +y, month: +m, day: +d })
-      }).then(r => r.json()).then(data => {
-        const list = document.querySelector('[data-status="todo"][data-type="tasks"]');
+      }).
+      
+      then(r => r.json())
+      .then(data => {
+        // Target the sortable container (excludes the form)
+        const list = document.querySelector('.kanban-column[data-status="todo"][data-type="tasks"]');
+
+        // Insert the new card BEFORE the form (so it appears above the input)
+        const form = list.querySelector('#add-task-form');
         const card = document.createElement('div');
-        card.className = 'kanban-item card mb-2 d-flex align-items-center edit-goal-card';
+        card.className = 'kanban-item card mb-2 d-flex align-items-center';
         card.dataset.itemId = data.id;
+        card.dataset.fullTitle = desc;  // tooltip fix too!
         card.innerHTML = `
-        <div class="drag-handle text-muted flex-shrink-0 d-flex align-items-center justify-content-center px-3">
-          <i class="bi bi-grip-vertical fs-5"></i>
-        </div>
-        <div class="flex-grow-1 pe-3 py-2">
-          <div class="task-text card-title mb-0 fw-medium">${desc}</div>
-          <input type="text" class="task-edit form-control form-control-sm d-none" value="${desc}">
-        </div>
-        <button type="button" class="btn btn-icon-danger btn-sm position-absolute top-0 end-0 m-1 opacity-0 opacity-0">
-          <i class="bi bi-x-lg"></i>
-        </button>
+          <div class="drag-handle text-muted flex-shrink-0 d-flex align-items-center justify-content-center px-3">
+            <i class="bi bi-grip-vertical fs-5"></i>
+          </div>
+          <div class="flex-grow-1 pe-3 py-2">
+            <div class="task-text card-title mb-0 fw-medium">${desc}</div>
+            <input type="text" class="task-edit form-control form-control-sm d-none" value="${desc}">
+          </div>
+          <button type="button" class="btn btn-icon-danger btn-sm position-absolute top-0 end-0 m-1 opacity-0">
+            <i class="bi bi-trash"></i>
+          </button>
         `;
-        list.appendChild(card);
+
+        list.insertBefore(card, form);  // THIS IS THE MONEY LINE
         input.value = '';
         input.focus();
-        const badge = list.closest('.card').querySelector('.badge');
-        if (badge) badge.textContent = list.children.length;
+        //const badge = list.closest('.card').querySelector('.badge');
+        //if (badge) badge.textContent = list.children.length;
       }).catch(console.error).finally(() => isSubmittingItem = false);
     });
   });
