@@ -206,34 +206,44 @@ small {
         border-radius: .25rem;
     }
 
+
+    .kanban-board .col {
+        flex: 1 1 0 !important;
+        min-width: 280px !important;
+        max-width: none !important;
+    }
+    
     /* Make sure the column doesn’t stretch */
     .kanban-column {
-        min-width: 300px !important;
-        max-width: 300px !important;
-        flex: 0 0 300px !important;
-        /*  padding: 0 8px !important;
-        
-        /* Grow tall naturally — no max-height */
-        height: auto !important;
-        min-height: 250px !important;
-        padding: 0.75rem 0.75rem 4rem 0.75rem !important;  /* top/right/bottom/left */
+        min-height: 400px !important;
+        padding: 0.5rem !important;
+        background: transparent !important;
         overflow-y: visible !important;
         overflow-x: visible !important;
-        
-        /* Only a tiny bit of breathing room — no more 120px void */
-        /*padding-bottom: 2rem !important;*/
         
         scrollbar-width: thin;
         scrollbar-color: #cbd5e0 transparent;
     }
 
     /* Optional: Center columns on wide screens */
-    .kanban-board .row {
+   /* .kanban-board .row {
         justify-content: flex-start !important; /* Left-align columns */
-        overflow: visible !important;
+    /*    overflow: visible !important;
         gap: 1rem;
         flex-wrap: nowrap;
-    }
+    }*/
+
+        .kanban-board .row {
+            --bs-gutter-x: 1.5rem;
+            display: flex !important;
+            flex-wrap: wrap !important;
+        }
+
+        @media (min-width: 992px) {
+            .kanban-board .col {
+                flex: 1 1 300px !important;
+            }
+        }
 
     .kanban-board {
         /*min-height: 70vh !important;     /* Forces full height */
@@ -274,15 +284,19 @@ small {
     -moz-user-select: none;  /* Firefox */
     -ms-user-select: none;  /* IE/Edge */
     min-height: 48px;
-    background: white;
     border: 1px solid #bcc5d1 !important;
-    border-radius: 8px;
-    transition: all 0.15s ease;
     user-select: none;
-    width: 280px !important;           /* Your perfect fixed width */
-    max-width: 280px !important;
-    min-width: 280px !important;
-    margin: 0 auto 8px auto !important; /* Center in column */
+    width: 100% !important;           /* Your perfect fixed width */
+    max-width: none !important;
+    min-width: 0 !important;
+    margin: 0 0 0.75rem 0 !important;
+    border-radius: 8px !important;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.12) !important;
+    transition: all 0.2s ease !important;
+    display: flex !important;
+    align-items: center !important;
+    background: white !important;
+    
     word-wrap: break-word;              /* Long words break */
     overflow-wrap: break-word;
     hyphens: auto;
@@ -292,7 +306,9 @@ small {
 }
 
 .kanban-item:hover {
-  box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+    transform: translateY(-2px) !important;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.18) !important;
+    z-index: 10 !important;
 }
 
 /* Drag handle — left side, centered vertically */
@@ -311,12 +327,6 @@ small {
   cursor: grabbing;
 }
 
-/* Fixed width + no scroll */
-.kanban-item {
-    width: 280px !important;
-    max-width: 280px !important;
-    margin: 0 auto 8px auto;
-}
 
 /* Flex child — allows truncation */
 .kanban-item .flex-grow-1 {
