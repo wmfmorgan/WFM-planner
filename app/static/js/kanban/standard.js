@@ -1,3 +1,14 @@
+// ——— GLOBAL SCROLL LOCK — NO MORE JUMPING AFTER DRAG, BROTHER! ———
+let lastScrollY = 0;
+document.addEventListener('dragstart', () => {
+  lastScrollY = window.scrollY;
+});
+document.addEventListener('dragend', () => {
+  requestAnimationFrame(() => {
+    window.scrollTo(0, lastScrollY);
+  });
+});
+
 // app/static/js/kanban/standard.js
 let isSubmittingItem = false;
 
@@ -11,13 +22,15 @@ export function initKanban() {
     Sortable.create(col, {
       group: col.dataset.type === 'tasks' ? 'tasks' : 'goals',
       animation: 150,
-      forceFallback: true,
-      fallbackTolerance: 3,
+      //forceFallback: true,
+      //fallbackTolerance: 3,
       filter: '.mt-auto',
       preventOnFilter: false,
       ghostClass: 'sortable-ghost',
       chosenClass: 'sortable-chosen',
-      handle: '.drag-handle',   // ← THIS IS THE KEY
+      fallbackOnBody: true,        // ← THIS IS THE MONEY SHOT
+      forceFallback: false,
+      //handle: '.drag-handle',   // ← THIS IS THE KEY
 
       onEnd: function (evt) {
         if (evt.newIndex === evt.oldIndex && evt.from === evt.to) return;
@@ -33,9 +46,33 @@ export function initKanban() {
           fetch(`/api/task/${itemId}/today`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' }
-          }).then(() => {
-            location.reload();
+          })
+          .then(r => {
+            if (!r.ok) throw new Error('Failed to move to Today');
+            return r.json();
+          })
+          .then(data => {
+          // Optional: Update the card visually if backend returns new data
+          // For now, just keep it where it is — it's already in the right column!
+          //showToast('Task moved to Today!', 'success');
+
+          // Update badge counts
+          document.querySelectorAll('.kanban-column').forEach(col => {
+            const badge = col.closest('.card')?.querySelector('.badge');
+            if (badge) badge.textContent = col.querySelectorAll('.kanban-item').length;
           });
+
+          // CRITICAL: Prevent scroll jump
+          const scrollY = window.scrollY;
+          requestAnimationFrame(() => window.scrollTo(0, scrollY));
+          })
+          .catch(err => {
+            console.error(err);
+            showToast('Failed to move task!', 'danger');
+            // Revert drag visually
+            evt.from.appendChild(evt.item);
+          });
+
           handled = true;
         }
 
@@ -395,5 +432,20 @@ export function initKanban() {
       });
   });
 
+  function showToast(message, type = 'info') {
+    const toast = document.createElement('div');
+    toast.className = `toast align-items-center text-bg-${type === 'danger' ? 'danger' : 'success'} border-0 position-fixed`;
+    toast.style.top = '1rem';
+    toast.style.right = '1rem';
+    toast.style.zIndex = '9999';
+    toast.innerHTML = `
+      <div class="d-flex">
+        <div class="toast-body">${message}</div>
+        <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+      </div>
+    `;
+    document.body.appendChild(toast);
+    new bootstrap.Toast(toast, { delay: 3000 }).show();
+  }
 
 }
