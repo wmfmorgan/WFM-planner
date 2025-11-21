@@ -684,3 +684,10 @@ section.kanban-section {
     font-weight: 500 !important;
     opacity: 0.95 !important;
 }
+
+/* ——— KILL THE GUTTERS, BROTHER ——— */
+@media (min-width: 1200px) {
+    .container-fluid {
+        --bs-gutter-x: 1.5rem;   /* Keeps it from being zero on huge screens */
+    }
+}
