@@ -625,3 +625,62 @@ section.kanban-section {
     background: white;
     border: 2px solid #3182ce;
 }
+
+/* ——— LOCK THE WEEKLY CALENDAR COLUMNS — NO GROW, NO SHRINK, NO MERCY ——— */
+.calendar-table {
+    table-layout: fixed !important;     /* THIS IS THE MONEY SHOT, BROTHER */
+    width: 100% !important;
+}
+
+.calendar-table th,
+.calendar-table td {
+    width: 14.2857% !important;         /* 100% ÷ 7 days = perfect equal columns */
+    min-width: 0 !important;            /* Allows text to wrap/ellipsis properly */
+    overflow: hidden !important;
+}
+
+.calendar-day {
+    padding: 8px 6px 6px 6px !important;
+    vertical-align: top !important;
+    height: 120px !important;           /* Optional: gives consistent day height */
+}
+
+/* Force events-list and badge to fill the entire locked column */
+.events-list {
+    width: 100% !important;
+    height: 100% !important;
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 5px !important;
+}
+
+.event-badge {
+    width: 100% !important;
+    min-height: 38px !important;
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: flex-start !important;   /* ← THIS IS THE LEG DROP, BROTHER */
+    align-items: flex-start !important;       /* Left-align text inside */
+    padding: 7px 9px 7px 9px !important;      /* Little extra breathing room on top */
+    background: #1e40af !important;
+    color: white !important;
+    border-radius: 6px !important;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.25) !important;
+    transition: all 0.2s ease !important;
+    gap: 2px !important;                      /* Clean space between title and time */
+}
+
+.event-title {
+    font-weight: 600 !important;
+    font-size: 0.84rem !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    width: 100% !important;
+}
+
+.event-time {
+    font-size: 0.74rem !important;
+    font-weight: 500 !important;
+    opacity: 0.95 !important;
+}

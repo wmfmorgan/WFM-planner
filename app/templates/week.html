@@ -68,13 +68,14 @@
                                     </div>
                                     <div class="events-list mt-1">
                                         {% for event in events_on_date(day_date.year, day_date.month, day_date.day) %}
-                                            <div class="event-badge bg-primary text-white p-1 mb-1 rounded small" 
-                                                data-event-id="{{ event.id }}" style="cursor: pointer;">
-                                                {{ event.title  | escape }}
+                                            <div class="event-badge" data-event-id="{{ event.id }}">
+                                                <span class="event-title">{{ event.title | escape }}</span>
                                                 {% if event.start_time %}
-                                                    {{ event.start_time.strftime('%H:%M') }}-{{ event.end_time.strftime('%H:%M') }}
+                                                    <span class="event-time">
+                                                        {{ event.start_time.strftime('%H:%M') }}{% if event.end_time %}–{{ event.end_time.strftime('%H:%M') }}{% endif %}
+                                                    </span>
                                                 {% endif %}
-                                            </div>                                        
+                                            </div>
                                         {% endfor %}
                                     </div>
                                     <div class="add-event-area text-center text-primary small mt-2 fw-medium" 
