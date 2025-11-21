@@ -1052,62 +1052,120 @@ def import_json():
                     if not model:
                         continue
 
-                    # Clear existing data
-                    db.session.query(model).delete()
+                    # =================================================================
+                    # SPECIAL HANDLING FOR GOAL — HIERARCHY MUST SURVIVE THE IMPORT!
+                    # =================================================================
+                    if table == 'goal':
+                        # Clear all existing goals
+                        db.session.query(model).delete()
 
-                    for row in rows:
-                        row.pop('id', None)  # Let DB assign new ID
+                        # Mapping: old exported ID → newly created Goal object
+                        old_to_new_goal = {}
+                        # List of goals that need their parent_id fixed after creation
+                        pending_reparents = []
 
-                        # === DATE CONVERSIONS ===
-                        date_fields = ['due_date', 'start_date', 'end_date', 'date']  # ← ADD 'date'
-                        for field in date_fields:
-                            if field in row and row[field]:
+                        for row in rows:
+                            old_id = row.get('id')
+                            old_parent_id = row.get('parent_id')
+
+                            # Strip IDs — DB assigns fresh ones
+                            row.pop('id', None)
+                            row.pop('parent_id', None)  # We'll set this correctly later
+
+                            # === DATE CONVERSIONS ===
+                            if 'due_date' in row and row['due_date']:
                                 try:
-                                    row[field] = datetime.strptime(row[field], '%Y-%m-%d').date()
+                                    row['due_date'] = datetime.strptime(row['due_date'], '%Y-%m-%d').date()
                                 except ValueError:
-                                    row[field] = None
+                                    row['due_date'] = None
 
-                        # === TIME CONVERSIONS ===
-                        time_fields = ['start_time', 'end_time']
-                        for field in time_fields:
-                            if field in row and row[field]:
+                            # === STATUS VALIDATION ===
+                            if 'status' in row:
+                                valid = {'todo', 'in_progress', 'blocked', 'done'}
+                                row['status'] = row['status'] if row['status'] in valid else 'todo'
+
+                            # Create the goal (no parent_id yet)
+                            goal = Goal(**row)
+                            db.session.add(goal)
+                            db.session.flush()  # This generates goal.id
+
+                            # Save mapping from old ID → new object
+                            if old_id is not None:
+                                old_to_new_goal[old_id] = goal
+
+                            # Queue for reparenting if it had a parent
+                            if old_parent_id is not None:
+                                pending_reparents.append((goal, old_parent_id))
+
+                        # === SECOND PASS: REBUILD THE FAMILY TREE, BROTHER! ===
+                        for goal, old_parent_id in pending_reparents:
+                            parent_goal = old_to_new_goal.get(old_parent_id)
+                            goal.parent_id = parent_goal.id if parent_goal else None
+
+                        # No need to add again — all objects already in session
+                        continue  # Skip normal processing below
+
+                    # =================================================================
+                    # ALL OTHER TABLES — STANDARD IMPORT (Task, Event, Note, etc.)
+                    # =================================================================
+                    else:
+                        # Clear existing data
+                        db.session.query(model).delete()
+
+                        for row in rows:
+                            row.pop('id', None)  # Let DB assign new ID
+
+                            # === DATE CONVERSIONS ===
+                            date_fields = ['due_date', 'start_date', 'end_date', 'date']
+                            for field in date_fields:
+                                if field in row and row[field]:
+                                    try:
+                                        row[field] = datetime.strptime(row[field], '%Y-%m-%d').date()
+                                    except ValueError:
+                                        row[field] = None
+
+                            # === TIME CONVERSIONS ===
+                            time_fields = ['start_time', 'end_time']
+                            for field in time_fields:
+                                if field in row and row[field]:
+                                    try:
+                                        row[field] = datetime.strptime(row[field], '%H:%M:%S').time()
+                                    except ValueError:
+                                        row[field] = None
+
+                            # === DATETIME CONVERSIONS ===
+                            if 'created_at' in row and row['created_at']:
                                 try:
-                                    row[field] = datetime.strptime(row[field], '%H:%M:%S').time()
+                                    row['created_at'] = datetime.fromisoformat(
+                                        row['created_at'].replace('Z', '+00:00')
+                                    )
                                 except ValueError:
-                                    row[field] = None
+                                    row['created_at'] = datetime.utcnow()
 
-                        # === DATETIME CONVERSIONS ===
-                        if 'created_at' in row and row['created_at']:
-                            try:
-                                row['created_at'] = datetime.fromisoformat(
-                                    row['created_at'].replace('Z', '+00:00')
-                                )
-                            except ValueError:
-                                row['created_at'] = datetime.utcnow()
+                            # === ENUM / STATUS FIXES ===
+                            if table == 'task' and 'status' in row:
+                                try:
+                                    row['status'] = TaskStatus(row['status'])
+                                except ValueError:
+                                    row['status'] = TaskStatus.TODO
 
-                        # === ENUM CONVERSIONS (Task.status, Goal.status) ===
-                        if table == 'task' and 'status' in row:
-                            try:
-                                row['status'] = TaskStatus(row['status'])
-                            except ValueError:
-                                row['status'] = TaskStatus.TODO
+                            if table == 'goal' and 'status' in row:
+                                valid = {'todo', 'in_progress', 'blocked', 'done'}
+                                row['status'] = row['status'] if row['status'] in valid else 'todo'
 
-                        if table == 'goal' and 'status' in row:
-                            # Map string → string (since Goal.status is String)
-                            valid = {'todo', 'in_progress', 'blocked', 'done'}
-                            row['status'] = row['status'] if row['status'] in valid else 'todo'
+                            # === CREATE OBJECT ===
+                            obj = model(**row)
+                            db.session.add(obj)
 
-                        # === CREATE OBJECT ===
-                        obj = model(**row)
-                        db.session.add(obj)
-
+                # ONE BIG COMMIT — ALL TABLES, ALL HIERARCHY INTACT!
                 db.session.commit()
-                flash("Database imported successfully!", "success")
+                flash("Database imported successfully! Goal hierarchy fully restored, brother!", "success")
                 return redirect(url_for('main.index'))
 
             except Exception as e:
                 db.session.rollback()
                 flash(f"Import failed: {str(e)}", "danger")
+                app.logger.error(f"Import error: {e}", exc_info=True)
 
         flash("Invalid file", "danger")
 
