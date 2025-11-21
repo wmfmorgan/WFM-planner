@@ -85,102 +85,116 @@
                     
                             <!-- NUCLEAR SCHEDULE — FINAL, ETERNAL, PERFECT -->
                             <div class="col-12">
-                            <div class="card">
-                                <div class="card-header bg-dark text-white">
-                                    <h5 class="mb-0">
-                                        <i class="bi bi-calendar4-week me-2"></i>
-                                        {{ day_date.strftime('%A, %B %d, %Y') }}
-                                    </h5>
-                                </div>
-
-                                <div class="position-relative {% if all_day_events %}has-all-day{% else %}no-all-day{% endif %}" style="min-height: 1440px;" id="scheduleGrid">
-
-                                        <!-- ALL-DAY EVENTS -->
-                                        {% set all_day_events = events_on_date(year, month, day) | selectattr('all_day') | list %}
-                                        {% if all_day_events %}
-                                        <div class="bg-primary text-white py-3 px-4 sticky-top" style="top:0; z-index:30; margin-bottom:0;">
-                                            <strong>All Day:</strong>
-                                            <div class="d-flex flex-wrap gap-3 mt-2 ps-2">
-                                                {% for event in all_day_events %}
-                                                    <span class="badge bg-white text-primary px-4 py-2 rounded-pill shadow-sm fw-bold"
-                                                        data-event-id="{{ event.id }}" style="cursor:pointer; font-size:0.875rem;">
-                                                        {{ event.title }}
-                                                    </span>
-                                                {% endfor %}
+                                <div class="card">
+                                    <div class="card-header bg-dark">
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <!-- LEFT: Date + Icon (aligned perfectly) -->
+                                            <div class="d-flex align-items-center gap-3">
+                                                <i class="bi bi-calendar4-week fs-4"></i>
+                                                <h5 class="mb-0">
+                                                    {{ day_date.strftime('%A, %B %d, %Y') }}
+                                                </h5>
                                             </div>
+
+                                            <!-- RIGHT: The Gear of Power — ALWAYS VISIBLE, ALWAYS READY -->
+                                            <button 
+                                                type="button" 
+                                                class="btn btn-sm border-0 shadow-none js-import-calendar-btn d-flex align-items-center gap-2"
+                                                title="Import calendar events for this day"
+                                                style="padding: 6px 10px; font-size: 0.9rem;">
+                                                <i class="bi bi-gear-fill"></i>
+                                                <span class="d-none d-md-inline">Sync Calendar</span>
+                                            </button>
                                         </div>
-                                        {% endif %}
+                                    </div>
+                                    <div class="position-relative {% if all_day_events %}has-all-day{% else %}no-all-day{% endif %}" style="min-height: 1440px;" id="scheduleGrid">
 
-                                        <!-- TIME SLOTS — 5:00 AM → 10:59 PM, 30-MINUTE BLOCKS, PIXEL-PERFECT -->
-                                        {% for hour24 in range(5, 23) %}
-                                            {% for half in [0, 30] %}
-                                                {% set total_minutes = hour24 * 60 + half %}
-                                                {% set display_hour = (hour24 % 12) or 12 %}
-                                                {% set ampm = 'AM' if hour24 < 12 else 'PM' %}
-
-                                                <div class="position-absolute time-slot-clickable"
-                                                    style="
-                                                        top: {{ total_minutes }}px;
-                                                        height: 30px;
-                                                        left: 80px;
-                                                        right: 0;
-                                                        border-bottom: {% if half == 30 %}1px dashed #e0e0e0{% else %}1px solid #ddd{% endif %};
-                                                        cursor: pointer;
-                                                        user-select: none;
-                                                    "
-                                                    data-hour="{{ hour24 }}"
-                                                    data-minutes="{{ half }}"
-                                                    title="Click to add event at {{ display_hour }}:{{ "%02d"|format(half) }} {{ ampm }}">
-
-                                                    <!-- Time label on the left -->
-                                                    {% if half == 0 %}
-                                                    <div class="position-absolute text-muted fw-bold"
-                                                        style="left: -78px; width: 70px; text-align: right; top: 6px; font-size: 0.9rem;">
-                                                        {{ display_hour }}:00 {{ ampm }}
-                                                    </div>
-                                                    {% else %}
-                                                    <div class="position-absolute text-muted small"
-                                                        style="left: -78px; width: 70px; text-align: right; top: 8px; font-size: 0.75rem; opacity: 0.7;">
-                                                        {{ display_hour }}:30 {{ ampm }}
-                                                    </div>
-                                                    {% endif %}
-
-                                                    <!-- Hover highlight -->
-                                                    <div class="position-absolute inset-0 hover-bg" 
-                                                        style="background: rgba(59, 130, 246, 0.1); opacity: 0; transition: opacity 0.2s;"></div>
+                                            <!-- ALL-DAY EVENTS -->
+                                            {% set all_day_events = events_on_date(year, month, day) | selectattr('all_day') | list %}
+                                            {% if all_day_events %}
+                                            <div class="bg-primary text-white py-3 px-4 sticky-top" style="top:0; z-index:30; margin-bottom:0;">
+                                                <strong>All Day:</strong>
+                                                <div class="d-flex flex-wrap gap-3 mt-2 ps-2">
+                                                    {% for event in all_day_events %}
+                                                        <span class="badge bg-white text-primary px-4 py-2 rounded-pill shadow-sm fw-bold"
+                                                            data-event-id="{{ event.id }}" style="cursor:pointer; font-size:0.875rem;">
+                                                            {{ event.title }}
+                                                        </span>
+                                                    {% endfor %}
                                                 </div>
-                                            {% endfor %}
-                                        {% endfor %}
+                                            </div>
+                                            {% endif %}
 
-                                        {% set timed_events = events_on_date(year, month, day) | selectattr('start_time') | rejectattr('all_day') | list %}
+                                            <!-- TIME SLOTS — 5:00 AM → 10:59 PM, 30-MINUTE BLOCKS, PIXEL-PERFECT -->
+                                            {% for hour24 in range(5, 23) %}
+                                                {% for half in [0, 30] %}
+                                                    {% set total_minutes = hour24 * 60 + half %}
+                                                    {% set display_hour = (hour24 % 12) or 12 %}
+                                                    {% set ampm = 'AM' if hour24 < 12 else 'PM' %}
 
-                                        {% if timed_events %}
-                                            <div class="event-container" id="eventContainer">
-                                                {% for event in timed_events %}
-                                                    {% set start_min = event.start_time.hour * 60 + event.start_time.minute %}
-                                                    {% set end_min = (event.end_time.hour * 60 + event.end_time.minute) if event.end_time else start_min + 60 %}
-                                                    {% if end_min <= start_min %}{% set end_min = start_min + 60 %}{% endif %}
+                                                    <div class="position-absolute time-slot-clickable"
+                                                        style="
+                                                            top: {{ total_minutes }}px;
+                                                            height: 30px;
+                                                            left: 80px;
+                                                            right: 0;
+                                                            border-bottom: {% if half == 30 %}1px dashed #e0e0e0{% else %}1px solid #ddd{% endif %};
+                                                            cursor: pointer;
+                                                            user-select: none;
+                                                        "
+                                                        data-hour="{{ hour24 }}"
+                                                        data-minutes="{{ half }}"
+                                                        title="Click to add event at {{ display_hour }}:{{ "%02d"|format(half) }} {{ ampm }}">
 
-                                                    <div class="schedule-event raw-event"
-                                                        data-start="{{ start_min }}"
-                                                        data-end="{{ end_min }}"
-                                                        data-id="{{ event.id }}">
-                                                        {% set duration = end_min - start_min %}
-                                                        {% if duration <= 30 %}
-                                                            <div class="fw-bold text-truncate">{{ event.title }}</div>
+                                                        <!-- Time label on the left -->
+                                                        {% if half == 0 %}
+                                                        <div class="position-absolute text-muted fw-bold"
+                                                            style="left: -78px; width: 70px; text-align: right; top: 6px; font-size: 0.9rem;">
+                                                            {{ display_hour }}:00 {{ ampm }}
+                                                        </div>
                                                         {% else %}
-                                                            <div class="fw-bold text-truncate">{{ event.title }}</div>
-                                                            <small class="opacity-90 text-truncate">
-                                                            {{ event.start_time.strftime('%I:%M %p') | trim | lower | replace(' 0', ' ') }}
-                                                            {% if event.end_time %}– {{ event.end_time.strftime('%I:%M %p') | trim | lower | replace(' 0', ' ') }}{% endif %}
-                                                            </small>
+                                                        <div class="position-absolute text-muted small"
+                                                            style="left: -78px; width: 70px; text-align: right; top: 8px; font-size: 0.75rem; opacity: 0.7;">
+                                                            {{ display_hour }}:30 {{ ampm }}
+                                                        </div>
                                                         {% endif %}
+
+                                                        <!-- Hover highlight -->
+                                                        <div class="position-absolute inset-0 hover-bg" 
+                                                            style="background: rgba(59, 130, 246, 0.1); opacity: 0; transition: opacity 0.2s;"></div>
                                                     </div>
                                                 {% endfor %}
-                                            </div>
-                                        {% endif %}
+                                            {% endfor %}
 
-                                </div>
+                                            {% set timed_events = events_on_date(year, month, day) | selectattr('start_time') | rejectattr('all_day') | list %}
+
+                                            {% if timed_events %}
+                                                <div class="event-container" id="eventContainer">
+                                                    {% for event in timed_events %}
+                                                        {% set start_min = event.start_time.hour * 60 + event.start_time.minute %}
+                                                        {% set end_min = (event.end_time.hour * 60 + event.end_time.minute) if event.end_time else start_min + 60 %}
+                                                        {% if end_min <= start_min %}{% set end_min = start_min + 60 %}{% endif %}
+
+                                                        <div class="schedule-event raw-event"
+                                                            data-start="{{ start_min }}"
+                                                            data-end="{{ end_min }}"
+                                                            data-id="{{ event.id }}">
+                                                            {% set duration = end_min - start_min %}
+                                                            {% if duration <= 30 %}
+                                                                <div class="fw-bold text-truncate">{{ event.title }}</div>
+                                                            {% else %}
+                                                                <div class="fw-bold text-truncate">{{ event.title }}</div>
+                                                                <small class="opacity-90 text-truncate">
+                                                                {{ event.start_time.strftime('%I:%M %p') | trim | lower | replace(' 0', ' ') }}
+                                                                {% if event.end_time %}– {{ event.end_time.strftime('%I:%M %p') | trim | lower | replace(' 0', ' ') }}{% endif %}
+                                                                </small>
+                                                            {% endif %}
+                                                        </div>
+                                                    {% endfor %}
+                                                </div>
+                                            {% endif %}
+
+                                    </div>
                             </div>
                         </div>
                     </div>
