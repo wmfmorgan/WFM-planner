@@ -17,6 +17,13 @@
                         {% endif %}
                     </div>
                     <div class="card-body p-2 d-flex flex-column h-100">
+                        <!-- CATEGORY FILTER — ADD THIS RIGHT ABOVE THE KANBAN BOARD -->
+                        <div class="mb-3">
+                            <select class="form-select form-select-sm task-category-filter">
+                                <option value="">All Categories</option>
+                                <!-- Filled by JS -->
+                            </select>
+                        </div>
                         <div class="kanban-column flex-grow-1" data-status="{{ col.id }}" data-type="{{ type }}">
                             {% for item in goals[col.id] %}
                                 <div class="kanban-item card mb-2 d-flex align-items-center {% if type == 'goals' %}edit-goal-card{% endif %}"
@@ -36,6 +43,7 @@
 
                                         {% if type == 'tasks' %}
                                             <input type="text" class="task-edit form-control form-control-sm d-none" value="{{ item.description | escape }}">
+                                            <small class="task-category-badge badge bg-secondary ms-2">{{ item.category | escape }}</small>
                                         {% endif %}
                                     </div>
 

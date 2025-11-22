@@ -219,8 +219,12 @@
     </div>
     <!-- 1. Task BACKLOG (floating sidebar or collapsible panel) -->
     <div class="card border-light mb-4">
-        <div class="card-header bg-light d-flex justify-content-between align-items-center">
+        <div class="card-header bg-light d-flex justify-content-between align-items-center mb-3">
             <h5>Task Backlog</h5>
+            <select class="form-select form-select-sm task-category-filter">
+                    <option value="">All Categories</option>
+                    <!-- Filled by JS -->
+            </select>
             <button class="btn btn-sm btn-outline-primary" data-bs-toggle="collapse" data-bs-target="#backlogCollapse">
             <i class="bi bi-chevron-down"></i>
             </button>
@@ -241,7 +245,9 @@
                     <div class="flex-grow-1 pe-3 py-2">
                         <div class="task-text card-title mb-0 fw-medium">
                             {{ task.description }}
+                            
                         </div>
+                        <small class="task-category-badge text-muted ms-2">{{ task.category | escape }}</small>
                         <input type="text" class="task-edit form-control form-control-sm d-none" value="{{ task.description | escape }}">
                     </div>
 

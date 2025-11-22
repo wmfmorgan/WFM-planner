@@ -726,3 +726,4 @@ section.kanban-section {
     font-size: 0.8em;
     opacity: 0.8;
 }
+.kanban-item.hidden { display: none !important; }
