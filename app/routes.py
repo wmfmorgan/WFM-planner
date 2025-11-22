@@ -1498,6 +1498,40 @@ def delete_task(task_id):
 def update_task(task_id):
     task = Task.query.get_or_404(task_id)
     data = request.get_json()
-    task.description = data.get('description', task.description).strip()
+    task.description = data.get('description', task.description) or ''
+    date_str = data.get('date')
+    if date_str:
+        try:
+            task.date = datetime.strptime(date_str, '%Y-%m-%d').date()
+        except ValueError:
+            task.date = None  # invalid date → clear it
+    else:
+        task.date = None  # empty field → no due date
+
+    # Optional: Auto-set date when marked "done"
+    if task.status == 'DONE' and task.date is None:
+        from datetime import date
+        task.date = date.today()
+    task.category = data.get('category') or None
+    status_str = data.get('status', '').strip().upper()
+    task.status = status_str or 'TODO'
+    task.notes = data.get('notes') or ''
     db.session.commit()
     return jsonify(success=True)
+
+@bp.route('/api/task/<int:task_id>', methods=['GET'])
+def get_task(task_id):
+    task = Task.query.get_or_404(task_id)
+    return jsonify({
+        'id': task.id,
+        'description': task.description,
+        'date': task.date.isoformat() if task.date else None,
+        'status': task.status.value,
+        'category': task.category,
+        'notes': task.notes
+    })
+
+@bp.route('/api/tasks/categories')
+def get_task_categories():
+    categories = db.session.query(Task.category).filter(Task.category != None).distinct().all()
+    return jsonify([c[0] for c in categories])

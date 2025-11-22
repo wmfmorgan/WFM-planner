@@ -1,0 +1,71 @@
+<!-- app/templates/task_flyout.html -->
+<div class="modal fade" id="taskFlyout" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="true">
+    <div class="modal-dialog modal-dialog-scrollable modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="bi bi-check2-square me-2"></i>
+                    <span id="taskFlyoutTitle">Task Details</span>
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="taskFlyoutForm">
+                    <input type="hidden" id="taskId">
+
+                    <!-- Task Description -->
+                    <div class="mb-3">
+                        <textarea class="form-control form-control-lg fw-medium" id="taskDescription" 
+                                  rows="2" placeholder="What needs to be done?" required></textarea>
+                    </div>
+
+                    <!-- Due Date -->
+                    <div class="mb-3">
+                        <label class="form-label text-muted small">Due Date</label>
+                        <input type="date" class="form-control" id="taskDueDate">
+                    </div>
+
+                    <!-- Category -->
+                    <div class="mb-3">
+                        <label class="form-label text-muted small">Category</label>
+                        <input type="text" class="form-control" id="taskCategory" 
+                               list="categoryDatalist" placeholder="Work, Personal, Health...">
+                        <datalist id="categoryDatalist"></datalist>
+                    </div>
+
+                    <!-- Status -->
+                    <div class="mb-3">
+                        <label class="form-label text-muted small">Status</label>
+                        <select class="form-select" id="taskStatus">
+                            <option value="todo">To Do</option>
+                            <option value="in_progress">In Progress</option>
+                            <option value="blocked">Blocked</option>
+                            <option value="done">Done</option>
+                            <option value="backlog">Backlog</option>
+                        </select>
+                    </div>
+
+                    <!-- Notes -->
+                    <div class="mb-3">
+                        <label class="form-label text-muted small">Notes</label>
+                        <textarea class="form-control" id="taskNote" rows="4" 
+                                  placeholder="Add links, thoughts, subtasks..."></textarea>
+                    </div>
+
+                    <!-- Complete Toggle -->
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" id="taskCompleteToggle">
+                        <label class="form-check-label fw-bold" for="taskCompleteToggle">
+                            Mark as Complete
+                        </label>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-danger" id="deleteTaskBtn">
+                    <i class="bi bi-trash"></i> Delete Task
+                </button>
+            </div>
+        </div>
+    </div>
+</div>

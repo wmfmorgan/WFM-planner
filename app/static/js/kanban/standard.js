@@ -297,27 +297,27 @@ export function initKanban() {
   });
 
   // ——— TASK INLINE EDITING + DELETE — MACHO MADNESS EDITION ———
-  document.addEventListener('click', (e) => {
-    const item = e.target.closest('.kanban-item[data-item-id]');
-    if (!item || item.querySelector('.edit-goal-card')) return; // Skip goals
-
+  //document.addEventListener('click', (e) => {
+  //  const item = e.target.closest('.kanban-item[data-item-id]');
+  //  if (!item || item.querySelector('.edit-goal-card')) return; // Skip goals
+    
     // Ignore clicks on drag handle or delete button
-    if (e.target.closest('.drag-handle') || e.target.closest('.btn-icon-danger')) return;
+  //  if (e.target.closest('.drag-handle') || e.target.closest('.btn-icon-danger')) return;
 
-    const textDiv = item.querySelector('.task-text');
-    const input = item.querySelector('.task-edit');
-    if (!textDiv || !input) return;
+  //  const textDiv = item.querySelector('.task-text');
+  //  const input = item.querySelector('.task-edit');
+  //  if (!textDiv || !input) return;
 
     // Enter edit mode
     
-    if (!item.classList.contains('editing')) {
-      item.classList.add('editing');
-      textDiv.classList.add('d-none');
-      input.classList.remove('d-none');
-      input.focus();
-      input.select();
-    }
-  });
+    //if (!item.classList.contains('editing')) {
+    //  item.classList.add('editing');
+    //  textDiv.classList.add('d-none');
+    //  input.classList.remove('d-none');
+    //  input.focus();
+    //  input.select();
+    //}
+  //});
 
   // Save on Enter / Cancel on Escape
   document.addEventListener('keydown', (e) => {

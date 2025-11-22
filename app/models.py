@@ -134,5 +134,6 @@ class Task(ExportableMixin, db.Model):
     description = db.Column(db.String(200), nullable=False)
     date = db.Column(db.Date, nullable=True)
     status = db.Column(db.Enum(TaskStatus), default=TaskStatus.TODO, nullable=False)
-    notes = db.Column(db.Text)
+    notes = db.Column(db.Text, nullable=True)
     rank = db.Column(db.Integer, default=0, nullable=False, server_default="0", index=True)
+    category = db.Column(db.String(50), nullable=True, index=True)

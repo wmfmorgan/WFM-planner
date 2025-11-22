@@ -702,3 +702,27 @@ section.kanban-section {
         --bs-gutter-x: 1.5rem;   /* Keeps it from being zero on huge screens */
     }
 }
+/* TASK FLYOUT — NO CAGE CAN HOLD IT */
+#taskFlyout {
+    position: fixed !important;
+    top: 50px !important;
+    left: 50% !important;
+    transform: translateX(-50%) !important;
+    z-index: 1060 !important;     /* Bootstrap default modal z-index is 1050 + 10 for safety */
+    width: 90vw !important;
+    max-width: 700px !important;
+}
+
+/* Prevent any parent from clipping it */
+#taskFlyout * {
+    z-index: inherit !important;
+}
+
+/* Optional: Make sure backdrop doesn't eat it */
+.modal-backdrop {
+    z-index: 1050 !important;
+}
+.task-category-badge {
+    font-size: 0.8em;
+    opacity: 0.8;
+}

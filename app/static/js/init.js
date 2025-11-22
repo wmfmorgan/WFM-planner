@@ -4,6 +4,7 @@ import { initTimeSlotClicks } from './calendar/time-slots.js';
 import { initScheduleCollapse, autoScrollToNow } from './calendar/schedule.js';
 import { initKanban } from './kanban/standard.js';  // NEW UNIFIED
 import { initDayCalendar } from './calendar/calendar-day.js';
+import { initTaskFlyout } from './kanban/task-flyout.js';
 
 document.addEventListener('DOMContentLoaded', () => {
   initEventModal();
@@ -11,6 +12,7 @@ document.addEventListener('DOMContentLoaded', () => {
   initScheduleCollapse();
   autoScrollToNow();
   initKanban();  // NEW — handles both goals and tasks
+  initTaskFlyout();
 });
 
 document.addEventListener('DOMContentLoaded', function () {

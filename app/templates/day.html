@@ -242,10 +242,7 @@
                         <div class="task-text card-title mb-0 fw-medium">
                             {{ task.description }}
                         </div>
-                        <input type="text"
-                            class="task-edit form-control form-control-sm d-none"
-                            value="{{ task.description }}"
-                            style="height: 38px;">
+                        <input type="text" class="task-edit form-control form-control-sm d-none" value="{{ task.description | escape }}">
                     </div>
 
                     <!-- Delete Button -->
@@ -373,6 +370,9 @@
             </form>
         </div>
     </div>
+    
 </div>
 
 {% endblock %}
+
+{% include 'task_flyout.html' %}

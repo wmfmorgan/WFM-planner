@@ -35,10 +35,7 @@
                                         </div>
 
                                         {% if type == 'tasks' %}
-                                            <input type="text"
-                                                class="task-edit form-control form-control-sm d-none"
-                                                value="{{ item.description | escape }}"
-                                                style="height: 38px;">
+                                            <input type="text" class="task-edit form-control form-control-sm d-none" value="{{ item.description | escape }}">
                                         {% endif %}
                                     </div>
 
