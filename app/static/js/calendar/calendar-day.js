@@ -1,4 +1,4 @@
-// app/static/js/calendar-day.js
+// app/static/js/calendar/calendar-day.js
 export function initDayCalendar(){
   const container = document.getElementById('eventContainer');
   if (!container) return;
