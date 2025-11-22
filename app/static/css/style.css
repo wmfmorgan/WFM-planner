@@ -722,8 +722,22 @@ section.kanban-section {
 .modal-backdrop {
     z-index: 1050 !important;
 }
+
+/* CHAMPIONSHIP CATEGORY BADGES — RIGHT ALIGNED, CLEAN, PRO */
 .task-category-badge {
-    font-size: 0.8em;
-    opacity: 0.8;
+    font-size: 0.7rem !important;
+    font-weight: 600 !important;
+    letter-spacing: 0.5px;
+    border-radius: 6px !important;
+    background: #495057 !important;  /* Dark gray — looks premium */
+    color: white !important;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.2);
 }
+
+/* Optional: Make it pop on hover */
+.task-category-badge:hover {
+    background: #343a40 !important;
+    transform: translateY(-1px);
+}
+
 .kanban-item.hidden { display: none !important; }

@@ -118,7 +118,7 @@ export function initTaskFlyout() {
                 const badge = card.querySelector('.task-category-badge') ||
                     card.querySelector('.task-text').insertAdjacentElement('afterend',
                         Object.assign(document.createElement('small'), {
-                            className: 'task-category-badge d-block text-muted mt-1'
+                            className: 'task-category-badge badge bg-secondary text-white px-2 py-1'
                         })
                     );
                 badge.textContent = data.category || '';

@@ -43,10 +43,22 @@
 
                                         {% if type == 'tasks' %}
                                             <input type="text" class="task-edit form-control form-control-sm d-none" value="{{ item.description | escape }}">
-                                            <small class="task-category-badge badge bg-secondary ms-2">{{ item.category | escape }}</small>
+                                            <!-- {% if item.category %} -->
+                                                <!-- <small class="task-category-badge badge bg-secondary text-white px-2 py-1"> -->
+                                                    <!-- {{ item.category | escape }}
+                                                </small>
+                                            {% endif %} -->
                                         {% endif %}
                                     </div>
-
+                                        
+                                        {% if type == 'tasks' %}
+                                            <!-- <input type="text" class="task-edit form-control form-control-sm d-none" value="{{ item.description | escape }}"> -->
+                                            {% if item.category %}
+                                                <small class="task-category-badge badge bg-secondary text-white px-2 py-1">
+                                                    {{ item.category | escape }}
+                                                </small>
+                                            {% endif %}
+                                        {% endif %}
                                     <!-- DELETE BUTTON — TASKS ONLY -->
                                     {% if type == 'tasks' %}
                                     <button type="button"
