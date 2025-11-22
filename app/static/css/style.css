@@ -256,21 +256,25 @@ small {
     .sortable-ghost {
         opacity: 0.4;
         background: #f0f0f0;
-        border: 5px dashed #790c0c !important;
-        width: 280px !important;  /* Match column width */
-        max-width: 280px !important;  /* Match your column style="width: 280px" */
+        max-height: 50px !important;  /* Prevent huge ghost */
+        border: 1px dashed #ccc;
+        width: 100% !important;  /* Match column width */
+        max-width: none !important;  /* Match your column style="width: 280px" */
         padding: 1rem !important;  /* Match card padding */
         margin-bottom: 0.5rem !important;  /* Match mb-2 */
         box-shadow: none !important;  /* Remove extra shadows */
         transform: rotate(9deg) scale(1.02) !important;
+        pointer-events: none;
     }
 
     .sortable-chosen {
         opacity: 1;
+        max-height: 50px !important;  /* Prevent huge chosen */
         transform: rotate(9deg) scale(1.02) !important;
-        border: 5px dashed #0c791e !important;
+        border: 1px dashed #ccc;
         box-shadow: 0 4px 12px rgba(0,0,0,0.15);
         transition: all 0.2s ease;
+        pointer-events: none;
         /*  transform: scale(1.02); */
     }
 
