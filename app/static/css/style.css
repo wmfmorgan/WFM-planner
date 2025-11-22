@@ -256,21 +256,24 @@ small {
     .sortable-ghost {
         opacity: 0.4;
         background: #f0f0f0;
-        border: 1px dashed #ccc;
-        width: 100% !important;  /* Match column width */
+        border: 5px dashed #790c0c !important;
+        width: 280px !important;  /* Match column width */
         max-width: 280px !important;  /* Match your column style="width: 280px" */
         padding: 1rem !important;  /* Match card padding */
         margin-bottom: 0.5rem !important;  /* Match mb-2 */
         box-shadow: none !important;  /* Remove extra shadows */
+        transform: rotate(9deg) scale(1.02) !important;
     }
 
     .sortable-chosen {
-        opacity: 0.6;
-        transform: rotate(3deg) scale(1.02);
+        opacity: 1;
+        transform: rotate(9deg) scale(1.02) !important;
+        border: 5px dashed #0c791e !important;
         box-shadow: 0 4px 12px rgba(0,0,0,0.15);
         transition: all 0.2s ease;
+        /*  transform: scale(1.02); */
     }
- 
+
 
     /* Kanban Card: Drag handle + text on same row */
 .kanban-item {
@@ -286,8 +289,8 @@ small {
     min-height: 48px;
     border: 1px solid #bcc5d1 !important;
     user-select: none;
-    width: 100% !important;           /* Your perfect fixed width */
-    max-width: none !important;
+    width: 100%;           /* Your perfect fixed width */
+    max-width: none;
     min-width: 0 !important;
     margin: 0 0 0.75rem 0 !important;
     border-radius: 8px !important;
@@ -350,12 +353,6 @@ small {
     line-height: 1.4;
 }
 
-/* Drag visual feedback */
-.sortable-chosen {
-  opacity: 0.9;
-  transform: scale(1.02);
-  box-shadow: 0 10px 25px rgba(0,0,0,0.18);
-}
 
 /* Tooltip bubble */
 .kanban-item:hover::after {
