@@ -112,18 +112,31 @@ export function initTaskFlyout() {
         .then(r => {
             if (!r.ok) throw new Error('Save failed');
             // Live update card
-            const card = document.querySelector(`[data-item-id="${currentTaskId}"]`);
-            if (card) {
-                card.querySelector('.task-text').textContent = data.description;
-                const badge = card.querySelector('.task-category-badge') ||
-                    card.querySelector('.task-text').insertAdjacentElement('afterend',
-                        Object.assign(document.createElement('small'), {
-                            className: 'task-category-badge badge bg-secondary text-white px-2 py-1'
-                        })
-                    );
-                badge.textContent = data.category || '';
-                badge.style.display = data.category ? 'block' : 'none';
-            }
+// Live update the card — MATCHES YOUR NEW HTML STRUCTURE
+const card = document.querySelector(`[data-item-id="${currentTaskId}"]`);
+if (card) {
+    // Update the task text
+    const textEl = card.querySelector('.task-text');
+    if (textEl) textEl.textContent = data.description;
+
+    // Update or create the category badge — OUTSIDE the flex container
+    let badge = card.querySelector('.task-category-badge');
+
+    if (data.category) {
+        if (!badge) {
+            // Create new badge and insert AFTER the flex container
+            badge = document.createElement('small');
+            badge.className = 'task-category-badge badge bg-secondary text-white px-2 py-1 ms-2';
+            const flexContainer = card.querySelector('.flex-grow-1');
+            flexContainer.insertAdjacentElement('afterend', badge);
+        }
+        badge.textContent = data.category;
+        badge.style.display = '';
+    } else if (badge) {
+        // No category → hide or remove badge
+        badge.remove();  // or badge.style.display = 'none';
+    }
+}
         })
         .catch(err => {
             console.error('Save failed:', err);

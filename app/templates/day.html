@@ -218,65 +218,66 @@
         </section>
     </div>
     <!-- 1. Task BACKLOG (floating sidebar or collapsible panel) -->
-    <div class="card border-light mb-4">
-        <div class="card-header bg-light d-flex justify-content-between align-items-center mb-3">
-            <h5>Task Backlog</h5>
-            <select class="form-select form-select-sm task-category-filter">
-                    <option value="">All Categories</option>
-                    <!-- Filled by JS -->
-            </select>
-            <button class="btn btn-sm btn-outline-primary" data-bs-toggle="collapse" data-bs-target="#backlogCollapse">
-            <i class="bi bi-chevron-down"></i>
-            </button>
-        </div>
-        <div class="collapse show" id="backlogCollapse">
-            <div class="card-body p-2">
-            <div class="kanban-column" data-status="backlog" data-type="tasks">
-            {% for task in backlog_tasks %}
-                <div class="kanban-item position-relative card mb-2 d-flex align-items-center"
-                    data-item-id="{{ task.id }}"
-                    data-full-title="{{ task.description }}">
-                    <!-- Drag Handle -->
-                    <div class="drag-handle text-muted flex-shrink-0 d-flex align-items-center justify-content-center px-3">
-                        <i class="bi bi-grip-vertical fs-5"></i>
-                    </div>
-
-                    <!-- Editable Text + Hidden Input -->
-                    <div class="flex-grow-1 pe-3 py-2">
-                        <div class="task-text card-title mb-0 fw-medium">
-                            {{ task.description }}
-                            
-                        </div>
-                        
-                        <input type="text" class="task-edit form-control form-control-sm d-none" value="{{ task.description | escape }}">
-                    </div>
-                    {% if task.category %}
-                        <small class="task-category-badge badge bg-secondary text-white px-2 py-1">
-                            {{ task.category | escape }}
-                        </small>
-                    {% endif %}
-                    <!-- Delete Button -->
-                    <button type="button"
-                            class="btn btn-icon-danger btn-sm m-1 opacity-0"
-                            title="Delete task">
-                        <i class="bi bi-trash"></i>
-                    </button>
-                </div>
-                {% endfor %}
+     <div class="col-lg-3 col-md-4 col-sm-6 mb-4">
+        <div class="card border-light mb-4">
+            <div class="card-header bg-light d-flex justify-content-between align-items-center mb-3">
+                <h5>Task Backlog</h5>
+                <select class="form-select form-select-sm task-category-filter">
+                        <option value="">All Categories</option>
+                        <!-- Filled by JS -->
+                </select>
+                <button class="btn btn-sm btn-outline-primary" data-bs-toggle="collapse" data-bs-target="#backlogCollapse">
+                <i class="bi bi-chevron-down"></i>
+                </button>
             </div>
-                <!-- BACKLOG INPUT — NEW FORM WITH UNIQUE ID -->
-                <form id="add-backlog-task-form" class="mt-2">
-                <input 
-                    type="text" 
-                    class="form-control form-control-sm add-task-input" 
-                    placeholder="+ Add to backlog (someday)" 
-                    autocomplete="off"
-                    required />
-                </form>
+            <div class="collapse show" id="backlogCollapse">
+                <div class="card-body p-2">
+                <div class="kanban-column" data-status="backlog" data-type="tasks">
+                {% for task in backlog_tasks %}
+                    <div class="kanban-item position-relative card mb-2 d-flex align-items-center"
+                        data-item-id="{{ task.id }}"
+                        data-full-title="{{ task.description }}">
+                        <!-- Drag Handle -->
+                        <div class="drag-handle text-muted flex-shrink-0 d-flex align-items-center justify-content-center px-3">
+                            <i class="bi bi-grip-vertical fs-5"></i>
+                        </div>
+
+                        <!-- Editable Text + Hidden Input -->
+                        <div class="flex-grow-1 pe-3 py-2">
+                            <div class="task-text card-title mb-0 fw-medium">
+                                {{ task.description }}
+                                
+                            </div>
+                            
+                            <input type="text" class="task-edit form-control form-control-sm d-none" value="{{ task.description | escape }}">
+                        </div>
+                        {% if task.category %}
+                            <small class="task-category-badge badge bg-secondary text-white px-2 py-1">
+                                {{ task.category | escape }}
+                            </small>
+                        {% endif %}
+                        <!-- Delete Button -->
+                        <button type="button"
+                                class="btn btn-icon-danger btn-sm m-1 opacity-0"
+                                title="Delete task">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                    </div>
+                    {% endfor %}
+                </div>
+                    <!-- BACKLOG INPUT — NEW FORM WITH UNIQUE ID -->
+                    <form id="add-backlog-task-form" class="mt-2">
+                    <input 
+                        type="text" 
+                        class="form-control form-control-sm add-task-input" 
+                        placeholder="+ Add to backlog (someday)" 
+                        autocomplete="off"
+                        required />
+                    </form>
+                </div>
             </div>
         </div>
     </div>
-
     <!-- NOTES — FULL WIDTH -->
     <div class="card border-light mb-4">
         <div class="card-header bg-light">
