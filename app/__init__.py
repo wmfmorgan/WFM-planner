@@ -13,80 +13,89 @@ db = SQLAlchemy()
 migrate = Migrate()
 
 
-# Apply to login attempts
-def requires_auth(f):
-    @wraps(f)
-    def decorated(*args, **kwargs):
-        if not check_auth():
-            return ("Unauthorized", 401, {'WWW-Authenticate': 'Basic realm="WFM Planner"'})
-        return f(*args, **kwargs)
-    return decorated
-
-def get_current_sunday_week():
-    """Return (year, week) for current Sunday-start week."""
-    today = datetime.now().date()
-    # Go back to Sunday (weekday: 0=Mon, 6=Sun)
-    sunday = today - timedelta(days=today.weekday() + 1)
-    return sunday.isocalendar()[0], sunday.isocalendar()[1]
-
 def create_app():
     app = Flask(__name__, instance_relative_config=True)
-    app.config.from_mapping(
-        SECRET_KEY='dev',
-        SQLALCHEMY_DATABASE_URI='sqlite:///wfm_planner.db',
+
+    # ========= CONFIG =========
+    app.config.update(
+        SECRET_KEY=os.getenv('SECRET_KEY', 'dev-secret'),
+        SQLALCHEMY_DATABASE_URI=os.getenv(
+            'DATABASE_URL',
+            'sqlite:///' + os.path.join(app.instance_path, 'wfm_planner.db')
+        ).replace('postgres://', 'postgresql://', 1),
         SQLALCHEMY_TRACK_MODIFICATIONS=False,
     )
 
-    # CONFIG
-    app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'dev-secret')
-    app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv(
-        'DATABASE_URL',
-        'sqlite:///' + os.path.join(app.instance_path, 'wfm_planner.db')
-    ).replace('postgres://', 'postgresql://', 1)  # Render fix
-    app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-    app.jinja_env.autoescape = True
-    
-# === AUTH & LIMITER SETUP ===
+    # ========= AUTH =========
     def check_auth():
         auth = request.authorization
         password = os.getenv("WFM_PASSWORD")
         return auth and auth.username == "admin" and auth.password == password
 
+    # ========= LIMIIIIIIITEEEERRRR — THE FINAL FORM =========
     limiter = Limiter(
+        key_func=get_remote_address,
         app=app,
-       key_func=get_remote_address,
-        default_limits=["200 per day", "50 per hour"]
+        default_limits=["200 per day", "50 per hour"],
+        storage_uri="memory://",  # Silences warning (dev only)
+        headers_enabled=True
     )
 
-    # Attach to app for routes to use
+    # GLOBAL BURST LIMIT — CORRECT WAY
+    limiter._default_limits = ["15 per minute"]  # This is the real way
+
+    # ADMIN BYPASSES ALL LIMITS — OFFICIAL METHOD
+    @limiter.request_filter
+    def exempt_admin():
+        return check_auth()
+
+    # ========= ATTACH =========
     app.check_auth = check_auth
     app.limiter = limiter
 
-    # INIT
+    # ========= DB =========
     db.init_app(app)
     migrate.init_app(app, db)
-    
 
-    
-    # BLUEPRINT
+    # ========= REGISTER BLUEPRINT FIRST =========
     from . import routes
-    #routes.setup_auth_and_limiter(app)
-
-    limiter.limit("5 per minute", exempt_when=lambda: request.authorization and request.authorization.username == "admin")       
     app.register_blueprint(routes.bp)
 
-    # JINJA GLOBAL
+    # ========= NOW PROTECT SPECIFIC ENDPOINTS =========
+    # Fix the real endpoint names (Flask uses function name, not route path)
+    protected_endpoints = {
+        'import_calendar': "3 per minute",           # ← this is the function name!
+        'api_add_task': "12 per minute",
+        'create_goal': "12 per minute",
+        'add_subgoal': "12 per minute",
+        'update_goal_status': "12 per minute",
+        'api_create_event': "10 per minute",
+        'api_note': "100 per minute",
+    }
+
+    for endpoint_name, limit_str in protected_endpoints.items():
+        if endpoint_name in routes.bp.view_functions:
+            original_func = routes.bp.view_functions[endpoint_name]
+            routes.bp.view_functions[endpoint_name] = limiter.limit(
+                limit_str,
+                exempt_when=check_auth
+            )(original_func)
+
+    # ========= JINJA =========
+    def get_current_sunday_week():
+        today = datetime.now().date()
+        sunday = today - timedelta(days=(today.weekday() + 1) % 7)
+        return sunday.isocalendar()[:2]
+
     app.jinja_env.globals['get_current_sunday_week'] = get_current_sunday_week
 
-    # === AUTO CREATE DB & MIGRATE ON FIRST RUN ===
+    # ========= DB CREATE =========
     with app.app_context():
         os.makedirs(app.instance_path, exist_ok=True)
-        db.create_all()  # Creates tables if no migrations
-        # OR use migrate if you have migrations
-        # from flask_migrate import upgrade
-        # upgrade()
+        db.create_all()
 
     return app
 
-# Required for Render
+
+# Required for "flask run"
 app = create_app()
