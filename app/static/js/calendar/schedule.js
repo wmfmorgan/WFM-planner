@@ -92,7 +92,7 @@ document.addEventListener('DOMContentLoaded', () => {
       e.preventDefault();
       e.stopPropagation();
 
-      console.log('Gear clicked! Starting calendar import...');
+      // console.log('Gear clicked! Starting calendar import...');
 
       const dayDateData = document.getElementById('dayDateData');
       if (!dayDateData) {
@@ -105,7 +105,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const day = String(dayDateData.dataset.day).padStart(2, '0');
       const datestr = `${year}${month}${day}`;
 
-      console.log('Importing calendar for:', datestr);
+      // console.log('Importing calendar for:', datestr);
 
       const originalHTML = button.innerHTML;
       button.disabled = true;

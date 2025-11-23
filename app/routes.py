@@ -805,13 +805,14 @@ def api_note(key):
 
         note = Note.query.filter_by(**filters).first()
         if not note:
-            note = Note(**filters, completed=completed)
+            note = Note(**filters)
             db.session.add(note)
-        else:
-            if 'content' in data:
-                note.content = content
-            if 'completed' in data:
-                note.completed = completed
+            db.session.flush()
+        
+        # ALWAYS UPDATE CONTENT & COMPLETED — whether new or existing
+        note.content = content
+        note.completed = completed
+        
         db.session.commit()
         return jsonify({'status': 'saved'})
     

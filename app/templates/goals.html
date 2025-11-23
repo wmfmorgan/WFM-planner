@@ -500,7 +500,7 @@ document.addEventListener('DOMContentLoaded', function () {
         .then(r => {
             if (!r.ok) return r.json().then(err => { throw err; });
             return r.json();
-            alert(result);
+            // alert(result);
         })
         .then(result => {
             if (result.success && result.goal) {
