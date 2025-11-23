@@ -215,7 +215,7 @@ small {
     
     /* Make sure the column doesn’t stretch */
     .kanban-column {
-        min-height: 400px !important;
+        /* min-height: 400px !important; */
         padding: 0.5rem !important;
         background: transparent !important;
         overflow-y: visible !important;
@@ -249,7 +249,7 @@ small {
         /*min-height: 70vh !important;     /* Forces full height */
         align-items: stretch !important;
         overflow-x: visible !important;  /* Allow horizontal scroll if needed */
-        margin-bottom: 3rem !important;
+        /* margin-bottom: 3rem !important; */
     }
     
     /* Kanban Drag Ghost Fix */
@@ -422,7 +422,7 @@ small {
 
 /* Optional: Slightly more space before the next section */
 section.kanban-section {
-    margin-bottom: 6rem !important;     /* Big clean gap */
+    /* margin-bottom: 6rem !important;     Big clean gap */
 
 }
 /* KANBAN — SPACE BETWEEN HEADER AND FIRST CARD */
@@ -741,3 +741,26 @@ section.kanban-section {
 }
 
 .kanban-item.hidden { display: none !important; }
+
+/* HULK HOGAN’S FINAL SOLUTION — KILL THAT MASSIVE GAP UNDER TASKS KANBAN */
+section.kanban-section {
+    margin-bottom: 1.5rem !important;   /* Was 6rem — now TIGHT */
+}
+
+.kanban-board {
+    margin-bottom: 6rem !important;   /* Was 3rem — now TIGHT */
+}
+
+/* PULL EVERYTHING AFTER THE KANBAN UP — NO MERCY */
+.kanban-section ~ .col-lg-3,
+.kanban-section ~ .card.border-light {
+    margin-top: -4rem !important;
+}
+
+/* If it still breathes, hit it with the ultimate override */
+.day-page .kanban-section,
+.kanban-section + div,
+.kanban-board + div {
+    margin-top: 0 !important;
+    padding-top: 0 !important;
+}
