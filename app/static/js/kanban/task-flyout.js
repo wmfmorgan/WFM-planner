@@ -6,7 +6,7 @@ export function initTaskFlyout() {
     
     // CRITICAL: Guard clause — if modal doesn't exist on this page, exit silently
     if (!flyout) {
-        console.warn('Task flyout modal (#taskFlyout) not found on this page. Skipping init.');
+        // console.warn('Task flyout modal (#taskFlyout) not found on this page. Skipping init.');
         return;
     }
 

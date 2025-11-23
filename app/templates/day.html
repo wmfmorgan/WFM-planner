@@ -222,16 +222,19 @@
         <div class="card border-light mb-4">
             <div class="card-header bg-light d-flex justify-content-between align-items-center mb-3">
                 <h5>Task Backlog</h5>
-                <select class="form-select form-select-sm task-category-filter">
-                        <option value="">All Categories</option>
-                        <!-- Filled by JS -->
-                </select>
+
                 <button class="btn btn-sm btn-outline-primary" data-bs-toggle="collapse" data-bs-target="#backlogCollapse">
                 <i class="bi bi-chevron-down"></i>
                 </button>
             </div>
             <div class="collapse show" id="backlogCollapse">
                 <div class="card-body p-2">
+                    <div>
+                        <select class="form-select form-select-sm task-category-filter">
+                            <option value="">All Categories</option>
+                            <!-- Filled by JS -->
+                        </select>
+                    </div>
                 <div class="kanban-column" data-status="backlog" data-type="tasks">
                 {% for task in backlog_tasks %}
                     <div class="kanban-item position-relative card mb-2 d-flex align-items-center"
