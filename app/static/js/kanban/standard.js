@@ -376,7 +376,7 @@ export function initKanban() {
 
   // ——— DELETE TASK — SAY YOUR PRAYERS! ———
   document.addEventListener('click', (e) => {
-    const btn = e.target.closest('.btn-icon-danger');
+    const btn = e.target.closest('.task-delete-btn');
     if (!btn) return;
 
     if (!confirm('Delete this task? NO TURNING BACK, BROTHER!')) return;
