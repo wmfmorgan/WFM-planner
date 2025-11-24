@@ -132,9 +132,11 @@
                     {% if goal.children or goal.category or goal.due_date %}
                     <div class="goal-collapse" data-collapsed="true"
                          style="max-height:0;overflow:hidden;transition:max-height .3s ease;">
-                        <div class="px-3 py-2 text-muted small border-top">
+                         <div class="px-3 py-2 text-muted small border-top">
                             <div><strong>{{ goal.type|capitalize }}</strong></div>
+                            {% if goal.description %}<div>{{ goal.description }}</div>{% endif %}
                             {% if goal.category %}<div>{{ goal.category }}</div>{% endif %}
+                            {% if goal.status %}<div>{{ goal.status }}</div>{% endif %}
                             {% if goal.due_date %}<div>{{ goal.due_date.strftime('%b %d') }}</div>{% endif %}
                         </div>
 
