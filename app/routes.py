@@ -1197,6 +1197,7 @@ def api_add_task():
         description=data['description'],
         date=task_date,
         status = TaskStatus.BACKLOG if backlog else TaskStatus.TODO,
+        category=data.get('category', None),
         notes=data.get('notes', '')
     )
   

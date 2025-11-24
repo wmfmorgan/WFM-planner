@@ -396,4 +396,107 @@ export function initKanban() {
   });
 
 
+  // QUICK TASK FAB — NOW WITH LIVE INJECTION (NO REFRESH NEEDED!)
+  const quickFab = document.getElementById('quickTaskFab');
+  if (quickFab) {
+    const modalEl = document.getElementById('quickTaskModal');
+    const input = document.getElementById('quickTaskInput');
+    const catInput = document.getElementById('quickTaskCategory');
+    const datalist = document.getElementById('quickCategoryDatalist');
+
+    // Populate category suggestions
+    fetch('/api/tasks/categories')
+      .then(r => r.json())
+      .then(categories => {
+        categories.forEach(cat => {
+          const opt = document.createElement('option');
+          opt.value = cat;
+          datalist.appendChild(opt);
+        });
+      });
+
+    document.addEventListener('click', (e) => {
+      if (e.target.matches('#addToTodayBtn')) {
+        e.preventDefault();
+        addQuickTask(false);
+      }
+      if (e.target.matches('#addToBacklogBtn')) {
+        e.preventDefault();
+        addQuickTask(true);
+      }
+    });
+
+    function addQuickTask(toBacklog) {
+      const desc = input.value.trim();
+      const category = catInput.value.trim() || null;
+      if (!desc) return;
+
+      const today = new Date();
+      const payload = {
+        description: desc,
+        backlog: toBacklog,
+        category: category
+      };
+
+      if (!toBacklog) {
+        payload.year = today.getFullYear();
+        payload.month = today.getMonth() + 1;
+        payload.day = today.getDate();
+      }
+
+      fetch('/api/task', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      })
+      .then(r => r.json())
+      .then(task => {
+        // LIVE INJECT THE TASK — JUST LIKE YOUR NORMAL ADD FORM DOES!
+        const targetColumn = toBacklog 
+          ? document.querySelector('.kanban-column[data-status="backlog"]')
+          : document.querySelector('.kanban-column[data-status="todo"][data-type="tasks"]');
+
+        if (!targetColumn) return;
+
+        const card = document.createElement('div');
+        card.className = 'kanban-item card mb-2 d-flex align-items-center';
+        card.dataset.itemId = task.id;
+        card.dataset.fullTitle = desc;
+
+        card.innerHTML = `
+          <div class="drag-handle text-muted flex-shrink-0 d-flex align-items-center justify-content-center px-3">
+            <i class="bi bi-grip-vertical fs-5"></i>
+          </div>
+          <div class="flex-grow-1 pe-3 py-2">
+            <div class="task-text card-title mb-0 fw-medium">${desc}</div>
+            <input type="text" class="task-edit form-control form-control-sm d-none" value="${desc}">
+          </div>
+          ${category ? `<small class="task-category-badge badge bg-secondary text-white px-2 py-1 ms-2">${category}</small>` : ''}
+          <button type="button" class="btn btn-icon-danger btn-sm m-1 opacity-0">
+            <i class="bi bi-trash"></i>
+          </button>
+        `;
+
+        // Insert before the add form (for Today) or at the top (for Backlog)
+        if (toBacklog) {
+          targetColumn.insertBefore(card, targetColumn.firstChild);
+        } else {
+          const addForm = targetColumn.querySelector('#add-task-form');
+          targetColumn.insertBefore(card, addForm);
+        }
+
+        // Clear inputs and close modal
+        input.value = '';
+        catInput.value = '';
+        bootstrap.Modal.getInstance(modalEl).hide();
+        // showToast?.(`Task "${desc}" added!`, 'success');
+      })
+      .catch(err => {
+        console.error('Quick task failed:', err);
+        alert('Failed to add task!');
+      });
+    }
+
+    modalEl.addEventListener('shown.bs.modal', () => input.focus());
+  }
 }
