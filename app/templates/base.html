@@ -90,46 +90,6 @@
         {% block content %}{% endblock %}
     </div>
 
-    <!-- MOBILE TASK QUICK ADD FAB — HULKAMANIA STYLE -->
-        <button class="btn btn-success rounded-circle shadow-lg position-fixed bottom-0 end-0 m-4" 
-                style="width:56px;height:56px;z-index:1055;font-size:1.5rem;"
-                data-bs-toggle="modal" data-bs-target="#quickTaskModal" id="quickTaskFab">
-            <i class="bi bi-plus-lg"></i>
-        </button>
-
-        <!-- QUICK TASK MODAL — PHONE PERFECTION -->
-        <div class="modal fade" id="quickTaskModal" tabindex="-1">
-        <div class="modal-dialog modal-sm modal-dialog-centered">
-            <div class="modal-content">
-            <div class="modal-header border-0 pb-0">
-                <h5 class="modal-title fw-bold">Quick Add Task</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body pt-2">
-                <form id="quickTaskForm">
-                <div class="mb-3">
-                    <input type="text" class="form-control form-control-lg" id="quickTaskInput" 
-                        placeholder="What needs to be done?" autofocus required>
-                </div>
-                <div class="mb-3">
-                    <input type="text" class="form-control" id="quickTaskCategory" 
-                    list="quickCategoryDatalist" placeholder="Category (optional)">
-                    <datalist id="quickCategoryDatalist"></datalist>
-                </div>
-                <div class="d-flex gap-2">
-                    <button type="submit" class="btn btn-success flex-fill" id="addToTodayBtn">
-                    <i class="bi bi-calendar-check me-1"></i> Add to Today
-                    </button>
-                    <button type="button" class="btn btn-outline-secondary flex-fill" id="addToBacklogBtn">
-                    <i class="bi bi-inbox me-1"></i> Backlog
-                    </button>
-                </div>
-                </form>
-            </div>
-            </div>
-        </div>
-        </div>
-
     <!-- <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>-->
     <script src="{{ url_for('static', filename='js/autosave.js') }}" defer></script>
     <script type="module" src="{{ url_for('static', filename='js/init.js') }}" defer></script>
