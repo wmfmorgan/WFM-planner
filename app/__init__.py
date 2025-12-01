@@ -26,6 +26,16 @@ def create_app():
         SQLALCHEMY_TRACK_MODIFICATIONS=False,
     )
 
+    from datetime import date   # ← Add this import at the top with the others!
+
+    @app.context_processor
+    def inject_today():
+        real_today = date.today()                                   # ← FRESH DAILY, BROTHER!
+        return dict(
+            today=real_today,
+            today_quarter=(real_today.month - 1) // 3 + 1
+        )
+
     # ========= AUTH =========
     def check_auth():
         auth = request.authorization
