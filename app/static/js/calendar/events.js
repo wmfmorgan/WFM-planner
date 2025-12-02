@@ -89,45 +89,45 @@ export function initEventModal() {
     });
   });
 
-// Click handler (edit badge or add from cell)
+// === UNIFIED CLICK HANDLER — WORKS ON WEEK + MONTH + DAY (if needed) ===
+// Click anywhere in a calendar day cell (except event badges) → open modal
 document.addEventListener('click', (e) => {
   const debugId = ++clickDebugId;
 
-  // === 1. ADD EVENT FROM CELL (month/week) ===
-  const addArea = e.target.closest('.add-event-area');
-  if (addArea) {
-    //console.log(`[EVENT CLICK ${debugId}] Add area clicked`);
-    if (isProcessingClick) return;
-    isProcessingClick = true;
+  // === 1. ADD EVENT BY CLICKING ANYWHERE IN A DAY CELL ===
+  let cell = e.target.closest('.calendar-day[data-date]');
+  
+  // If clicked on an event badge, ignore — let edit handler below take over
+  if (!e.target.closest('[data-event-id]')) {
+    // return; // Let the edit handler below do its thing
+  
 
-    const cell = addArea.closest('.calendar-day');
-    if (!cell || !cell.dataset.date) {
-      isProcessingClick = false;
-      return;
+      if (cell && cell.dataset.date) {
+        if (isProcessingClick) return;
+        isProcessingClick = true;
+
+        const isoDate = cell.dataset.date; // Already perfect: YYYY-MM-DD
+
+        resetModal();
+        modal.show();
+
+        modalEl.addEventListener('shown.bs.modal', function fill() {
+          document.getElementById('startDate').value = isoDate;
+          document.getElementById('endDate').value = isoDate;
+          document.getElementById('startTime').value = '09:00';
+          document.getElementById('endTime').value = '10:00';
+          document.getElementById('eventTitle')?.focus();
+
+          this.removeEventListener('shown.bs.modal', fill);
+          isProcessingClick = false;
+        }, { once: true });
+
+        return;
+      }
     }
-
-    resetModal();
-    modal.show();
-    modalEl.addEventListener('shown.bs.modal', function fill() {
-      document.getElementById('eventDate').value = cell.dataset.date;
-      document.getElementById('startDate').value = cell.dataset.date;
-      document.getElementById('endDate').value = cell.dataset.date;
-      document.getElementById('startTime').value = '09:00';
-      document.getElementById('endTime').value = '10:00';
-      this.removeEventListener('shown.bs.modal', fill);
-      isProcessingClick = false;
-    }, { once: true });
-    return;
-  }
-
-  // === 2. EDIT EXISTING EVENT ===
+  // === 2. EDIT EXISTING EVENT (unchanged — still works perfectly) ===
   const badge = e.target.closest('[data-event-id]');
-  if (!badge) {
-    //console.log(`[EVENT CLICK ${debugId}] No badge or add-area`);
-    return;
-  }
-
-  //console.log(`[EVENT CLICK ${debugId}] Badge ID:`, badge.dataset.eventId);
+  if (!badge) return;
 
   if (isProcessingClick) return;
   isProcessingClick = true;
@@ -176,7 +176,6 @@ document.addEventListener('click', (e) => {
       }, { once: true });
     });
 });
-
   // Modal cleanup — THE FINAL SOLUTION
   modalEl.addEventListener('hidden.bs.modal', () => {
     resetModal();
