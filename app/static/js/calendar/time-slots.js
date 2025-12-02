@@ -30,8 +30,11 @@ export function initTimeSlotClicks() {
     modal.show();
 
     modalEl.addEventListener('shown.bs.modal', () => {
-      const dayDate = document.getElementById('dayDateData')?.textContent.trim() || 
-                      new Date().toISOString().slice(0,10);
+      
+      const dayData = document.getElementById('dayDateData');
+      const isoDate = dayData 
+        ? `${dayData.dataset.year}-${dayData.dataset.month.padStart(2, '0')}-${dayData.dataset.day.padStart(2, '0')}`
+        : new Date().toISOString().slice(0,10);
 
       const startInput = document.getElementById('startTime');
       const endInput = document.getElementById('endTime');
@@ -46,7 +49,7 @@ export function initTimeSlotClicks() {
 
       dateInputs.forEach(id => {
         const el = document.getElementById(id);
-        if (el) el.value = dayDate;
+        if (el) el.value = isoDate;
       });
 
       // Focus title
