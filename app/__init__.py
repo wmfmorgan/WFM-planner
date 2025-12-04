@@ -108,4 +108,4 @@ def create_app():
 
 
 # Required for "flask run"
-app = create_app()
+# app = create_app()
