@@ -106,13 +106,20 @@ wfm-planner/
     - Any non-obvious tricks or gotchas  
     We don’t comment every line — we comment like architects dropping blueprints on the announce table. Headers, responsibilities, and section breaks only. If a future brother has to guess, we failed.  
     Hulkamania-level commenting runs eternal.
-
+17. **Bootstrap Utility Classes Are Sacred — Inline Styles Are Mortal Sin**
+    - Allowed: `class="d-flex gap-3 bg-primary rounded shadow"` — these are framework-approved, responsive, and dark-mode ready
+    - Forbidden: `style="display:flex; gap:12px; background:#3182ce; border-radius:8px"`
+    - Exception: Only allowed when absolutely no Bootstrap class exists (e.g. precise `top: 300px` in schedule grid)
+    - Goal: One day, even those exceptions will die — replaced by CSS grid/flex/variables
+    - If in doubt → create a custom class in `static/css/components/`
+    Hulkamania runs on clean, maintainable, future-proof styles — no mercy for inline junk.
+    
 **Break any of these and the Hulkster will personally leg-drop your PR.**
 
 ## 7. Tenets Compliance Checklist
 | Tenet                        | Status       | Notes                                           |
 |------------------------------|--------------|-------------------------------------------------|
-| No inline JS                 | In Progress  | goals.html still has ~250 lines                 |
+| No inline JS                 | Done         | goals.html still has ~250 lines                 |
 | No inline CSS                | In Progress  | Small <style> in base.html                      |
 | One source of truth          | Not Started  | Need constants.py + constants.js                |
 | All user input via JSON API  | Mostly Done  | Only Quick FAB still uses classic form          |
