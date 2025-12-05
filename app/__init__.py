@@ -4,10 +4,13 @@ import os
 from flask import Flask, request
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, date
 
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
+from flask_wtf.csrf import CSRFProtect
+
+csrf = CSRFProtect()
 
 db = SQLAlchemy()
 migrate = Migrate()
@@ -25,8 +28,7 @@ def create_app():
         ).replace('postgres://', 'postgresql://', 1),
         SQLALCHEMY_TRACK_MODIFICATIONS=False,
     )
-
-    from datetime import date   # ← Add this import at the top with the others!
+    csrf.init_app(app)  # ← this already protects forms
 
     @app.context_processor
     def inject_today():
@@ -34,6 +36,24 @@ def create_app():
         return dict(
             today=real_today,
             today_quarter=(real_today.month - 1) // 3 + 1
+        )
+
+    # NEW — CSRF TOKEN AVAILABLE GLOBALLY FOREVER
+    @app.context_processor
+    def inject_csrf_token():
+        """Makes {{ csrf_token() }} work in every template without passing it manually"""
+        from flask_wtf.csrf import generate_csrf
+        return dict(csrf_token=generate_csrf)
+    
+    @app.context_processor
+    def utility_filters():
+        return dict(
+            get_goal_status_label=lambda v: {
+                'todo': 'To Do',
+                'in_progress': 'In Progress',
+                'blocked': 'Blocked',
+                'done': 'Done'
+            }.get(v, v.title() if '_' not in v else v.replace('_', ' ').title())
         )
 
     # ========= AUTH =========

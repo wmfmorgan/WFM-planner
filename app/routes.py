@@ -64,7 +64,7 @@ def index():
 
 
 # POST: Create goal via JSON
-@bp.route('/goals', methods=['POST'])
+@bp.route('/api/goals', methods=['POST'])
 def create_goal():
     data = request.get_json()
     if not data:

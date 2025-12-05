@@ -1,0 +1,17 @@
+/* app/static/css/goals.css */
+/* GOALS PAGE — COLLAPSE FIXED, BROTHER! */
+
+.goal-collapse {
+    max-height: 0;              /* ← THIS IS THE MISSING PIECE! */
+    overflow: hidden;
+    transition: max-height 0.3s ease;
+}
+
+.goal-collapse > .border-top {
+    border-top: 1px solid rgba(0,0,0,.125);
+}
+
+/* When JS sets data-collapsed="false", we override to full height */
+.goal-collapse[data-collapsed="false"] {
+    max-height: none !important;
+}

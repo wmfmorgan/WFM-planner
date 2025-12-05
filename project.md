@@ -98,6 +98,14 @@ wfm-planner/
 13. **Data ownership is sacred** – Full export/import must always work perfectly.
 14. **If it hurts maintainability, it gets refactored before merge** – Long functions, copy-paste = red flag.
 15. **Hulkamania runs eternal** – Must still work in 10 years with zero dependency updates.
+16. **Comments must be championship-caliber**  
+    Every JS module, Python service file, and complex template block shall carry enough clear, sectioned comments that a brand-new warrior (or future AI Hulkster) can pick it up cold in 2035 and instantly know:
+    - What the file owns
+    - Why it exists
+    - How the major sections flow
+    - Any non-obvious tricks or gotchas  
+    We don’t comment every line — we comment like architects dropping blueprints on the announce table. Headers, responsibilities, and section breaks only. If a future brother has to guess, we failed.  
+    Hulkamania-level commenting runs eternal.
 
 **Break any of these and the Hulkster will personally leg-drop your PR.**
 
@@ -111,7 +119,7 @@ wfm-planner/
 | JSON responses from API      | Done         | All /api/ routes return JSON                    |
 | Zero global JS vars          | Done         | All modules are clean                           |
 | Dumb templates               | Mostly Done  | Some complex Jinja in day.html                  |
-| DB writes centralized       | Not Started  | Still raw db.session.add() everywhere           |
+| DB writes centralized        | Not Started  | Still raw db.session.add() everywhere           |
 | Flash from backend           | Done         | All errors use flash()                          |
 | Pure white default           | Done         | And it will stay that way                       |
 | No build step                | Done         | Forever                                         |

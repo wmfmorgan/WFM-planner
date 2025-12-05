@@ -1,647 +1,177 @@
-<!--app/templates/goals.html-->
 {% extends "base.html" %}
+{% block title %}Goals{% endblock %}
+
+{% block extra_head %}
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/goals.css') }}">
+  <script type="module" src="{{ url_for('static', filename='js/goals.js') }}" defer></script>
+{% endblock %}
+
+
 {% block content %}
 <div class="container-fluid px-5 pt-5">
-<!-- <div class="container mt-4"> -->
-    <!-- HEADER WITH + ICON -->
-    <div class="position-relative mb-4">
-        <h1 class="display-5 fw-bold text-center">Goals
-            <button class="btn btn-success position-absolute top-0 end-0 rounded-circle shadow-sm"
-                    data-bs-toggle="modal" data-bs-target="#goalModal"
-                    title="Add New Goal">
-                <i class="bi bi-plus-lg"></i>
-            </button>
-        </h1>
-    </div>
+  <div class="position-relative mb-4">
+    <h1 class="display-5 fw-bold text-center">Goals
+      <button class="btn btn-success position-absolute top-0 end-0 rounded-circle shadow-sm"
+              data-bs-toggle="modal" data-bs-target="#goalModal"
+              title="Add New Goal">
+        <i class="bi bi-plus-lg"></i>
+      </button>
+    </h1>
+  </div>
 
-    <!-- HIERARCHY GOALS -->
-    {% if goals %}
-        <div class="goal-hierarchy">
-            {% macro render_goal(goal, level=0) %}
-                <div class="goal-item" style="margin-left: {{ level * 30 }}px;" data-goal-id="{{ goal.id }}">
+  {% if goals %}
+    <div class="goal-hierarchy">
+      {% macro render_goal(goal, level=0) %}
+        <div class="goal-item" style="margin-left: {{ level * 30 }}px;" data-goal-id="{{ goal.id }}">
+          <div class="card mb-2 goal-card" data-goal-id="{{ goal.id }}" data-goal-type="{{ goal.type }}">
 
-                    <!-- CARD (title + buttons) -->
-                    <div class="card mb-2 goal-card" data-goal-id="{{ goal.id }}" data-goal-type="{{ goal.type }}">
+            <!-- VIEW MODE -->
+            <div class="view-mode p-3">
+              <div class="d-flex align-items-center gap-2">
+                {% if goal.children or goal.category or goal.due_date %}
+                  <i class="bi bi-chevron-right toggle-chevron"
+                     style="font-size:0.9rem;cursor:pointer;color:#6c757d;transition:transform .2s ease;"></i>
+                {% else %}
+                  <span style="display:inline-block;width:1.1rem;"></span>
+                {% endif %}
 
-                        <!-- VIEW MODE -->
-                        <div class="view-mode p-3">
-                            <div class="d-flex align-items-center gap-2">
-                                <!-- Chevron only when we have something to collapse -->
-                                {% if goal.children or goal.category or goal.due_date %}
-                                    <i class="bi bi-chevron-right toggle-chevron"
-                                       style="font-size:0.9rem;cursor:pointer;color:#6c757d;transition:transform .2s ease;"></i>
-                                {% else %}
-                                    <span style="display:inline-block;width:1.1rem;"></span>
-                                {% endif %}
+                <div class="flex-grow-1">
+                  <h6 class="card-title mb-0 goal-title-text">{{ goal.title | escape }}</h6>
+                </div>
 
-                                <div class="flex-grow-1">
-                                    <h6 class="card-title mb-0 goal-title-text">{{ goal.title | escape }}</h6>
-                                </div>
+                <div class="d-flex gap-1">
+                  <button class="btn btn-sm btn-icon-secondary edit-goal-btn" title="Edit"><i class="bi bi-pencil"></i></button>
+                  <button class="btn btn-sm btn-icon-primary add-subgoal-btn" data-parent-id="{{ goal.id }}" title="Add Sub-Goal"><i class="bi bi-plus-circle"></i></button>
+                  <button class="btn btn-sm btn-icon-danger delete-goal-btn" data-goal-id="{{ goal.id }}" title="Delete"><i class="bi bi-trash"></i></button>
+                </div>
+              </div>
+            </div>
 
-                                <div class="d-flex gap-1">
-                                    <button class="btn btn-sm btn-icon-secondary edit-goal-btn" title="Edit">
-                                        <i class="bi bi-pencil"></i>
-                                    </button>
-                                    <button class="btn btn-sm btn-icon-primary add-subgoal-btn" 
-                                            data-parent-id="{{ goal.id }}" title="Add Sub-Goal">
-                                        <i class="bi bi-plus-circle"></i>
-                                    </button>
-                                    <button class="btn btn-sm btn-icon-danger delete-goal-btn" 
-                                            data-goal-id="{{ goal.id }}" title="Delete">
-                                        <i class="bi bi-trash"></i>
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
+            <!-- EDIT MODE -->
+            <div class="edit-mode d-none p-3">
+              <form class="edit-goal-form">
+                <input type="hidden" name="goal_id" value="{{ goal.id }}">
+                <div class="mb-2">
+                  <input type="text" class="form-control form-control-sm goal-title-input" value="{{ goal.title | escape }}" required>
+                </div>
+                <div class="row">
+                  <div class="col-md-6">
+                    <select class="form-select form-select-sm goal-type-input">
+                      <option value="annual" {% if goal.type == 'annual' %}selected{% endif %}>Annual</option>
+                      <option value="quarterly" {% if goal.type == 'quarterly' %}selected{% endif %}>Quarterly</option>
+                      <option value="monthly" {% if goal.type == 'monthly' %}selected{% endif %}>Monthly</option>
+                      <option value="weekly" {% if goal.type == 'weekly' %}selected{% endif %}>Weekly</option>
+                      <option value="daily" {% if goal.type == 'daily' %}selected{% endif %}>Daily</option>
+                    </select>
+                  </div>
+                  <div class="col-md-6">
+                    <select class="form-select form-select-sm goal-category-input">
+                      {% for value, label in [('Work','Work'),('Marital','Marital'),('Family','Family'),('Physical','Physical'),('Mental','Mental'),('Hobby','Hobby'),('Social','Social'),('Financial','Financial')] %}
+                        <option value="{{ value }}" {% if goal.category == value %}selected{% endif %}>{{ label }}</option>
+                      {% endfor %}
+                    </select>
+                  </div>
+                </div>
+                <div class="mb-2"><textarea class="form-control form-control-sm goal-description-input" rows="2">{{ goal.description | escape or '' }}</textarea></div>
+                <div class="mb-2"><textarea class="form-control form-control-sm goal-motivation-input" rows="2">{{ goal.motivation | escape or '' }}</textarea></div>
+                <div class="row">
+                  <div class="col-md-6"><input type="date" class="form-control form-control-sm goal-due-date-input" value="{{ goal.due_date.strftime('%Y-%m-%d') if goal.due_date else '' }}"></div>
+                  <div class="col-md-6">
+                    <select class="form-select form-select-sm goal-status-input">
+                      <option value="todo" {% if goal.status == 'todo' %}selected{% endif %}>To Do</option>
+                      <option value="in_progress" {% if goal.status == 'in_progress' %}selected{% endif %}>In Progress</option>
+                      <option value="blocked" {% if goal.status == 'blocked' %}selected{% endif %}>Blocked</option>
+                      <option value="done" {% if goal.status == 'done' %}selected{% endif %}>Done</option>
+                    </select>
+                  </div>
+                </div>
+                <div class="form-check mb-2">
+                  <input type="checkbox" class="form-check-input goal-completed-input" {% if goal.completed %}checked{% endif %}>
+                  <label class="form-check-label">Completed</label>
+                </div>
+                <div class="d-flex gap-1">
+                  <button type="submit" class="btn btn-sm btn-success">Save</button>
+                  <button type="button" class="btn btn-sm btn-secondary cancel-edit">Cancel</button>
+                </div>
+              </form>
+            </div>
+          </div>
 
-                        <!-- EDIT MODE -->
-                        <div class="edit-mode d-none p-3">
-                            <form class="edit-goal-form">
-                                <input type="hidden" name="goal_id" value="{{ goal.id }}">
-
-                                <div class="mb-2">
-                                    <input type="text" class="form-control form-control-sm goal-title-input"
-                                           value="{{ goal.title | escape }}" required>
-                                </div>
-
-                                <div class="row">
-                                    <div class="col-md-6">
-                                        <div class="mb-2">
-                                            <select class="form-select form-select-sm goal-type-input">
-                                                <option value="annual" {% if goal.type == 'annual' %}selected{% endif %}>Annual</option>
-                                                <option value="quarterly" {% if goal.type == 'quarterly' %}selected{% endif %}>Quarterly</option>
-                                                <option value="monthly" {% if goal.type == 'monthly' %}selected{% endif %}>Monthly</option>
-                                                <option value="weekly" {% if goal.type == 'weekly' %}selected{% endif %}>Weekly</option>
-                                                <option value="daily" {% if goal.type == 'daily' %}selected{% endif %}>Daily</option>
-                                            </select>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <div class="mb-2">
-                                            <select class="form-select form-select-sm goal-category-input">
-                                                {% for value, label in [('Work','Work'),('Marital','Marital'),('Family','Family'),('Physical','Physical'),('Mental','Mental'),('Hobby','Hobby'),('Social','Social'),('Financial','Financial')] %}
-                                                    <option value="{{ value }}" {% if goal.category == value %}selected{% endif %}>{{ label }}</option>
-                                                {% endfor %}
-                                            </select>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div class="mb-2">
-                                    <textarea class="form-control form-control-sm goal-description-input" rows="2">{{ goal.description | escape or '' }}</textarea>
-                                </div>
-
-                                <div class="mb-2">
-                                    <textarea class="form-control form-control-sm goal-motivation-input" rows="2">{{ goal.motivation | escape or '' }}</textarea>
-                                </div>
-
-                                <div class="row">
-                                    <div class="col-md-6">
-                                        <div class="mb-2">
-                                            <input type="date" class="form-control form-control-sm goal-due-date-input"
-                                                   value="{{ goal.due_date.strftime('%Y-%m-%d') if goal.due_date else '' }}">
-                                        </div>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <div class="mb-2">
-                                            <select class="form-select form-select-sm goal-status-input">
-                                                <option value="todo" {% if goal.status == 'todo' %}selected{% endif %}>To Do</option>
-                                                <option value="in_progress" {% if goal.status == 'in_progress' %}selected{% endif %}>In Progress</option>
-                                                <option value="blocked" {% if goal.status == 'blocked' %}selected{% endif %}>Blocked</option>
-                                                <option value="done" {% if goal.status == 'done' %}selected{% endif %}>Done</option>
-                                            </select>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div class="form-check mb-2">
-                                    <input type="checkbox" class="form-check-input goal-completed-input"
-                                           {% if goal.completed %}checked{% endif %}>
-                                    <label class="form-check-label">Completed</label>
-                                </div>
-
-                                <div class="d-flex gap-1">
-                                    <button type="submit" class="btn btn-sm btn-success">Save</button>
-                                    <button type="button" class="btn btn-sm btn-secondary cancel-edit">Cancel</button>
-                                </div>
-                            </form>
-                        </div>
-                    </div>
-
-                    <!-- COLLAPSIBLE SECTION (details + children) -->
-                    {% if goal.children or goal.category or goal.due_date %}
-                    <div class="goal-collapse" data-collapsed="true"
-                         style="max-height:0;overflow:hidden;transition:max-height .3s ease;">
-                         <div class="px-3 py-2 text-muted small border-top">
-                            <div><strong>{{ goal.type|capitalize }}</strong></div>
-                            {% if goal.description %}<div>{{ goal.description }}</div>{% endif %}
-                            {% if goal.category %}<div>{{ goal.category }}</div>{% endif %}
-                            {% if goal.status %}<div>{{ goal.status }}</div>{% endif %}
-                            {% if goal.due_date %}<div>{{ goal.due_date.strftime('%b %d') }}</div>{% endif %}
-                        </div>
-
-                        <!-- CHILD GOALS -->
-                        {% if goal.children %}
-                            {% for child in goal.children %}
-                                {{ render_goal(child, level + 1) }}
-                            {% endfor %}
-                        {% endif %}
-                    </div>
-                    {% endif %}
-
-                </div> <!-- END .goal-item -->
-            {% endmacro %}
-
-            {% for goal in goals %}
-                {{ render_goal(goal) }}
-            {% endfor %}
+          {% if goal.children or goal.category or goal.due_date %}
+          <div class="goal-collapse" data-collapsed="true">
+            <div class="px-3 py-2 text-muted small border-top">
+              <div><strong>{{ goal.type|capitalize }}</strong></div>
+              {% if goal.description %}<div>{{ goal.description }}</div>{% endif %}
+              {% if goal.category %}<div>{{ goal.category }}</div>{% endif %}
+              {% if goal.status %}<div>{{ get_goal_status_label(goal.status) }}</div>{% endif %}
+              {% if goal.due_date %}<div>{{ goal.due_date.strftime('%b %d') }}</div>{% endif %}
+            </div>
+            {% if goal.children %}
+              {% for child in goal.children %}
+                {{ render_goal(child, level + 1) }}
+              {% endfor %}
+            {% endif %}
+          </div>
+          {% endif %}
         </div>
-    {% else %}
-        <p class="text-center text-muted">No goals yet. Click the + to create one!</p>
-    {% endif %}
+      {% endmacro %}
+
+      {% for goal in goals %}
+        {{ render_goal(goal) }}
+      {% endfor %}
+    </div>
+  {% else %}
+    <p class="text-center text-muted">No goals yet. Click the + to create one!</p>
+  {% endif %}
 </div>
 
 <!-- UNIFIED GOAL MODAL -->
 <div class="modal fade" id="goalModal" tabindex="-1">
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="modalTitle">Create Goal</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body">
-                <form id="unified-goal-form" action="/goals" method="POST">
-                    {{ form.hidden_tag() }}
-                    <input type="hidden" name="parent_id" value="">
-                    <input type="hidden" name="goal_id" value="">
-                    <input type="hidden" name="hidden_type" id="hidden-type-field">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="modalTitle">Create Goal</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <form id="unified-goal-form">
+          <input type="hidden" name="parent_id" value="">
+          <input type="hidden" name="goal_id" value="">
+          <input type="hidden" name="hidden_type" id="hidden-type-field">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
 
-                    <div class="mb-3">
-                        {{ form.title.label(class="form-label") }}
-                        {{ form.title(class="form-control") }}
-                    </div>
 
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="mb-3">
-                                {{ form.type.label(class="form-label") }}
-                                {{ form.type(class="form-select goal-type-select") }}
-
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="mb-3">
-                                {{ form.category.label(class="form-label") }}
-                                {{ form.category(class="form-select") }}
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="mb-3">
-                        {{ form.description.label(class="form-label") }}
-                        {{ form.description(class="form-control", rows=3) }}
-                    </div>
-
-                    <div class="mb-3">
-                        {{ form.motivation.label(class="form-label") }}
-                        {{ form.motivation(class="form-control", rows=3) }}
-                    </div>
-
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="mb-3">
-                                {{ form.due_date.label(class="form-label") }}
-                                {{ form.due_date(class="form-control") }}
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="mb-3">
-                                {{ form.status.label(class="form-label") }}
-                                {{ form.status(class="form-select") }}
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="form-check mb-3">
-                        {{ form.completed(class="form-check-input") }}
-                        {{ form.completed.label(class="form-check-label") }}
-                    </div>
-
-                    <div class="d-flex gap-2">
-                        {{ form.submit(class="btn btn-primary") }}
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                    </div>
-                </form>
-            </div>
-        </div>
+          <div class="mb-3">
+            <label class="form-label">Title</label>
+            <input name="title" class="form-control" required>
+          </div>
+          <div class="row">
+            <div class="col-md-6"><div class="mb-3">
+              <label class="form-label">Type</label>
+              <select name="type" class="form-select goal-type-select"></select>
+            </div></div>
+            <div class="col-md-6"><div class="mb-3">
+              <label class="form-label">Category</label>
+              <select name="category" class="form-select"></select>
+            </div></div>
+          </div>
+          <div class="mb-3"><label class="form-label">Description</label><textarea name="description" class="form-control" rows="3"></textarea></div>
+          <div class="mb-3"><label class="form-label">Motivation</label><textarea name="motivation" class="form-control" rows="3"></textarea></div>
+          <div class="row">
+            <div class="col-md-6"><div class="mb-3"><label class="form-label">Due Date</label><input type="date" name="due_date" class="form-control"></div></div>
+            <div class="col-md-6"><div class="mb-3"><label class="form-label">Status</label><select name="status" class="form-select"></select></div></div>
+          </div>
+          <div class="form-check mb-3">
+            <input type="checkbox" name="completed" class="form-check-input">
+            <label class="form-check-label">Completed</label>
+          </div>
+          <div class="d-flex gap-2">
+            <button type="submit" class="btn btn-primary">Save Goal</button>
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          </div>
+        </form>
+      </div>
     </div>
+  </div>
 </div>
-
-<script>
-// GLOBAL TOAST — ONLY FOR GOALS PAGE (fast, clean, no external dependency)
-function showToast(message, type = 'info') {
-    const toast = document.createElement('div');
-    toast.className = `toast align-items-center text-bg-${type} border-0 position-fixed`;
-    toast.style.top = '1rem';
-    toast.style.right = '1rem';
-    toast.style.zIndex = '9999';
-    toast.style.minWidth = '200px';
-    toast.innerHTML = `
-        <div class="d-flex">
-            <div class="toast-body">${message}</div>
-            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
-        </div>
-    `;
-    document.body.appendChild(toast);
-    const bsToast = new bootstrap.Toast(toast, { delay: 3000 });
-    bsToast.show();
-    toast.addEventListener('hidden.bs.toast', () => toast.remove());
-}
-</script>
-
-<!-- FULL JS LOGIC -->
-<script>
-/* --------------------------------------------------------------
-   TOAST – simple Bootstrap toast (used everywhere)
-   -------------------------------------------------------------- */
-function showToast(message, type = 'info') {
-    const toast = document.createElement('div');
-    toast.className = `toast align-items-center text-white bg-${type} border-0 position-fixed`;
-    toast.style.top   = '1rem';
-    toast.style.right = '1rem';
-    toast.style.zIndex = '9999';
-    toast.innerHTML = `
-        <div class="d-flex">
-            <div class="toast-body">${message}</div>
-            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
-        </div>
-    `;
-    document.body.appendChild(toast);
-    const bsToast = new bootstrap.Toast(toast, { delay: 3000 });
-    bsToast.show();
-    toast.addEventListener('hidden.bs.toast', () => toast.remove());
-}
-
-/* --------------------------------------------------------------
-   DOM READY
-   -------------------------------------------------------------- */
-document.addEventListener('DOMContentLoaded', function () {
-
-    /* ---------- SINGLE CLICK HANDLER — FIXED BUBBLING ---------- */
-    document.addEventListener('click', function (e) {
-        const target = e.target;
-
-        /* ---- ADD TOP-LEVEL GOAL (modal) ---- */
-        if (target.matches('[data-bs-target="#goalModal"]')) {
-            document.getElementById('modalTitle').textContent = 'Create Goal';
-            const form = document.getElementById('unified-goal-form');
-            form.reset();
-            form.querySelector('[name="parent_id"]').value = '';
-            form.querySelector('[name="goal_id"]').value   = '';
-            const hidden = document.getElementById('hidden-type-field');
-            if (hidden) hidden.value = '';
-            const typeSelect = form.querySelector('.goal-type-select');
-            typeSelect.value = 'annual';
-            typeSelect.disabled = false;
-            new bootstrap.Modal(document.getElementById('goalModal')).show();
-            return;
-        }
-
-        /* ---- CHEVRON TOGGLE ---- */
-        /* ---- CHEVRON TOGGLE + CTRL+CLICK ALL ---- */
-        const chevron = target.closest('.toggle-chevron');
-        if (chevron) {
-            const goalItem = chevron.closest('.goal-item');
-            const collapse = goalItem.querySelector('.goal-collapse');
-            if (!collapse) return;
-
-            const isCollapsed = collapse.dataset.collapsed === 'true';
-
-            if (e.ctrlKey || e.metaKey) {
-                // === CTRL+CLICK: TOGGLE ALL CHILDREN ===
-                const collapses = goalItem.querySelectorAll('.goal-collapse');
-                const allExpanded = Array.from(collapses).every(c => c.dataset.collapsed === 'false');
-                const shouldCollapse = allExpanded;
-
-                collapses.forEach(c => {
-                    c.dataset.collapsed = shouldCollapse ? 'true' : 'false';
-                    const childChevron = c.closest('.goal-item')?.querySelector('.toggle-chevron');
-                    if (childChevron) {
-                        childChevron.classList.toggle('bi-chevron-right', shouldCollapse);
-                        childChevron.classList.toggle('bi-chevron-down', !shouldCollapse);
-                    }
-                });
-
-                requestAnimationFrame(() => {
-                    collapses.forEach(c => {
-                        if (c.dataset.collapsed === 'false') {
-                            c.style.maxHeight = c.scrollHeight + 'px';
-                        } else {
-                            c.style.maxHeight = c.scrollHeight + 'px';
-                            requestAnimationFrame(() => c.style.maxHeight = '0');
-                        }
-                    });
-                });
-
-                collapses.forEach(c => {
-                    c.addEventListener('transitionend', function handler() {
-                        if (c.dataset.collapsed === 'false') {
-                            c.style.maxHeight = 'none';
-                        }
-                        c.removeEventListener('transitionend', handler);
-                    });
-                });
-            } else {
-                // === NORMAL CLICK: TOGGLE SINGLE ===
-                collapse.dataset.collapsed = (!isCollapsed).toString();
-
-                chevron.classList.toggle('bi-chevron-right', !isCollapsed);
-                chevron.classList.toggle('bi-chevron-down', isCollapsed);
-
-                if (isCollapsed) {
-                    collapse.style.maxHeight = collapse.scrollHeight + 'px';
-                } else {
-                    collapse.style.maxHeight = collapse.scrollHeight + 'px';
-                    requestAnimationFrame(() => collapse.style.maxHeight = '0');
-                }
-
-                collapse.addEventListener('transitionend', function handler() {
-                    if (collapse.dataset.collapsed === 'false') {
-                        collapse.style.maxHeight = 'none';
-                    }
-                    collapse.removeEventListener('transitionend', handler);
-                });
-            }
-
-            return;
-        }
-        const card = target.closest('.goal-card');
-        if (!card) return;
-
-        /* ---- EDIT (inline) ---- */
-        if (target.closest('.edit-goal-btn')) {
-            card.querySelector('.view-mode').classList.add('d-none');
-            card.querySelector('.edit-mode').classList.remove('d-none');
-            return;
-        }
-
-        /* ---- CANCEL EDIT ---- */
-        if (target.closest('.cancel-edit')) {
-            card.querySelector('.view-mode').classList.remove('d-none');
-            card.querySelector('.edit-mode').classList.add('d-none');
-            return;
-        }
-
-        /* ---- DELETE (live remove) ---- */
-        if (target.closest('.delete-goal-btn')) {
-            const goalId = target.closest('.delete-goal-btn').dataset.goalId;
-            if (confirm('Delete this goal and all sub-goals? This cannot be undone.')) {
-                fetch(`/api/goals/${goalId}`, { method: 'DELETE' })
-                    .then(r => { if (!r.ok) throw new Error(r.status); return r.json(); })
-                    .then(() => {
-                        target.closest('.goal-item').remove();
-                        showToast('Goal deleted!', 'danger');
-                    })
-                    .catch(err => {
-                        console.error(err);
-                        showToast('Failed to delete.', 'danger');
-                    });
-            }
-            return;
-        }
-
-        /* ---- ADD SUB-GOAL (your existing code) ---- */
-        if (target.closest('.add-subgoal-btn')) {
-            const button = target.closest('.add-subgoal-btn');
-            const parentId = button.dataset.parentId;
-            const parentType = card.dataset.goalType || 'annual';
-
-            const typeMap = { 
-                'annual': 'quarterly', 
-                'quarterly': 'monthly', 
-                'monthly': 'weekly', 
-                'weekly': 'daily', 
-                'daily': 'daily' 
-            };
-            const childType = typeMap[parentType] || 'daily';
-
-            document.getElementById('modalTitle').textContent = 'Add Sub-Goal';
-            const form = document.getElementById('unified-goal-form');
-            form.reset();
-
-            form.querySelector('[name="parent_id"]').value = parentId;
-            form.querySelector('[name="goal_id"]').value = '';
-
-            // Use hidden field for type
-            const hiddenType = document.getElementById('hidden-type-field');
-            if (hiddenType) hiddenType.value = childType;
-
-            // Keep select visible but pre-selected
-            const typeSelect = form.querySelector('[name="type"]');
-            typeSelect.value = childType;
-            typeSelect.disabled = false; // Keep enabled so it's sent
-
-            new bootstrap.Modal(document.getElementById('goalModal')).show();
-            return;
-        }
-    });
-
-    /* ---------- INLINE EDIT SAVE (unchanged) ---------- */
-    document.addEventListener('submit', function (e) {
-        if (e.target.classList.contains('edit-goal-form')) {
-            e.preventDefault();
-
-            const form = e.target;
-            const goalId = form.querySelector('[name="goal_id"]').value;
-            const card = form.closest('.goal-card');
-
-            const data = {
-                title: form.querySelector('.goal-title-input').value,
-                type: form.querySelector('.goal-type-input').value,
-                category: form.querySelector('.goal-category-input').value,
-                description: form.querySelector('.goal-description-input').value,
-                motivation: form.querySelector('.goal-motivation-input').value,
-                due_date: form.querySelector('.goal-due-date-input').value || null,
-                status: form.querySelector('.goal-status-input').value,
-                completed: form.querySelector('.goal-completed-input').checked
-            };
-
-            fetch(`/api/goals/${goalId}`, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(data)
-            })
-            .then(res => {
-                if (!res.ok) throw new Error(`HTTP ${res.status}`);
-                // UPDATE UI WITHOUT RELOAD
-                card.querySelector('.goal-title-text').textContent = data.title;
-                card.querySelector('.view-mode').classList.remove('d-none');
-                card.querySelector('.edit-mode').classList.add('d-none');
-            })
-            .catch(err => {
-                console.error('Edit failed:', err);
-                alert('Failed to save.');
-            });
-        }
-    });
-
-    /* ---------- MODAL FORM SUBMIT – JSON + LIVE APPEND ---------- */
-    document.getElementById('unified-goal-form').addEventListener('submit', function (e) {
-        e.preventDefault();
-        const form   = e.target;
-        const data   = Object.fromEntries(new FormData(form));
-        data.completed = form.querySelector('[name="completed"]').checked;
-        const parentId = data.parent_id || null;
-        const url = parentId ? `/api/goals/${parentId}/subgoal` : '/goals';
-
-        fetch(url, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(data)
-        })
-        .then(r => {
-            if (!r.ok) return r.json().then(err => { throw err; });
-            return r.json();
-            // alert(result);
-        })
-        .then(result => {
-            if (result.success && result.goal) {
-                showToast(result.message || 'Goal saved!', 'success');
-
-                const container = document.querySelector('.goal-hierarchy');
-                const newItem = document.createElement('div');
-                newItem.className = 'goal-item';
-                newItem.dataset.goalId = result.goal.id;
-                newItem.style.marginLeft = result.goal.parent_id ? '30px' : '0px';
-
-                newItem.innerHTML = `
-                    <div class="card mb-2 goal-card" data-goal-id="${result.goal.id}" data-goal-type="${result.goal.type}">
-                        <div class="view-mode p-3">
-                            <div class="d-flex align-items-center gap-2">
-                                <i class="bi bi-chevron-right toggle-chevron" style="font-size:0.9rem;cursor:pointer;color:#6c757d;transition:transform .2s ease;"></i>
-                                <div class="flex-grow-1">
-                                    <h6 class="card-title mb-0 goal-title-text">${result.goal.title}</h6>
-                                </div>
-                                    <div class="d-flex gap-1">
-                                        <button class="btn btn-sm btn-icon-secondary edit-goal-btn" title="Edit">
-                                            <i class="bi bi-pencil"></i>
-                                        </button>
-                                        <button class="btn btn-sm btn-icon-primary add-subgoal-btn" data-parent-id="${result.goal.id}" title="Add Sub-Goal">
-                                            <i class="bi bi-plus-circle"></i>
-                                        </button>
-                                        <button class="btn btn-sm btn-icon-danger delete-goal-btn" data-goal-id="${result.goal.id}" title="Delete">
-                                            <i class="bi bi-trash"></i>
-                                        </button>
-                                    </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="goal-collapse" data-collapsed="true" style="max-height:0;overflow:hidden;transition:max-height .3s ease;">
-                        <div class="px-3 py-2 text-muted small border-top">
-                            <div><strong>${result.goal.type.charAt(0).toUpperCase() + result.goal.type.slice(1)}</strong></div>
-                            ${result.goal.category ? `<div>${result.goal.category}</div>` : ''}
-                            ${result.goal.due_date ? `<div>${new Date(result.goal.due_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</div>` : ''}
-                        </div>
-                    </div>
-                `;
-
-                if (result.goal.parent_id) {
-                    const parentCollapse = document.querySelector(`[data-goal-id="${result.goal.parent_id}"] .goal-collapse`);
-                    if (parentCollapse) {
-                        parentCollapse.appendChild(newItem);
-                        void parentCollapse.offsetHeight;
-
-                        parentCollapse.dataset.collapsed = 'false';
-                        parentCollapse.style.maxHeight = parentCollapse.scrollHeight + 'px';
-
-                        const parentChevron = document.querySelector(`[data-goal-id="${result.goal.parent_id}"] .toggle-chevron`);
-                        if (parentChevron) {
-                            parentChevron.classList.remove('bi-chevron-right');
-                            parentChevron.classList.add('bi-chevron-down');
-                        }
-
-                        parentCollapse.addEventListener('transitionend', function handler() {
-                            parentCollapse.style.maxHeight = 'none';
-                            parentCollapse.removeEventListener('transitionend', handler);
-                        });
-                    }
-                } else {
-                    const allTopLevel = Array.from(container.children).filter(child =>
-                        child.classList.contains('goal-item') &&
-                        !child.style.marginLeft.includes('30px')
-                    );
-                    let insertBefore = null;
-                    const goalDue = result.goal.due_date || '9999-12-31';
-
-                    for (const item of allTopLevel) {
-                        const itemDue = item.querySelector('.goal-due-date-input')?.value || '9999-12-31';
-                        const itemId = parseInt(item.dataset.goalId);
-
-                        if (
-                            goalDue < itemDue ||
-                            (goalDue === itemDue && result.goal.id < itemId)
-                        ) {
-                            insertBefore = item;
-                            break;
-                        }
-                    }
-
-                    if (insertBefore) {
-                        container.insertBefore(newItem, insertBefore);
-                    } else {
-                        container.appendChild(newItem);
-                    }
-                }
-            }
-        })
-        .catch(err => {
-            console.error('Create failed:', err);
-            showToast('Failed to save: ' + (err.message || JSON.stringify(err.errors || err)), 'danger');
-        })
-        .finally(() => {
-            const modalEl = form.closest('.modal');
-            if (modalEl) bootstrap.Modal.getInstance(modalEl).hide();
-        });
-    });
-});
-
-    /* --------------------------------------------------------------
-    PERSISTENT COLLAPSE STATE
-    -------------------------------------------------------------- */
-    document.addEventListener('DOMContentLoaded', function () {
-    // Restore expanded state from localStorage
-    document.querySelectorAll('.goal-collapse').forEach(collapse => {
-        const goalId = collapse.dataset.goalId || collapse.id;
-        if (localStorage.getItem('expanded-goal-' + goalId) === 'true') {
-        const bsCollapse = new bootstrap.Collapse(collapse, { toggle: false });
-        bsCollapse.show();
-        }
-    });
-
-    // Save expanded/collapsed state when user clicks
-    document.querySelectorAll('.goal-collapse').forEach(collapse => {
-        collapse.addEventListener('shown.bs.collapse', function () {
-        const goalId = this.dataset.goalId || this.id;
-        localStorage.setItem('expanded-goal-' + goalId, 'true');
-        });
-        collapse.addEventListener('hidden.bs.collapse', function () {
-        const goalId = this.dataset.goalId || this.id;
-        localStorage.removeItem('expanded-goal-' + goalId);
-        });
-    });
-    });
-
-    
-</script>
-
-<!-- STYLE BLOCK -->
-<style>
-    .goal-collapse {
-        overflow: hidden;
-        transition: max-height .3s ease;
-    }
-    .goal-collapse > .border-top {
-        border-top: 1px solid rgba(0,0,0,.125);
-    }
-</style>
 {% endblock %}
