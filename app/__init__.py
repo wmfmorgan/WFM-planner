@@ -91,6 +91,9 @@ def create_app():
     from . import routes
     app.register_blueprint(routes.bp)
 
+    # ========= CSRF EXEMPTIONS FOR API ENDPOINTS =========
+    csrf.exempt(routes.bp)
+
     # ========= NOW PROTECT SPECIFIC ENDPOINTS =========
     # Fix the real endpoint names (Flask uses function name, not route path)
     protected_endpoints = {

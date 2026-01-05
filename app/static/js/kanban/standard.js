@@ -104,47 +104,71 @@ export function initKanban() {
       e.preventDefault();
       const input = this.querySelector('.add-task-input');
       const desc = input.value.trim();
-      
+
       if (!desc || isSubmittingItem) return;
       isSubmittingItem = true;
-      
-      const [y, m, d] = (document.getElementById('dayDateData')?.textContent.trim() || '').split('-');
-      
+
+      const dayDateData = document.getElementById('dayDateData');
+      const isOnDayPage = dayDateData && dayDateData.textContent.trim();
+
+      let payload;
+      if (isOnDayPage) {
+        // On a day page - add task with specific date
+        const [y, m, d] = dayDateData.textContent.trim().split('-');
+        payload = { description: desc, year: +y, month: +m, day: +d };
+      } else {
+        // Not on a day page - add to backlog
+        payload = { description: desc, backlog: true };
+      }
+
       fetch('/api/task', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ description: desc, year: +y, month: +m, day: +d })
+        body: JSON.stringify(payload)
       }).
-      
+
       then(r => r.json())
       .then(data => {
-        // Target the sortable container (excludes the form)
-        const list = document.querySelector('.kanban-column[data-status="todo"][data-type="tasks"]');
+        if (isOnDayPage) {
+          // On day page - add to TODO column
+          const list = document.querySelector('.kanban-column[data-status="todo"][data-type="tasks"]');
+          const form = list.querySelector('#add-task-form');
+          const card = document.createElement('div');
+          card.className = 'kanban-item card mb-2 d-flex align-items-center';
+          card.dataset.itemId = data.id;
+          card.dataset.fullTitle = desc;
+          card.innerHTML = `
+            <div class="drag-handle text-muted flex-shrink-0 d-flex align-items-center justify-content-center px-3">
+              <i class="bi bi-grip-vertical fs-5"></i>
+            </div>
+            <div class="flex-grow-1 pe-3 py-2">
+              <div class="task-text card-title mb-0 fw-medium">${desc}</div>
+              <input type="text" class="task-edit form-control form-control-sm d-none" value="${desc}">
+            </div>
+            <button type="button" class="btn btn-icon-danger btn-sm m-1 opacity-0">
+              <i class="bi bi-trash"></i>
+            </button>
+          `;
+          list.insertBefore(card, form);
+        } else {
+          // Not on day page - add to backlog column
+          const list = document.querySelector('.kanban-column[data-status="backlog"]');
+          const card = document.createElement('div');
+          card.className = 'kanban-item card mb-2 d-flex align-items-center';
+          card.dataset.itemId = data.id;
+          card.innerHTML = `
+            <div class="drag-handle text-muted flex-shrink-0 d-flex align-items-center justify-content-center px-3">
+              <i class="bi bi-grip-vertical fs-5"></i>
+            </div>
+            <div class="flex-grow-1 text-truncate pe-3">
+              <h6 class="card-title mb-0 fw-medium">${desc}</h6>
+            </div>
+          `;
+          list.appendChild(card);
+        }
 
-        // Insert the new card BEFORE the form (so it appears above the input)
-        const form = list.querySelector('#add-task-form');
-        const card = document.createElement('div');
-        card.className = 'kanban-item card mb-2 d-flex align-items-center';
-        card.dataset.itemId = data.id;
-        card.dataset.fullTitle = desc;  // tooltip fix too!
-        card.innerHTML = `
-          <div class="drag-handle text-muted flex-shrink-0 d-flex align-items-center justify-content-center px-3">
-            <i class="bi bi-grip-vertical fs-5"></i>
-          </div>
-          <div class="flex-grow-1 pe-3 py-2">
-            <div class="task-text card-title mb-0 fw-medium">${desc}</div>
-            <input type="text" class="task-edit form-control form-control-sm d-none" value="${desc}">
-          </div>
-          <button type="button" class="btn btn-icon-danger btn-sm m-1 opacity-0">
-            <i class="bi bi-trash"></i>
-          </button>
-        `;
-
-        list.insertBefore(card, form);  // THIS IS THE MONEY LINE
         input.value = '';
         input.focus();
-        //const badge = list.closest('.card').querySelector('.badge');
-        //if (badge) badge.textContent = list.children.length;
       }).catch(console.error).finally(() => isSubmittingItem = false);
     });
   });
@@ -160,11 +184,16 @@ export function initKanban() {
       const data = Object.fromEntries(formData);
       data.completed = formData.get('completed') === 'on';
 
+      // Remove empty category to avoid validation errors
+      if (!data.category || data.category.trim() === '') {
+        delete data.category;
+      }
+
       const goalId = data.goal_id || null;
       const parentId = data.parent_id || null;
 
       // EDIT = PUT, ADD = POST
-      let url = '/goals';
+      let url = '/api/goals';
       let method = 'POST';
 
       if (goalId) {

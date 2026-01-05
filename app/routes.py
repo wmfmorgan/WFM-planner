@@ -68,7 +68,7 @@ def create_goal():
     if not data:
         return jsonify({'error': 'Invalid JSON'}), 400
 
-    form = GoalForm(data=data)  # Validate JSON as dict
+    form = GoalForm(data=data, meta={'csrf': False})  # Validate JSON as dict, disable CSRF for API
 
     # FORCE DEFAULT IF BLANK
     if not form.type.data:
