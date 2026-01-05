@@ -37,9 +37,7 @@ def require_auth():
     if not (auth and auth.username == "admin" and auth.password == password):
         return ("Unauthorized", 401, {'WWW-Authenticate': 'Basic realm="WFM Planner"'})
 
-# GLOBAL TODAY FOR NAVBAR
-today = datetime.now().date()
-today_quarter = ((today.month - 1) // 3) + 1
+
 
 
 # REUSABLE: GROUP GOALS BY STATUS
@@ -60,7 +58,7 @@ def group_goals_by_status(goals):
 
 @bp.route('/')
 def index():
-    return render_template('index.html', title="WFM Planner", today=today, today_quarter=today_quarter)
+    return render_template('index.html', title="WFM Planner")
 
 
 # POST: Create goal via JSON
@@ -152,9 +150,7 @@ def get_goals():
     return render_template(
         'goals.html',
         goals=goals,
-        form=form,
-        today=today,
-        today_quarter=today_quarter
+        form=form
     )
 
 
@@ -212,11 +208,9 @@ def year_page(year):
         quarters=quarters,
         prev_url=f"/year/{prev_year}",
         next_url=f"/year/{next_year}",
-        today=today,
         page_type='year',
         parent_type='year',
         form=form,
-        today_quarter=today_quarter
     )
 
 
@@ -274,12 +268,10 @@ def quarter_page(year, q_num):
         prev_url=f"/quarter/{prev_year}/Q{prev_q}",
         next_url=f"/quarter/{next_year}/Q{next_q}",
         months=months,
-        today=today,
         page_type='quarter',
         parent_type='annual',
         form=form,
         possible_parents=possible_parents,
-        today_quarter=today_quarter
     )
 
 
@@ -357,12 +349,10 @@ def month_page(year, month):
         monthly_goals_grouped=monthly_goals_grouped,
         prev_url=f"/month/{prev_year}/{prev_month}",
         next_url=f"/month/{next_year}/{next_month}",
-        today=today,
         page_type='month',
         parent_type='quarterly',
         form=form,
         possible_parents=possible_parents,
-        today_quarter=today_quarter,
         events_on_date=events_on_date,
         calendar_with_weeks=calendar_with_weeks,
         month_name=month_name
@@ -488,10 +478,8 @@ def week_page(year, week):
         page_type='week',
         form=form,
         possible_parents=possible_parents,
-        today=today,
         week_days=week_days,
         events_on_date=events_on_date,
-        today_quarter=today_quarter
     )
 
 
@@ -616,7 +604,6 @@ def day_page(year, month, day):
         daily_goals_grouped=daily_goals_grouped,
         prev_url=f"/day/{prev_date.year}/{prev_date.month}/{prev_date.day}",
         next_url=f"/day/{next_date.year}/{next_date.month}/{next_date.day}",
-        today=today,
         page_type='day',
         parent_type='weekly',
         form=form,
@@ -626,7 +613,6 @@ def day_page(year, month, day):
         #day=day,
         month_name=calendar.month_name[month],
         events_on_date=events_on_date,
-        today_quarter=today_quarter,
         date=target_date,
         kanban=kanban,
         backlog_tasks=backlog_tasks
@@ -1018,8 +1004,6 @@ def restore_db():
     return render_template(
         'restore.html',
         backups=backups,
-        today=today,
-        today_quarter=today_quarter
     )
 
 import json
@@ -1179,7 +1163,7 @@ def import_json():
     # GET: Show upload form
     today = date.today()
     today_quarter = (today.month - 1) // 3 + 1
-    return render_template('import_json.html', today=today, today_quarter=today_quarter)
+    return render_template('import_json.html')
 
 # --------------------------------------------------------------
 # API: add a task (only from the To-Do column)
